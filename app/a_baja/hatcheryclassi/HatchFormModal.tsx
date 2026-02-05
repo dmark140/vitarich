@@ -1,5 +1,5 @@
 "use client";
-import React from 'react'
+
 import { useState, ChangeEvent } from "react";
 import {
   Dialog,
@@ -7,6 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -36,7 +37,7 @@ const initialState: HatchForm = {
   is_active: true,
 };
 
-export default function Layout({
+export default function HatchFormModal({
   open,
   onClose,
   onSubmit,
@@ -64,8 +65,10 @@ export default function Layout({
 
   const handleSubmit = () => {
     onSubmit(form);
+    console.log(form);
     onClose();
     setForm(initialState);
+     console.log(initialState);
   };
 
   return (
@@ -73,6 +76,7 @@ export default function Layout({
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Hatch Classification</DialogTitle>
+          <DialogDescription>Enter hatch classification details</DialogDescription>
         </DialogHeader>
 
         <div className="grid grid-cols-2 gap-4">
