@@ -5,8 +5,8 @@ import { Button } from '@/components/ui/button';
 export default function StartUp() {
 
     const buttons = [
-        { label: 'Dashboard', icon: <Sparkles size={18} className="text-orange-500 dark:text-orange-400" /> },
-        { label: 'Hatchiry', icon: <EggFried size={18} /> },
+        { label: 'Dashboard', link:'', icon: <Sparkles size={18} className="text-orange-500 dark:text-orange-400" /> },
+        { label: 'Hatchiry', link:'', icon: <EggFried size={18} /> },
     ];
     return (
         <div className="flex flex-col items-start justify-center   text-slate-900 dark:text-white p-8 mr-4  transition-colors duration-300">
