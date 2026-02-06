@@ -74,7 +74,7 @@ export default function SideBarMain({
                             <DropdownMenuTrigger>
                                 <Avatar className="cursor-pointer" >
                                     <AvatarImage src="htxtps://avatars.githubusercontent.com/u/14121234?v=4&size=64" />
-                                    <AvatarFallback>AV</AvatarFallback>
+                                    <AvatarFallback>VI</AvatarFallback>
                                 </Avatar>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent>
