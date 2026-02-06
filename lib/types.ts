@@ -21,3 +21,5 @@ export type HatchClassification = {
   ttl_count: number | null;
   is_active: boolean | null;
 };
+
+
