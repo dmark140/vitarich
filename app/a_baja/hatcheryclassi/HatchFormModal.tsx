@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { HatchForm } from "./hatch-form";
+import { Separator } from "@/components/ui/separator";
 
 type Props = {
   open: boolean;
@@ -51,16 +52,42 @@ export default function HatchFormModal({
     e: ChangeEvent<HTMLInputElement>
   ) => {
     const { name, value, type } = e.target;
+    const numericFields = [
+      "trans_crack",
+      "good_egg",
+      "trans_condemn",
+      "hatc_crack",
+      "thin_shell",
+      "hatc_condemn",
+      "small",
+      "pee_wee",
+      "d_yolk",
+      "jumbo",
+    ];
 
-    setForm((prev) => ({
-      ...prev,
-      [name]:
+    setForm((prev) => {
+      const parsedValue =
         type === "number"
           ? value === ""
             ? null
             : Number(value)
-          : value,
-    }));
+          : value;
+
+      const updated = {
+        ...prev,
+        [name]: parsedValue,
+      } as any;
+
+      const ttl = numericFields.reduce((sum, key) => {
+        const v = updated[key];
+        if (v === null || v === "") return sum + 0;
+        return sum + Number(v || 0);
+      }, 0);
+
+      updated.ttl_count = ttl;
+
+      return updated;
+    });
   };
 
   const handleSubmit = () => {
@@ -71,7 +98,23 @@ export default function HatchFormModal({
      console.log(initialState);
   };
 
+  const listofcom = [ 
+    { label: "Transport Crack", name: "trans_crack", disable: false, type: "number" },
+    { label: "Good Egg", name: "good_egg", disable: false, type: "number" },
+    { label: "Transport Condemn", name: "trans_condemn", disable: false, type: "number" },
+    { label: "Hatch Crack", name: "hatc_crack", disable: false, type: "number" },
+    { label: "Thin Shell", name: "thin_shell", disable: false, type: "number" },
+    { label: "Hatch Condemn", name: "hatc_condemn", disable: false, type: "number" },
+    { label: "Small", name: "small", disable: false, type: "number" },
+    { label: "Pee Wee", name: "pee_wee", disable: false, type: "number" },
+    { label: "Double Yolk", name: "d_yolk", disable: false, type: "number" }, 
+    { label: "Jumbo", name: "jumbo", disable: false, type: "number" },
+    { label: "Total Count", name: "ttl_count", disable: true, type: "number" },
+    // { label: "Is Active", name: "is_active", disable: false, type: "checkbox" },
+  ];
+ 
   return (
+
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
@@ -79,10 +122,12 @@ export default function HatchFormModal({
           <DialogDescription>Enter hatch classification details</DialogDescription>
         </DialogHeader>
 
-        <div className="grid grid-cols-2 gap-4">
+         <Separator className="border my-4" /> 
+         {/* className="grid grid-cols-2 gap-4" */}
+       <div  className="sm:grid grid-cols-2 gap-4">  
           {/* Date */}
           <div className="space-y-1">
-            <Label>Date</Label>
+            <Label>Date Received </Label>
             <Input
               type="date"
               name="daterec"
@@ -93,7 +138,7 @@ export default function HatchFormModal({
 
           {/* BR No */}
           <div className="space-y-1">
-            <Label>BR No</Label>
+            <Label>Breeder Ref. No.</Label>
             <Input
               name="br_no"
               value={form.br_no ?? ""}
@@ -102,25 +147,15 @@ export default function HatchFormModal({
           </div>
 
           {/* Numbers */}
-          {[
-            { label: "Good Egg", name: "good_egg" },
-            { label: "Trans Crack", name: "trans_crack" },
-            { label: "Hatch Crack", name: "hatc_crack" },
-            { label: "Trans Condemn", name: "trans_condemn" },
-            { label: "Hatch Condemn", name: "hatc_condemn" },
-            { label: "Thin Shell", name: "thin_shell" },
-            { label: "Pee Wee", name: "pee_wee" },
-            { label: "Small", name: "small" },
-            { label: "Jumbo", name: "jumbo" },
-            { label: "Double Yolk", name: "d_yolk" },
-            { label: "Total Count", name: "ttl_count" },
-          ].map((field) => (
+            {listofcom.map((field, i) => (
             <div key={field.name} className="space-y-1">
               <Label>{field.label}</Label>
               <Input
-                type="number"
+                type={field.type}
                 name={field.name}
+                disabled={field.disable}
                 value={(form as any)[field.name] ?? ""}
+                // checked={field.type === "checkbox" && field.name==="is_active" ? (form as any)[field.name] : undefined}
                 onChange={handleChange}
               />
             </div>
@@ -128,12 +163,13 @@ export default function HatchFormModal({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
           <Button onClick={handleSubmit}>
             Save
           </Button>
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+      
         </DialogFooter>
       </DialogContent>
     </Dialog>
