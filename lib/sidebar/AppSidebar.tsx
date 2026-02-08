@@ -4,9 +4,10 @@
 
 import React, { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Menu, RefreshCw } from "lucide-react"
+import { Menu, RefreshCw } from "lucide-react" 
 import { useSidebar } from "./SidebarProvider"
-// import { VersionSwitcher } from "@/components/ui/sidebar/version-switcher"
+import { VersionSwitcher } from "@/components/ui/sidebar/version-switcher"
+import { SearchForm } from "@/components/ui/sidebar/search-form"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { usePathname, useRouter } from "next/navigation"
 import { useGlobalContext } from "../context/GlobalContext"
@@ -26,10 +27,8 @@ export function AppSidebar() {
   const pathname = usePathname();
 
   useEffect(() => {
-    // You can trigger your logic here (API, analytics, reset states, etc.)
 
     setValue("loading_s", false)
-    // setLoading(false)
   }, [pathname]);
 
   const filteredNavFolders = filterNavFolders(NavFolders, getValue("UserPermission") || [])
@@ -72,7 +71,7 @@ export function AppSidebar() {
             <aside className="relative left-0 top-0 h-full w-64 bg-background border-r shadow-lg">
               <div className="px-3 py-2 border-b">
                 <div className="flex items-center justify-between">
-                  {/* <VersionSwitcher versions={versions} defaultVersion={versions[0]} /> */}
+                  <VersionSwitcher versions={versions} defaultVersion={versions[0]} />
                   <Button
                     variant="ghost"
                     size="icon"
@@ -110,7 +109,7 @@ export function AppSidebar() {
       {!collapsed ? (
         <div className="px-3 border-b pb-2">
           <div className="flex items-center justify-between">
-            {/* <VersionSwitcher versions={versions} defaultVersion={versions[0]} /> */}
+            <VersionSwitcher versions={versions} defaultVersion={versions[0]} />
             <Button
               variant="ghost" size="icon" className="h-6.25" onClick={toggle}>
               <Menu className="size-5 m-1 cursor-pointer" />

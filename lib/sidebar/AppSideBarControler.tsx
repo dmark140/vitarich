@@ -1,26 +1,26 @@
 'use client'
 import { AppSidebar } from '@/lib/sidebar/AppSidebar'
-// import { db } from '@/lib/supabaseClient'
 import { User } from '@supabase/supabase-js'
 import React, { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
+import { db } from '../Supabase/supabaseClient'
 
 export default function AppSideBarControler() {
   const [user, setUser] = useState<User | null>(null)
   const pathname = usePathname()
 
-  // useEffect(() => {
-  //   const getUser = async () => {
-  //     const { data: { session } } = await db.auth.getSession()
-  //     setUser(session?.user ?? null)
-  //   }
-  //   getUser()
-  // }, [pathname]) 
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { session } } = await db.auth.getSession()
+      setUser(session?.user ?? null)
+    }
+    getUser()
+  }, [pathname])
 
   return (
     <div>
-      {/* {user && <AppSidebar />} */}
-      <AppSidebar />
+      {user && <AppSidebar />}
+      {/* <AppSidebar /> */}
     </div>
   )
 }

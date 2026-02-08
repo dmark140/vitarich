@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { db } from "../Supabase/supabaseClient";
 import { useGlobalContext } from "../context/GlobalContext";
 import { useGlobalDefaults } from "../Defaults/GlobalDefaults";
+import Image from "next/image";
 // import { getAllBranch } from "@/app/a_dean/api/branch-api";
 
 export function LoginForm({
@@ -50,6 +51,13 @@ export function LoginForm({
   return (
     <form className={cn("flex flex-col gap-6", className)} {...props} onSubmit={handleLogin}>
       <div className="flex flex-col items-center gap-2 text-center">
+        <Image
+          src="https://cdn.prod.website-files.com/6819a7964b427b4964f82cc0/68203089539798c6cc2ba1c0_Corporate-Logo_Vitarich-White.png"
+          alt="Vitarich Logo"
+          width={100}
+          height={100}
+          className=""
+        />
         <h1 className="text-2xl font-bold">Login to your account</h1>
         <p className="text-muted-foreground text-sm text-balance">
           Enter your email below to login to your account

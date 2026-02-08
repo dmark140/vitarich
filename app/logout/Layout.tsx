@@ -19,7 +19,7 @@ export default function Layout() {
         <div className='mx-auto w-fit mt-25 grid gap-2'>
             <a href="#" className="flex items-center gap-2 font-medium">
                 <div className="  text-primary-foreground flex size-6 items-center justify-center rounded-md">
-                    {/* <Image src={avianta} alt="" className="rounded-full invert" /> */}
+                    {/* <Image src={} alt="" className="rounded-full invert" /> */}
                 </div>Vita Rich
             </a>
             <div className='text-2xl'>You signed out of your account</div>
