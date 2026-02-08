@@ -20,6 +20,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 // import GlobalDefaults from "@/lib/GlobalDefaults"
 import { useTheme } from "next-themes"
 import GlobalSearch from "../GlobalSearch"
+import GlobalDefaults from "@/lib/Defaults/GlobalDefaults"
 // import DefaultBranch from "@/components/DefaultBranch"
 
 type SideBarMainProps = {
@@ -66,7 +67,7 @@ export default function SideBarMain({
                     <div className="float-right ml-auto flex gap-4 items-center">
                         <GlobalSearch />
                         {/* <DefaultBranch /> */}
-                        {/* <GlobalDefaults /> */}
+                        <GlobalDefaults />
                         <Button onClick={() => theme == "light" ? setTheme("dark") : setTheme("light")}>
                             <Sun />
                         </Button>
@@ -86,7 +87,7 @@ export default function SideBarMain({
                         </DropdownMenu>
                     </div>
                 </header>
-                <div className="overflow-auto">
+                <div className="overflow-auto border-t">
                     {children}
                 </div>
             </SidebarInset>

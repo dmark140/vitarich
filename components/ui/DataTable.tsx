@@ -40,7 +40,6 @@ function ButtonCell({
         <div className="flex justify-center items-center h-8 px-2">
             <Button
                 type="button"
-                size="sm"
                 disabled={disabled}
                 onClick={() => {
                     if (onClick) {

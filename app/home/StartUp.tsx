@@ -5,8 +5,8 @@ import { Button } from '@/components/ui/button';
 export default function StartUp() {
 
     const buttons = [
-        { label: 'Dashboard', link:'', icon: <Sparkles size={18} className="text-orange-500 dark:text-orange-400" /> },
-        { label: 'Hatchiry', link:'', icon: <EggFried size={18} /> },
+        { enabled: false, label: 'Dashboard', link: '#', icon: <Sparkles size={18} className="text-orange-500 dark:text-orange-400" /> },
+        { enabled: true, label: 'Hatchiry', link: '#', icon: <EggFried size={18} /> },
     ];
     return (
         <div className="flex flex-col items-start justify-center   text-slate-900 dark:text-white p-8 mr-4  transition-colors duration-300">
@@ -26,6 +26,7 @@ export default function StartUp() {
                 <div className="flex flex-col items-start space-y-3">
                     {buttons.map((btn, index) => (
                         <Button
+                        disabled={!btn.enabled}
                             onClick={() => console.log("test")}
                             key={index}
                             className={`flex items-center gap-3 px-6 py-3  h-10 rounded-full transition-all duration-200`}

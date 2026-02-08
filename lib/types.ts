@@ -1,4 +1,5 @@
-import { UUID } from 'crypto'; 
+import { ColumnDef } from '@tanstack/react-table';
+import { UUID } from 'crypto';
 
 export type HatchClassification = {
   id: number;
@@ -22,4 +23,78 @@ export type HatchClassification = {
   is_active: boolean | null;
 };
 
+export type Customer = {
+  id: number;
+  created_at: string;
+  created_by?: string | null;
+  updated_at?: string | null;
+  updated_by?: string | null;
+  docStatus?: string | null;
+  email?: string | null;
+  firstname?: string | null;
+  middlename?: string | null;
+  lastname?: string | null;
+  gender?: string | null;
+  phone?: string | null;
+  mobile?: string | null;
+  birthdate?: string | null; // ISO date string
+  location?: string | null;
+  remarks?: string | null;
+  auth_id: UUID | null;
+};
 
+
+
+export const usersColumn: ColumnDef<Customer>[] = [
+  // { accessorKey: "id", header: "ID" },
+  // { accessorKey: "id", header: "ID" },
+  // { accessorKey: "firstname", header: "First Name" },
+  // { accessorKey: "lastname", header: "Last Name" },
+  { accessorKey: "email", header: "Email" },
+  // { accessorKey: "gender", header: "ID" },
+  // { accessorKey: "docType", header: "User Type" },
+  // { accessorKey: "docStatus", header: "Status", meta: { css: "status" } },
+]
+
+
+
+
+export interface UserInsert {
+  auth_id: string;
+  created_by?: string | null;
+  updated_at?: string | null;
+  updated_by?: string | null;
+  docStatus?: string | null;
+  email?: string | null;
+  firstname?: string | null;
+  middlename?: string | null;
+  lastname?: string | null;
+  gender?: string | null;
+  phone?: string | null;
+  mobile?: string | null;
+  birthdate?: string | null;
+  location?: string | null;
+  remarks?: string | null;
+}
+
+
+export interface UserRow {
+  id: number;
+  created_at: string; // ISO timestamp string
+  created_by: UUID | null;
+  updated_at: string | null;
+  updated_by: UUID | null;
+  docStatus: string | null;
+  email: string | null;
+  firstname: string | null;
+  middlename: string | null;
+  lastname: string | null;
+  gender: string | null;
+  phone: string | null;
+  mobile: string | null;
+  birthdate: string | null;
+  location: string | null;
+  remarks: string | null;
+  auth_id: UUID | null;
+  issuper: string | null;
+}

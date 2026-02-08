@@ -10,6 +10,7 @@ import { toast } from "sonner";
 // import { useGlobalDefaults } from "./GlobalDefaults";
 import { db } from "../Supabase/supabaseClient";
 import { useGlobalContext } from "../context/GlobalContext";
+import { useGlobalDefaults } from "../Defaults/GlobalDefaults";
 // import { getAllBranch } from "@/app/a_dean/api/branch-api";
 
 export function LoginForm({
@@ -17,7 +18,7 @@ export function LoginForm({
   ...props
 }: React.ComponentProps<"form">) {
   const [email, setEmail] = useState("");
-  // const { setGlobals } = useGlobalDefaults()
+  const { setGlobals } = useGlobalDefaults()
 
   const [password, setPassword] = useState("");
   const [loading, setloading] = useState(false);
@@ -37,7 +38,7 @@ export function LoginForm({
       setloading(false)
 
     } else {
-      // setGlobals()
+      setGlobals()
       setValue('loading_g', true)
       router.push("/home");
       setloading(false)

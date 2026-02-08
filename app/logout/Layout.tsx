@@ -22,7 +22,7 @@ export default function Layout() {
                     {/* <Image src={avianta} alt="" className="rounded-full invert" /> */}
                 </div>Vita Rich
             </a>
-            <div className='text-2xl'>  You signed out of your account  </div>
+            <div className='text-2xl'>You signed out of your account</div>
             <span className='text-muted-foreground'> {"It's"} Good Idea to Close all browser windows.</span>
         </div>
     )
