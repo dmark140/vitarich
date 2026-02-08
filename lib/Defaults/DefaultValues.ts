@@ -41,7 +41,10 @@ export const NavFolders = [
         children: [
         
           { type: "Module", title: "Receiving", url: "#" },
-          { type: "Module", title: "Egg Process", url: "#" },
+          { type: "Module", title: "Hatchery Classification", url: "/a_baja/hatcheryclassi" },
+          { type: "Module", title: "Egg Storage", url: "/a_baja/eggstorage" },
+          { type: "Module", title: "Chick Pullout Process", url: "/a_baja/chickpullout" },
+          { type: "Module", title: "Egg Pre-Warming Process", url: "/a_baja/prewarming" },
         ],
       },
       {
