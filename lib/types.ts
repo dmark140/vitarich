@@ -42,6 +42,24 @@ export type Customer = {
   remarks?: string | null;
   auth_id: UUID | null;
 };
+export type EggStorageMngt = {
+  id: number
+  created_at: string
+  created_by: string | null
+  updated_at: string | null
+  updated_by: string | null 
+  room_temp: string | null
+  egg_sto_humi: string | null
+  egg_stemp_start: string | null
+  egg_stemp_end: string | null
+  egg_shell_temp: string | null
+  egg_shell_temp_date: string | null
+  duration: number | null
+  remarks: string | null
+  is_active: boolean | null
+}
+
+
 
 
 
