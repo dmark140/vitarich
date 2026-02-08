@@ -9,7 +9,7 @@ export default function page() {
         <div>
             <SideBarMain currentLabel="Home" fatherLabel=''>
                 {/* <Layout/> */}
-                <StartUp/>
+                <StartUp/> 
             </SideBarMain>
         </div>
     )
