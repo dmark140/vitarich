@@ -1,8 +1,6 @@
 import { db } from "@/lib/Supabase/supabaseClient";
 import { EggStorageMngt } from "@/lib/types";
-
-const TABLE = "egg_storage_mngt";
-
+ 
 // create egg storage record
 export async function createEggStorage(
   payload: Partial<EggStorageMngt>
@@ -13,7 +11,7 @@ export async function createEggStorage(
   };
 
   const { data, error } = await db
-    .from(TABLE)
+    .from("egg_storage_mngt")
     .insert(payloadWithTimestamp)
     .select()
     .single();
@@ -24,8 +22,7 @@ export async function createEggStorage(
 
 export type EggStorageFilter = Partial<{
   id: number;
-  created_by: string;
-  egg_storage_temp: string;
+  created_by: string; 
   room_temp: string;
   is_active: boolean;
 }>;
@@ -34,7 +31,7 @@ export async function getEggStorages(
   filters?: EggStorageFilter,
   selectFields: (keyof EggStorageMngt)[] = ["*"] as any
 ) {
-  let query = db.from(TABLE).select(selectFields.join(","));
+  let query = db.from("egg_storage_mngt").select(selectFields.join(","));
 
   if (filters) {
     Object.entries(filters).forEach(([key, value]) => {
@@ -55,7 +52,7 @@ export async function updateEggStorage(
   payload: Partial<EggStorageMngt>
 ) {
   const { data, error } = await db
-    .from(TABLE)
+    .from("egg_storage_mngt")
     .update(payload)
     .eq("id", id)
     .select()

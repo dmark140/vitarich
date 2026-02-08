@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { EggStorageForm } from "./egg-form";
 import { Separator } from "@/components/ui/separator";
+import { create } from "domain";
 
 type Props = {
   open: boolean;
@@ -21,8 +22,8 @@ type Props = {
 };
  
 
-const initialState: EggStorageForm = { 
-  egg_storage_temp:null,
+const initialState: EggStorageForm = {  
+//   egg_storage_temp: null,
   room_temp: null,
   egg_sto_humi: null,
   egg_stemp_start: null,
@@ -48,18 +49,6 @@ export default function Layout({
     e: ChangeEvent<HTMLInputElement>
   ) => {
     const { name, value, type } = e.target;
-    const numericFields = [
-      "egg_storage_temp",
-      "room_temp",
-      "egg_sto_humi",
-      "egg_stemp_start",
-      "egg_stemp_end",
-      "egg_shell_temp",
-      "egg_shell_temp_date",
-      "duration",
-      "remarks",
-      "is_active",
-    ];
 
     setForm((prev) => {
       const parsedValue =
@@ -69,20 +58,10 @@ export default function Layout({
             : Number(value)
           : value;
 
-      const updated = {
+      return {
         ...prev,
         [name]: parsedValue,
-      } as any;
-
-      const ttl = numericFields.reduce((sum, key) => {
-        const v = updated[key];
-        if (v === null || v === "") return sum + 0;
-        return sum + Number(v || 0);
-      }, 0);
-
-      updated.ttl_count = ttl;
-
-      return updated;
+      };
     });
   };
 
@@ -91,49 +70,46 @@ export default function Layout({
     console.log(form);
     onClose();
     setForm(initialState);
-     console.log(initialState);
+    console.log(initialState);
   };
 
-  const listofcom = [ 
-    { label: "Egg Storage Temp", name: "egg_storage_temp", disable: false, type: "text" },
+  const listofcom = [   
+   
     { label: "Room Temp", name: "room_temp", disable: false, type: "text" },
-    { label: "Egg Storage Humidity", name: "egg_sto_humi", disable: false, type: "text" },
-    { label: "Egg Stemp Start", name: "egg_stemp_start", disable: false, type: "datetime-local" },
-    { label: "Egg Stemp End", name: "egg_stemp_end", disable: false, type: "datetime-local" },
+    { label: "Storage Humidity", name: "egg_sto_humi", disable: false, type: "text" },
     { label: "Egg Shell Temp", name: "egg_shell_temp", disable: false, type: "text" },
     { label: "Egg Shell Temp Date", name: "egg_shell_temp_date", disable: false, type: "date" },
-    { label: "Duration", name: "duration", disable: false, type: "number" },
+    { label: "Duration", name: "duration", disable: true, type: "number" },
     { label: "Remarks", name: "remarks", disable: false, type: "text" },
-    { label: "Is Active", name: "is_active", disable: false, type: "checkbox" },
   ];
+
  
   return (
 
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Hatch Classification</DialogTitle>
-          <DialogDescription>Enter hatch classification details</DialogDescription>
+          <DialogTitle>Egg Storage Management</DialogTitle>
+          <DialogDescription>Enter egg storage details</DialogDescription>
         </DialogHeader>
 
-         <Separator className="border my-4" /> 
-         {/* className="grid grid-cols-2 gap-4" */}
-       <div  className="sm:grid grid-cols-2 gap-4">  
+         {/* className="sm:grid grid-cols-2 gap-4" */}
+       <div  className="grid gap-1 p-4">  
           {/* Date */}
-          <div className="space-y-1">
-            <Label>{listofcom[6].label}</Label>
+          {/* <div className="space-y-1">
+            <Label>Storage Date</Label>
             <Input
               type="date"
               name="egg_shell_temp_date"
               value={form.egg_shell_temp_date ?? ""}
               onChange={handleChange}
             />
-          </div>
-
+          </div>  */}
           {/* Egg Stemp Start */}
           <div className="space-y-1">
-            <Label>{listofcom[3].label}</Label>
+            <Label>Storage Temp Start</Label>
             <Input
+              type="datetime-local"
               name="egg_stemp_start"
               value={form.egg_stemp_start ?? ""}
               onChange={handleChange}
@@ -141,14 +117,14 @@ export default function Layout({
           </div>
         {/* Egg Stemp End */}
           <div className="space-y-1">
-            <Label>{listofcom[4].label}</Label>
+            <Label>Storage Temp End</Label>
             <Input
+              type="datetime-local"
               name="egg_stemp_end"
               value={form.egg_stemp_end ?? ""}
               onChange={handleChange}
             />
-          </div>
-
+          </div> 
           {/* Numbers */}
             {listofcom.map((field, i) => (
             <div key={field.name} className="space-y-1">

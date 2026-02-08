@@ -27,8 +27,7 @@ export type EggStorageMngt = {
   created_at: string
   created_by: string | null
   updated_at: string | null
-  updated_by: string | null
-  egg_storage_temp: string | null
+  updated_by: string | null 
   room_temp: string | null
   egg_sto_humi: string | null
   egg_stemp_start: string | null
@@ -39,5 +38,6 @@ export type EggStorageMngt = {
   remarks: string | null
   is_active: boolean | null
 }
+
 
 
