@@ -14,33 +14,26 @@ export const NavFolders = [
   {
     id: 0,
     title: "Administrator",
-    url: "/a_dean/admin/",
+    url: "/admin/",
     icon: FileSliders,
     items: [
       {
         group: "Modules",
         children: [
-          { type: "Module", title: "User", url: "/admin/user/" },
-          { type: "Module", title: "User Details / Roles & Permissions", url: "/admin/user/new/" },
+          { type: "Module", title: "User Management", url: "/admin/user/" },
+          { type: "Module", title: "Company Details", url: "#" },
+          { type: "Module", title: "General Settings", url: "#" },
+          { type: "Module", title: "Document Settings", url: "#" },
+          // { type: "Module", title: "User Details / Roles & Permissions", url: "/admin/user/new/" },
         ],
-      },
-      // {
-      //   group: "Reports",
-      //   children: [
-      //     {
-      //       type: "Report",
-      //       title: "User Management",
-      //       url: "#",
-      //     },
-      //   ],
-      // },
+      }, 
     ],
   },
 
   {
     id: 1,
     title: "Hatchery",
-    url: "/a_dean/finance/",
+    url: "/a_dean/hatchery/",
     icon: DollarSign,
     items: [
       {
