@@ -62,7 +62,7 @@ export const NavFolders = [
     ],
   },
   {
-    id: 3,
+    id: 2,
     title: "Inventory Management",
     url: "/a_dean/inventory",
     icon: Boxes, // Example icon name
@@ -71,16 +71,17 @@ export const NavFolders = [
         group: "Item Management",
         children: [
           { type: "Module", title: "Item Master Data", url: "#" },
-          { type: "Module", title: "Serial Numbers", url: "#" },
+          // { type: "Module", title: "Serial Numbers", url: "#" },
           { type: "Module", title: "Batch Numbers", url: "#" },
-          { type: "Module", title: "Alternative Items", url: "#" },
+          // { type: "Module", title: "Alternative Items", url: "#" },
         ],
       },
       {
         group: "Inventory Transactions",
         children: [
-          { type: "Module", title: "Goods Receipt", url: "#" },
-          { type: "Module", title: "Goods Issue", url: "#" },
+          // { type: "Module", title: "Goods Receipt", url: "#" },
+          // { type: "Module", title: "Goods Issue", url: "#" },
+          { type: "Module", title: "Inventory", url: "/a_dean/inventory/inv" },
           { type: "Module", title: "Inventory Transfer", url: "#" },
           { type: "Module", title: "Inventory Transfer Request", url: "#" },
         ],

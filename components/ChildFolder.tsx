@@ -13,14 +13,14 @@ interface ChildFolderProps {
 
 export default function ChildFolder({ id }: ChildFolderProps) {
   const router = useRouter()
-  const { getValue } = useGlobalContext() // [cite: 2]
+  const { getValue } = useGlobalContext()
 
   const filteredNavFolders = filterNavFolders(
     NavFolders,
     getValue("UserPermission") || []
   )
 
-  const filteredData = filteredNavFolders.find(f => f.id === id || f.title === "Hatchery")
+  const filteredData = filteredNavFolders.find(f => f.id === id)
 
   useEffect(() => {
     if (!filteredData) return
@@ -52,9 +52,10 @@ export default function ChildFolder({ id }: ChildFolderProps) {
                     {/* Use Link to prevent page flicker [cite: 13, 14] */}
                     <Link
                       href={child.url}
-                      className=" hover:underline transition-colors"
+                      className={`hover:underline transition-colors ${child.url === '#' && "line-through"} `}
                     >
                       {child.title}
+                      {child.url == "#"}
                     </Link>
 
                     {child.url !== "#" && (

@@ -40,7 +40,7 @@ export default function SideBarMain({
     return (
         <SidebarProvider >
             <SidebarInset>
-                <header className="flex h-12 items-center gap-2 px-4 my-2.75">
+                <header className="flex h-12 items-center gap-2 px-4 my-2.75 max-w-content mx-auto w-full">
                     <div className="w-10 sm:w-0"></div>
                     <Separator
                         orientation="vertical"
@@ -87,7 +87,7 @@ export default function SideBarMain({
                         </DropdownMenu>
                     </div>
                 </header>
-                <div className="overflow-auto border-t">
+                <div className="overflow-auto border-t max-w-content mx-auto w-full pt-4">
                     {children}
                 </div>
             </SidebarInset>
