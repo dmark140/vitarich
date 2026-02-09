@@ -47,7 +47,7 @@ export type EggStorageMngt = {
   created_at: string
   created_by: string | null
   updated_at: string | null
-  updated_by: string | null 
+  updated_by: string | null
   room_temp: string | null
   egg_sto_humi: string | null
   egg_stemp_start: string | null
@@ -115,4 +115,16 @@ export interface UserRow {
   remarks: string | null;
   auth_id: UUID | null;
   issuper: string | null;
+}
+export type DraftStatus = 'pending' | 'approved' | 'rejected';
+
+
+
+export interface DataRecordApproval {
+  uid: number;
+  id: string;
+  posting_date: string; 
+  email: string;      
+  status: DraftStatus 
+  checked: boolean;
 }

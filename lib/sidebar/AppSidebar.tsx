@@ -4,7 +4,7 @@
 
 import React, { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Menu, RefreshCw } from "lucide-react" 
+import { Menu, RefreshCw } from "lucide-react"
 import { useSidebar } from "./SidebarProvider"
 import { VersionSwitcher } from "@/components/ui/sidebar/version-switcher"
 import { SearchForm } from "@/components/ui/sidebar/search-form"
@@ -45,9 +45,35 @@ export function AppSidebar() {
     return () => clearTimeout(t)
   }, [])
 
+  // useEffect(() => {
+  //   filteredNavFolders.forEach(item => {
+
+  //     item.map((e: any) => {
+  //       router.prefetch(e.url)
+  //       console.log("Prefetched routes:", { e })
+
+  //     })
+
+  //   })
+  // }, [router, filteredNavFolders])
+
   useEffect(() => {
-    filteredNavFolders.forEach(item => router.prefetch(item.url))
-  }, [router, filteredNavFolders])
+    if (!filteredNavFolders) return;
+
+    filteredNavFolders.forEach((folder) => {
+      if (folder.url && folder.url !== "#") {
+        router.prefetch(folder.url);
+      }
+      folder.items?.forEach((group: any) => {
+        group.children?.forEach((child: any) => {
+          if (child.url && child.url !== "#") {
+            router.prefetch(child.url);
+            console.log("Prefetched child route:", child.url);
+          }
+        });
+      });
+    });
+  }, [router, filteredNavFolders]);
 
   if (isMobile) {
     return (
@@ -142,6 +168,7 @@ export function AppSidebar() {
                     setValue("loading_s", true)
 
                     router.push(item.url)
+
                     // }
                   }}
                   className={`flex w-full items-center justify-center gap-2 px-3 py-2 rounded-md hover:bg-accent transition ${getValue("CurrentNavUrl") === item.url ? "bg-accent-foreground/20" : ""}`}
