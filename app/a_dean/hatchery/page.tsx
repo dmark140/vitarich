@@ -5,7 +5,7 @@ import Layout from './Layout'
 export default function page() {
     return (
         <div>
-            <SideBarMain currentLabel='Item Master Data' fatherLink='./' fatherLabel='Inventory'>
+            <SideBarMain currentLabel='Master and Reports' fatherLink='./' fatherLabel='Hatchery'>
                 <Layout />
             </SideBarMain>
 
