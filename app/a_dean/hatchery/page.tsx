@@ -6,7 +6,9 @@ export default function page() {
         <div>
             <SideBarMain currentLabel='Hatchery' fatherLink='./' fatherLabel=''>
                 <ChildFolder id={1} />
-
+{/* 
+            <SideBarMain currentLabel='Master and Reports' fatherLink='./' fatherLabel='Hatchery'>
+                <Layout /> */}
             </SideBarMain>
 
         </div>
