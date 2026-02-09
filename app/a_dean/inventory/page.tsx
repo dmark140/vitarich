@@ -5,8 +5,7 @@ export default function page() {
     return (
         <div>
             <SideBarMain currentLabel='Hatchery' fatherLink='./' fatherLabel=''>
-                <ChildFolder id={1} />
-
+                <ChildFolder id={3} />
             </SideBarMain>
 
         </div>

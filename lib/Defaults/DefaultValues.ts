@@ -1,46 +1,48 @@
 import {
+  Boxes,
   Calendar,
   Contact2,
   DockIcon,
   DollarSign,
+  EggFried,
   FileSliders,
   PenBoxIcon,
   ShoppingCartIcon,
   Wrench,
 } from "lucide-react";
 import { CodeNameBase } from "./DefaultTypes";
- 
+
 export const NavFolders = [
   {
     id: 0,
     title: "Administrator",
-    url: "/admin/",
+    url: "/admin",
     icon: FileSliders,
     items: [
       {
         group: "Modules",
         children: [
-          { type: "Module", title: "User Management", url: "/admin/user/" },
+          { type: "Module", title: "User Management", url: "/admin/user" },
           { type: "Module", title: "Company Details", url: "#" },
           { type: "Module", title: "General Settings", url: "#" },
           { type: "Module", title: "Document Settings", url: "#" },
           // { type: "Module", title: "User Details / Roles & Permissions", url: "/admin/user/new/" },
         ],
-      }, 
+      },
     ],
   },
 
   {
     id: 1,
     title: "Hatchery",
-    url: "/a_dean/hatchery/",
-    icon: DollarSign,
+    url: "/a_dean/hatchery",
+    icon: EggFried,
     items: [
       {
         group: "Hatchery Masters",
         children: [
-        
-          { type: "Module", title: "Receiving", url: "#" },
+
+          { type: "Module", title: "Receiving", url: "/a_dean/receiving" },
           { type: "Module", title: "Egg Process", url: "#" },
         ],
       },
@@ -53,7 +55,49 @@ export const NavFolders = [
       },
     ],
   },
-]; 
+  {
+    id: 3,
+    title: "Inventory Management",
+    url: "/a_dean/inventory",
+    icon: Boxes, // Example icon name
+    items: [
+      {
+        group: "Item Management",
+        children: [
+          { type: "Module", title: "Item Master Data", url: "#" },
+          { type: "Module", title: "Serial Numbers", url: "#" },
+          { type: "Module", title: "Batch Numbers", url: "#" },
+          { type: "Module", title: "Alternative Items", url: "#" },
+        ],
+      },
+      {
+        group: "Inventory Transactions",
+        children: [
+          { type: "Module", title: "Goods Receipt", url: "#" },
+          { type: "Module", title: "Goods Issue", url: "#" },
+          { type: "Module", title: "Inventory Transfer", url: "#" },
+          { type: "Module", title: "Inventory Transfer Request", url: "#" },
+        ],
+      },
+      // {
+      //   group: "Price Lists",
+      //   children: [
+      //     { type: "Module", title: "Price Lists", url: "/a_dean/price-lists" },
+      //     { type: "Module", title: "Period and Volume Discounts", url: "/a_dean/discounts" },
+      //     { type: "Module", title: "Special Prices", url: "/a_dean/special-prices" },
+      //   ],
+      // },
+      {
+        group: "Inventory Reports",
+        children: [
+          { type: "Report", title: "Inventory Audit Report", url: "/a_dean/report-audit" },
+          { type: "Report", title: "Inventory Status", url: "/a_dean/report-status" },
+          { type: "Report", title: "Warehouse Content List", url: "/a_dean/report-warehouse" },
+        ],
+      },
+    ],
+  },
+];
 
 const startYear = 2024;
 const endYear = new Date().getFullYear() + 2;
@@ -64,5 +108,5 @@ export const ListOfYear: CodeNameBase[] = Array.from(
     return { code: year, name: year };
   }
 );
- 
+
 export const DefaultGenders = [{ code: "Male" }, { code: "Female" }];

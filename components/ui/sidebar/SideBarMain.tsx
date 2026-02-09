@@ -40,7 +40,7 @@ export default function SideBarMain({
     return (
         <SidebarProvider >
             <SidebarInset>
-                <header className="flex h-12 items-center gap-2 px-4">
+                <header className="flex h-12 items-center gap-2 px-4 my-2.75">
                     <div className="w-10 sm:w-0"></div>
                     <Separator
                         orientation="vertical"

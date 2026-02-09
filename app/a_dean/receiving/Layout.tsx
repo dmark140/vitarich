@@ -6,8 +6,14 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { getReceivingDraftPending } from './api'
 import TableSkeleton from '@/components/ui/TableSkeleton'
 import { sleep } from '@/lib/utils'
+import { useRouter } from 'next/navigation'
+import { useGlobalContext } from '@/lib/context/GlobalContext'
 
 export default function Layout() {
+    const { setValue, getValue } = useGlobalContext()
+
+    const route = useRouter()
+
     const [initialRows, setinitialRows] = useState<RowDataKey[]>([])
     const [loading, setLoading] = useState(true)
     const tableColumnsx: ColumnConfig[] = useMemo(
@@ -32,6 +38,7 @@ export default function Layout() {
 
     useEffect(() => {
         getData()
+        route.prefetch("/a_dean/receiving/approval")
     }, [])
 
     return (
@@ -50,7 +57,10 @@ export default function Layout() {
                     rows={initialRows}
                     columns={tableColumnsx}
                     onChange={() => console.log("trigger on change")}
-                    rowOnClick={() => console.log("row click")}
+                    rowOnClick={(e) => {
+                        setValue("forApproval", e)
+                        route.push("/a_dean/receiving/approval")
+                    }}
                     DisableAddLine
 
                 />}
