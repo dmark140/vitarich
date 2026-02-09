@@ -109,7 +109,7 @@ export default function EggTransferForm({
               <Button variant="outline" onClick={onClose}>
                 Cancel
               </Button>
-              <Button>Save Transfer</Button>
+              <Button>Save</Button>
             </div>
           </CardContent>
         </Card>
