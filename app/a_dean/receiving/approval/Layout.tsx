@@ -23,6 +23,7 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { approveHatcheryDraft, getHatcheryDraftItems, rejectHatcheryDraft } from './api'
 import { DataRecordApproval } from '@/lib/types'
+import { today } from '@/lib/Defaults/DefaultValues'
 
 type DraftItem = {
     id: number
@@ -48,10 +49,10 @@ export default function ApprovalDecisionForm() {
     }, [getValue])
 
     useEffect(() => {
-        if (!header?.uid) return
+        if (!header?.docentry) return
         const fetchItems = async () => {
             setLoading(true)
-            const { data, error } = await getHatcheryDraftItems(Number(header.uid))
+            const { data, error } = await getHatcheryDraftItems(Number(header.docentry))
             if (!error && data) setItems(data)
             setLoading(false)
         }
@@ -59,7 +60,7 @@ export default function ApprovalDecisionForm() {
     }, [header])
 
     const approveDocument = async () => {
-        if (!header?.uid) return
+        if (!header?.docentry) return
         const res = await approveHatcheryDraft(Number(header.uid))
         if (!res.success) { alert(res.error); return }
         alert('Document approved and posted to inventory')
@@ -78,40 +79,45 @@ export default function ApprovalDecisionForm() {
 
     return (
         <div className="">
-            
+
             <Card className="w-full border-none shadow-none bg-background p-0 m-0">
                 <CardHeader className="border-b ">
                     <div className='flex justify-between'>
-                        <div className="">
-                            <CardTitle className="text-xl font-bold uppercase tracking-tight">Receiving Form</CardTitle>
-                            <Badge variant="secondary" className="px-3 py-1">{header.status}</Badge>
+                        <div className=" ">
+                            <CardTitle className="text-xl  uppercase tracking-tight ">Receiving Form</CardTitle>
+                            <Badge variant="secondary" className=" absolute">{header.status}</Badge>
                         </div>
 
                         <div className="flex justify-start gap-3">
-                            <Button onClick={rejectDocument} className='bg-red-500/80'> Reject</Button>
+                            <Button onClick={rejectDocument} variant={'destructive'}> Reject</Button>
                             <Button onClick={approveDocument}> Receive</Button>
 
                         </div>
                     </div>
                 </CardHeader>
- 
+
                 <CardContent className=" ">
                     {/* TOP SECTION: FIELDS PLACEMENT PER EXCEL */}
                     <div className="grid grid-cols-2 gap-x-12 gap-y-6">
                         {/* Left Column */}
                         <div className="space-y-4">
                             <div className="grid gap-1.5">
-                                <Label className="text-xs uppercase text-muted-foreground">Date</Label>
-                                <Input value={header.posting_date} readOnly className="bg-orange-50/50 border-orange-200" />
+                                <Label className="text-xs uppercase text-muted-foreground">Posting Date</Label>
+                                <Input
+                                    type="date"
+                                    defaultValue={header.posting_date || today}
+                                    className="bg-orange-50/50 "
+                                />
+                                {/* <Input value={header.posting_date} readOnly className="bg-orange-50/50 " /> */}
                             </div>
                             <div className="grid gap-1.5">
                                 <Label className="text-xs uppercase text-muted-foreground">DR Number</Label>
                                 <div className="flex gap-2">
-                                    <Input value={header.id} readOnly className="bg-slate-100 font-mono" />
-                                    <Button variant="outline" size="icon" className="shrink-0">
+                                    <Input value={header.id} readOnly className="" />
+                                    {/* <Button variant="outline" size="icon" className="shrink-0">
                                         <span className="sr-only">View Attachment</span>
                                         📷
-                                    </Button>
+                                    </Button> */}
                                 </div>
                             </div>
                         </div>
@@ -137,17 +143,17 @@ export default function ApprovalDecisionForm() {
 
                     {/* ITEMS SECTION */}
                     <div className="space-y-3">
-                        <Label className="text-sm font-bold text-green-700 uppercase">Items</Label>
+                        <Label className="text-sm  text-green-700 uppercase">Items</Label>
                         <div className="rounded-md border">
                             <Table>
                                 <TableHeader className="bg-slate-50/20">
                                     <TableRow>
-                                        <TableHead className="text-green-700 font-bold border-r">BREEDER REF. NO.</TableHead>
-                                        <TableHead className="font-bold border-r">EGG SKU</TableHead>
-                                        <TableHead className="font-bold border-r">UoM</TableHead>
-                                        {/* <TableHead className="font-bold border-r text-center">QTY</TableHead> */}
-                                        <TableHead className="font-bold border-r text-center">Expected Count</TableHead>
-                                        <TableHead className="font-bold text-center">Actual Count</TableHead>
+                                        <TableHead className="text-green-700  border-r">BREEDER REF. NO.</TableHead>
+                                        <TableHead className=" border-r">EGG SKU</TableHead>
+                                        <TableHead className=" border-r">UoM</TableHead>
+                                        {/* <TableHead className=" border-r text-center">QTY</TableHead> */}
+                                        <TableHead className=" border-r text-center">Expected Count</TableHead>
+                                        <TableHead className=" text-center">Actual Count</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -157,7 +163,7 @@ export default function ApprovalDecisionForm() {
                                             <TableCell className="border-r">{item.sku}</TableCell>
                                             <TableCell className="border-r">{item.UoM}</TableCell>
                                             {/* <TableCell className="border-r text-center">2</TableCell> */}
-                                            <TableCell className="border-r text-center bg-slate-50/30 font-medium">
+                                            <TableCell className="border-r text-center bg-slate-50/30 ">
                                                 {item.expected_count}
                                             </TableCell>
                                             <TableCell className="p-1">

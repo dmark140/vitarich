@@ -18,14 +18,18 @@ export default function Layout() {
     const [loading, setLoading] = useState(true)
     const tableColumnsx: ColumnConfig[] = useMemo(
         () => [
-            { key: 'id', label: 'DR No.', type: 'text', disabled: true },
-            { key: 'posting_date', label: 'Date Posted', type: 'text', disabled: true },
-            { key: 'email', label: 'Posted By', type: 'text', disabled: true },
+            { key: 'id', label: 'Approval ID', type: 'text', disabled: true },
+            { key: 'docentry', label: 'Document Entry', type: 'text', disabled: true },
             { key: 'status', label: 'Status', type: 'text', disabled: true },
+            { key: 'decided_by_email', label: 'Decided By', type: 'text', disabled: true },
+            { key: 'decided_at', label: 'Decision Date', type: 'text', disabled: true },
+            { key: 'remarks', label: 'Remarks', type: 'text', disabled: true },
+            { key: 'created_at', label: 'Created At', type: 'text', disabled: true },
             { key: 'action', label: 'Action', type: 'button', disabled: false },
         ],
-        [/*sourceList, itemListSource*/]
+        [initialRows]
     )
+
 
     const getData = async () => {
         setLoading(true)
@@ -58,6 +62,7 @@ export default function Layout() {
                     columns={tableColumnsx}
                     onChange={() => console.log("trigger on change")}
                     rowOnClick={(e) => {
+                        // console.log({ e })
                         setValue("forApproval", e)
                         route.push("/a_dean/receiving/approval")
                     }}

@@ -68,7 +68,7 @@ export function AppSidebar() {
         group.children?.forEach((child: any) => {
           if (child.url && child.url !== "#") {
             router.prefetch(child.url);
-            console.log("Prefetched child route:", child.url);
+            // console.log("Prefetched child route:", child.url);
           }
         });
       });
