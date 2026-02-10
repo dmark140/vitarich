@@ -171,7 +171,7 @@ export function AppSidebar() {
 
                     // }
                   }}
-                  className={`flex w-full items-center justify-center gap-2 px-3 py-2 rounded-md hover:bg-accent transition ${getValue("CurrentNavUrl") === item.url ? "bg-accent-foreground/20" : ""}`}
+                  className={`flex w-full items-center justify-center gap-2 px-3 py-2 rounded-md hover:bg-accent transition }`}
                 >
                   <item.icon className="size-5" />
                 </Button>
@@ -195,7 +195,7 @@ export function AppSidebar() {
                 router.push(item.url)
                 // }
               }}
-              className={`flex w-full items-center justify-start gap-2 px-3 py-2 rounded-md hover:bg-accent transition ${getValue("CurrentNavUrl") === item.url ? "bg-accent-foreground/20" : ""}`}
+              className={`flex w-full items-center justify-start gap-2 px-3 py-2 rounded-md hover:bg-accent transition }`}
             >
               <item.icon className="size-5" />
               <span className="font-semibold">{item.title}</span>

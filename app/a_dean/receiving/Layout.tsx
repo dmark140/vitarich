@@ -9,10 +9,17 @@ import { sleep } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
 import { useGlobalContext } from '@/lib/context/GlobalContext'
 import { toast } from 'sonner'
+import ScannerModal from '@/components/ScannerModal'
 
 export default function Layout() {
     const { setValue, getValue } = useGlobalContext()
-
+    const [isScanning, setIsScanning] = useState(false);
+    const [scannedData, setScannedData] = useState<string | null>(null);
+    const handleScanSuccess = (text: string) => {
+        setScannedData(text); // Save the result
+        setIsScanning(false); // Close the "function" (modal)
+        console.log("Processing scanned data:", text);
+    };
     const route = useRouter()
 
     const [initialRows, setinitialRows] = useState<RowDataKey[]>([])
@@ -48,10 +55,18 @@ export default function Layout() {
 
     return (
         <div>
+            {isScanning && (
+                <ScannerModal
+                    onResult={handleScanSuccess}
+                    onClose={() => setIsScanning(false)}
+                />
+            )}
             <div className='mx-4 flex justify-between items-center mb-4 mt-4'>
                 <h1 className='text-2xl font-bold'>Receiving</h1>
                 <div className=''>
-                    <Button>Scan Search</Button>
+                    <Button
+                        onClick={() => setIsScanning(true)}
+                    >Scan Search</Button>
                 </div>
             </div>
 

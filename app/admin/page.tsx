@@ -6,7 +6,7 @@ import ChildFolder from '@/components/ChildFolder'
 export default function page() {
     return (
         <div>
-            <SideBarMain currentLabel='Item Master Data' fatherLink='./' fatherLabel='Inventory'>
+            <SideBarMain currentLabel='Administrator' fatherLink='./' fatherLabel=''>
                 <ChildFolder id={0} />
             </SideBarMain>
 
