@@ -242,3 +242,4 @@ export function filterNavFolders(navFolders: any[], permissions: Permission[]) {
     }))
     .filter((folder) => folder.items && folder.items.length > 0);
 }
+// rebuild
