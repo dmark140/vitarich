@@ -122,3 +122,5 @@ export const ListOfYear: CodeNameBase[] = Array.from(
 );
 
 export const DefaultGenders = [{ code: "Male" }, { code: "Female" }];
+
+export  const today = new Date().toISOString().slice(0, 10)

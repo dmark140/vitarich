@@ -31,8 +31,8 @@ export default function Layout() {
 
   const tableColumnsx: ColumnConfig[] = useMemo(
     () => [
-      { key: 'id', label: 'DR No.', type: 'text', disabled: true },
-      { key: 'email', label: 'Posted By', type: 'text', disabled: true },
+      { key: 'id', label: 'ID', type: 'text', disabled: true },
+      { key: 'email', label: 'Email', type: 'text', disabled: true },
       { key: 'update', label: 'Update', type: 'button', disabled: false },
     ],
     [/*sourceList, itemListSource*/]
