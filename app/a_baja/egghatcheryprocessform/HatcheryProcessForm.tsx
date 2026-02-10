@@ -11,13 +11,23 @@ import { Separator } from "@/components/ui/separator"
 export default function HatcheryProcessForm() {
   const [start, setStart] = useState("")
   const [end, setEnd] = useState("")
-  const [duration, setDuration] = useState<number | null>(null)
+  const [duration, setDuration] = useState("")
 
+  // Auto-compute duration whenever start or end times change
   useEffect(() => {
     if (start && end) {
-      const diff =
-        (new Date(end).getTime() - new Date(start).getTime()) / 60000
-      setDuration(diff > 0 ? Math.round(diff) : null)
+      const startTime = new Date(start)
+      const endTime = new Date(end)
+      
+      if (endTime > startTime) {
+        const diffMs = endTime.getTime() - startTime.getTime()
+        const diffMinutes = Math.round(diffMs / 60000)
+        setDuration(diffMinutes.toString())
+      } else {
+        setDuration("")
+      }
+    } else {
+      setDuration("")
     }
   }, [start, end])
 
@@ -96,7 +106,10 @@ export default function HatcheryProcessForm() {
 
           <div>
             <Label>Duration (mins)</Label>
-            <Input value={duration ?? ""} disabled />
+            <Input 
+              value={duration} 
+              onChange={(e) => setDuration(e.target.value)} 
+            /> 
           </div>
         </div>
 
@@ -109,10 +122,10 @@ export default function HatcheryProcessForm() {
             <Input type="number" />
           </div>
 
-          <div className="flex items-center gap-3 mt-6">
+          {/* <div className="flex items-center gap-3 mt-6">
             <Switch />
             <Label>Active Batch</Label>
-          </div>
+          </div> */}
         </div>
 
         {/* ACTIONS */}

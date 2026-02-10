@@ -25,137 +25,144 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table" 
+import SideBarMain from "@/components/ui/sidebar/SideBarMain"
 
 export default function DisposalReleaseLayout() {
 
   return (
-    <Card className="max-w-7xl mx-auto">
-      <CardHeader>
-        <CardTitle>Delivery Receipt – Disposal / Release</CardTitle>
-      </CardHeader>
+      <div>
+        <SideBarMain currentLabel='Disposal' fatherLink='./' fatherLabel='Hatchery'>
+                   
+            <Card className="max-w-7xl mx-auto">
+              <CardHeader>
+                <CardTitle>Delivery Receipt – Disposal / Release</CardTitle>
+              </CardHeader>
 
-      <CardContent className="space-y-6">
+              <CardContent className="space-y-6">
 
-        {/* ===== HEADER ===== */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-3">
-            <Field label="Date">
-              <Input value="01/01/2026" readOnly />
-            </Field>
+                {/* ===== HEADER ===== */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-3">
+                    <Field label="Date">
+                      <Input value="01/01/2026" readOnly />
+                    </Field>
 
-            <Field label="Customer Name">
-              <Input placeholder="Enter customer name" />
-            </Field>
+                    <Field label="Customer Name">
+                      <Input placeholder="Enter customer name" />
+                    </Field>
 
-            <Field label="Contact No.">
-              <Input placeholder="Enter contact number" />
-            </Field>
-          </div>
+                    <Field label="Contact No.">
+                      <Input placeholder="Enter contact number" />
+                    </Field>
+                  </div>
 
-          <div className="space-y-3">
-            <Field label="Delivery Receipt No.">
-              <Input value="DR-11XXX11" readOnly />
-            </Field>
+                  <div className="space-y-3">
+                    <Field label="Delivery Receipt No.">
+                      <Input value="DR-11XXX11" readOnly />
+                    </Field>
 
-            <Field label="Customer Address">
-              <Input placeholder="Enter address" />
-            </Field>
+                    <Field label="Customer Address">
+                      <Input placeholder="Enter address" />
+                    </Field>
 
-            <Field label="Mode of Release">
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Pick up / Delivery" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="pickup">Pick Up</SelectItem>
-                  <SelectItem value="delivery">Delivery</SelectItem>
-                </SelectContent>
-              </Select>
-            </Field>
-          </div>
-        </div>
+                    <Field label="Mode of Release">
+                      <Select>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Pick up / Delivery" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pickup">Pick Up</SelectItem>
+                          <SelectItem value="delivery">Delivery</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </Field>
+                  </div>
+                </div>
 
-        {/* ===== BATCH / SKU ===== */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t pt-6">
-          <div className="space-y-3">
-            <Field label="DOC Batch Code">
-              <Input value="001FARM1B1P1-010126-B1%Sequence%" />
-            </Field>
+                {/* ===== BATCH / SKU ===== */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t pt-6">
+                  <div className="space-y-3">
+                    <Field label="DOC Batch Code">
+                      <Input value="001FARM1B1P1-010126-B1%Sequence%" />
+                    </Field>
 
-            <Field label="SKU Classification">
-              <Input value="DISPOSAL" readOnly />
-            </Field>
-          </div>
+                    <Field label="SKU Classification">
+                      <Input value="DISPOSAL" readOnly />
+                    </Field>
+                  </div>
 
-          <div className="space-y-3">
-            <Field label="Qty">
-              <Input value="100" />
-            </Field>
+                  <div className="space-y-3">
+                    <Field label="Qty">
+                      <Input value="100" />
+                    </Field>
 
-            <Field label="SKU Name">
-              <Input value="CC / UH / DP / RT" />
-            </Field>
+                    <Field label="SKU Name">
+                      <Input value="CC / UH / DP / RT" />
+                    </Field>
 
-            <Button className="w-fit mt-6">Add Item</Button>
-          </div>
-        </div>
+                    <Button className="w-fit mt-6">Add Item</Button>
+                  </div>
+                </div>
 
-        {/* ===== ITEMS TABLE ===== */}
-        <div className="border rounded-md">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Action</TableHead>
-                <TableHead>Doc Batch Code</TableHead>
-                <TableHead>SKU</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>UoM</TableHead>
-                <TableHead className="text-right">Qty</TableHead>
-              </TableRow>
-            </TableHeader>
+                {/* ===== ITEMS TABLE ===== */}
+                <div className="border rounded-md">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Action</TableHead>
+                        <TableHead>Doc Batch Code</TableHead>
+                        <TableHead>SKU</TableHead>
+                        <TableHead>Description</TableHead>
+                        <TableHead>UoM</TableHead>
+                        <TableHead className="text-right">Qty</TableHead>
+                      </TableRow>
+                    </TableHeader>
 
-            <TableBody>
-              {[
-                { sku: "CC", desc: "Cull Chick" },
-                { sku: "UH", desc: "Unhatched" },
-                { sku: "DP", desc: "Dead Pip" },
-                { sku: "RT", desc: "Rotten" },
-              ].map((item) => (
-                <TableRow key={item.sku}>
-                  <TableCell>
-                    <Button size="sm" variant="destructive">
-                      Remove
-                    </Button>
-                  </TableCell>
-                  <TableCell>
-                    001FARM1B1P1-010126-B1%
-                  </TableCell>
-                  <TableCell>{item.sku}</TableCell>
-                  <TableCell>{item.desc}</TableCell>
-                  <TableCell>PCS</TableCell>
-                  <TableCell className="text-right">100</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+                    <TableBody>
+                      {[
+                        { sku: "CC", desc: "Cull Chick" },
+                        { sku: "UH", desc: "Unhatched" },
+                        { sku: "DP", desc: "Dead Pip" },
+                        { sku: "RT", desc: "Rotten" },
+                      ].map((item) => (
+                        <TableRow key={item.sku}>
+                          <TableCell>
+                            <Button size="sm" variant="destructive">
+                              Remove
+                            </Button>
+                          </TableCell>
+                          <TableCell>
+                            001FARM1B1P1-010126-B1%
+                          </TableCell>
+                          <TableCell>{item.sku}</TableCell>
+                          <TableCell>{item.desc}</TableCell>
+                          <TableCell>PCS</TableCell>
+                          <TableCell className="text-right">100</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
 
-        {/* ===== REMARKS ===== */}
-        <div>
-          <Label>Remarks</Label>
-          <Textarea placeholder="Sample remarks" />
-        </div>
+                {/* ===== REMARKS ===== */}
+                <div>
+                  <Label>Remarks</Label>
+                  <Textarea placeholder="Sample remarks" />
+                </div>
 
-        {/* ===== ACTION BUTTONS ===== */}
-        <div className="flex justify-between pt-6">
-          <Button className="w-40">Save</Button>
-          <Button variant="secondary" className="w-40">
-            Cancel
-          </Button>
-        </div>
+                {/* ===== ACTION BUTTONS ===== */}
+                <div className="flex justify-between pt-6">
+                  <Button className="w-40">Save</Button>
+                  <Button variant="secondary" className="w-40">
+                    Cancel
+                  </Button>
+                </div>
 
-      </CardContent>
-    </Card>
+              </CardContent>
+            </Card>
+
+        </SideBarMain>
+      </div>
   )
 }
 

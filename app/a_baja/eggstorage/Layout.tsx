@@ -1,5 +1,5 @@
 "use client";
-import { useState, ChangeEvent } from "react";
+import { useState, ChangeEvent, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -42,6 +42,34 @@ export default function Layout({
 }: Props) {
   const [form, setForm] = useState<EggStorageForm>(initialState);
 
+  // Auto-compute duration whenever start or end times change
+  useEffect(() => {
+    if (form.egg_stemp_start && form.egg_stemp_end) {
+      const start = new Date(form.egg_stemp_start);
+      const end = new Date(form.egg_stemp_end);
+      
+      if (end > start) {
+        const diffMs = end.getTime() - start.getTime();
+        const diffMinutes = Math.round(diffMs / 60000);
+        
+        setForm((prev) => ({
+          ...prev,
+          duration: diffMinutes,
+        }));
+      } else {
+        setForm((prev) => ({
+          ...prev,
+          duration: null,
+        }));
+      }
+    } else {
+      setForm((prev) => ({
+        ...prev,
+        duration: null,
+      }));
+    }
+  }, [form.egg_stemp_start, form.egg_stemp_end]);
+
   /**
    * Generic onChange handler (typed)
    */
@@ -79,7 +107,7 @@ export default function Layout({
     { label: "Storage Humidity", name: "egg_sto_humi", disable: false, type: "text" },
     { label: "Egg Shell Temp", name: "egg_shell_temp", disable: false, type: "text" },
     { label: "Egg Shell Temp Date", name: "egg_shell_temp_date", disable: false, type: "date" },
-    { label: "Duration", name: "duration", disable: true, type: "number" },
+    { label: "Duration (minutes)", name: "duration", disable: true, type: "number" },
     { label: "Remarks", name: "remarks", disable: false, type: "text" },
   ];
 
@@ -134,9 +162,10 @@ export default function Layout({
                 name={field.name}
                 disabled={field.disable}
                 value={(form as any)[field.name] ?? ""}
+                // placeholder={field.name === "duration" ? "Auto-computed" : ""}
                 // checked={field.type === "checkbox" && field.name==="is_active" ? (form as any)[field.name] : undefined}
                 onChange={handleChange}
-              />
+              /> 
             </div>
           ))}
         </div>

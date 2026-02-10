@@ -7,7 +7,7 @@ export default function Page() {
 
   return (
     <SideBarMain
-      currentLabel="Chick Pullout Process"
+      currentLabel="Egg Pre-Warming Process"
       fatherLink="./"
       fatherLabel="Hatchery"
     >
