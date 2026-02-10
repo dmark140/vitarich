@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import {
   Dialog,
   DialogContent,
@@ -23,6 +24,28 @@ export default function EggTransferForm({
   open,
   onClose,
 }: EggTransferFormProps) {
+  const [transDateStart, setTransDateStart] = useState("")
+  const [transDateEnd, setTransDateEnd] = useState("")
+  const [duration, setDuration] = useState("")
+
+  // Auto-compute duration whenever start or end dates change
+  useEffect(() => {
+    if (transDateStart && transDateEnd) {
+      const start = new Date(transDateStart)
+      const end = new Date(transDateEnd)
+      
+      if (end > start) {
+        const diffMs = end.getTime() - start.getTime()
+        const diffMinutes = Math.round(diffMs / 60000)
+        setDuration(diffMinutes.toString())
+      } else {
+        setDuration("")
+      }
+    } else {
+      setDuration("")
+    }
+  }, [transDateStart, transDateEnd])
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-5xl">
@@ -51,19 +74,38 @@ export default function EggTransferForm({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="trans_date_start">Transfer Start</Label>
-                <Input id="trans_date_start" type="datetime-local" />
+                <Input 
+                  id="trans_date_start" 
+                  type="datetime-local"
+                  value={transDateStart}
+                  onChange={(e) => setTransDateStart(e.target.value)}
+                />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="trans_date_end">Transfer End</Label>
-                <Input id="trans_date_end" type="datetime-local" />
+                <Input 
+                  id="trans_date_end" 
+                  type="datetime-local"
+                  value={transDateEnd}
+                  onChange={(e) => setTransDateEnd(e.target.value)}
+                />
               </div>
             </div>
 
             {/* Duration */}
             <div className="space-y-2 max-w-sm">
               <Label htmlFor="duration">Duration (minutes)</Label>
-              <Input id="duration" type="number" placeholder="Auto / Manual" />
+              <Input 
+                id="duration" 
+                type="number" 
+                placeholder="Auto-computed" 
+                value={duration}
+                onChange={(e) => setDuration(e.target.value)}
+              />
+              {/* <p className="text-xs text-muted-foreground">
+                Automatically calculated from start/end times
+              </p> */}
             </div>
 
             <Separator />
@@ -84,8 +126,7 @@ export default function EggTransferForm({
                 <Label htmlFor="good_eggs">Good Eggs</Label>
                 <Input
                   id="good_eggs"
-                  type="number"
-                  placeholder="Auto computed"
+                  type="number" 
                   disabled
                 />
               </div>
@@ -93,23 +134,12 @@ export default function EggTransferForm({
 
             <Separator />
 
-            {/* Status */}
-            <div className="flex items-center justify-between max-w-sm">
-              <div className="space-y-1">
-                <Label>Active Status</Label>
-                <p className="text-sm text-muted-foreground">
-                  Mark if this transfer is active
-                </p>
-              </div>
-              <Switch />
-            </div>
-
             {/* Actions */}
             <div className="flex justify-end gap-3 pt-4">
+              <Button>Save</Button>
               <Button variant="outline" onClick={onClose}>
                 Cancel
-              </Button>
-              <Button>Save</Button>
+              </Button> 
             </div>
           </CardContent>
         </Card>

@@ -92,11 +92,11 @@ export default function ChickProcessForm({
             <Textarea placeholder="Optional notes..." />
           </div>
 
-          {/* Active Switch */}
+          {/* Active Switch
           <div className="col-span-2 flex items-center justify-between rounded-md border p-3">
             <Label className="text-sm">Active</Label>
             <Switch defaultChecked />
-          </div>
+          </div> */}
         </div>
 
         <DialogFooter>

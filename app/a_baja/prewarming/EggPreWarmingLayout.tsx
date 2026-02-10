@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import {
   Dialog,
   DialogContent,
@@ -18,6 +19,28 @@ type Props = {
 }
 
 export default function EggPreWarmingLayout({ open, onClose }: Props) {
+  const [startTime, setStartTime] = useState("")
+  const [endTime, setEndTime] = useState("")
+  const [duration, setDuration] = useState("")
+
+  // Auto-compute duration whenever start or end times change
+  useEffect(() => {
+    if (startTime && endTime) {
+      const start = new Date(startTime)
+      const end = new Date(endTime)
+      
+      if (end > start) {
+        const diffMs = end.getTime() - start.getTime()
+        const diffMinutes = Math.round(diffMs / 60000)
+        setDuration(diffMinutes.toString())
+      } else {
+        setDuration("")
+      }
+    } else {
+      setDuration("")
+    }
+  }, [startTime, endTime])
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl">
@@ -46,17 +69,28 @@ export default function EggPreWarmingLayout({ open, onClose }: Props) {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <Label>Start Time</Label>
-              <Input type="datetime-local" />
+              <Input 
+                type="datetime-local"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+              />
             </div>
 
             <div>
               <Label>End Time</Label>
-              <Input type="datetime-local" />
+              <Input 
+                type="datetime-local"
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+              />
             </div>
 
             <div>
-              <Label>Duration</Label>
-              <Input disabled />
+              <Label>Duration (minutes)</Label>
+              <Input 
+                value={duration}
+                onChange={(e) => setDuration(e.target.value)} 
+              /> 
             </div>
           </div>
 
@@ -65,10 +99,10 @@ export default function EggPreWarmingLayout({ open, onClose }: Props) {
             <Textarea />
           </div>
 
-          <div className="flex items-center gap-2">
+          {/* <div className="flex items-center gap-2">
             <Switch />
             <Label>Active</Label>
-          </div>
+          </div> */}
 
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={onClose}>Cancel</Button>

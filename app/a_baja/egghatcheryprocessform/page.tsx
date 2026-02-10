@@ -5,7 +5,7 @@ import HatcheryProcessForm from './HatcheryProcessForm'
 export default function page() {
     return (
         <div>
-            <SideBarMain currentLabel='Master and Reports' fatherLink='./' fatherLabel='Hatchery'>
+            <SideBarMain currentLabel='Egg Hatchery Process' fatherLink='./' fatherLabel='Hatchery'>
                 <HatcheryProcessForm />
             </SideBarMain>
 
