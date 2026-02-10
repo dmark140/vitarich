@@ -38,7 +38,7 @@ type DraftItem = {
 }
 
 export default function ApprovalDecisionForm() {
-  const { getValue } = useGlobalContext()
+  const { getValue, setValue } = useGlobalContext()
   const route = useRouter()
 
   const [header, setHeader] = useState<DataRecordApproval | null>(null)
@@ -53,15 +53,16 @@ export default function ApprovalDecisionForm() {
   /* ---------------------------------- effects ---------------------------------- */
 
   useEffect(() => {
+    route.prefetch("/a_dean/receiving")
     const contextData = getValue('forApproval')
     if (contextData?.row) {
       setHeader(contextData.row)
       setPostingDate(contextData.row.posting_date || today)
+    } else {
+      route.push("/a_dean/receiving")
     }
   }, [getValue])
-  useEffect(() => {
-    route.prefetch("/a_dean/receiving")
-  }, [])
+
 
   useEffect(() => {
 
@@ -123,7 +124,7 @@ export default function ApprovalDecisionForm() {
       alert(res.error)
       return
     }
-
+    setValue("forApproval", [])
     alert('Document approved and posted to inventory')
     route.push("/a_dean/receiving")
     // location.reload()

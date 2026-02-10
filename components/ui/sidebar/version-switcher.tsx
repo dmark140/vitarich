@@ -27,17 +27,17 @@ export function VersionSwitcher({
       <SidebarMenuItem>
         <DropdownMenu>
           <div className="flex items-baseline gap-2 mx-2">
-            <a href="#" className="flex items-center gap-2 font-medium my-4">
+            <a href="#" className="flex items-center gap-2 font-medium my-4 w-full">
               {/* <div className="  text-primary-foreground flex size-6 items-center justify-center rounded-md"> */}
                 <Image
                   src="https://cdn.prod.website-files.com/6819a7964b427b4964f82cc0/68203089539798c6cc2ba1c0_Corporate-Logo_Vitarich-White.png"
                   alt="Vitarich Logo"
                   width={55}
                   height={55}
-                  className=""
+                  className="mx-auto "
                 />  
                  {/* </div> */}
-              Vitarich Corp
+              {/* Vitarich Corp */}
             </a>
             <div className="flex flex-col gap-0.5 leading-none">
             </div>
