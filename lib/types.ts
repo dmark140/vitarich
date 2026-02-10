@@ -123,8 +123,20 @@ export type DraftStatus = 'pending' | 'approved' | 'rejected';
 export interface DataRecordApproval {
   uid: number;
   id: string;
-  posting_date: string; 
-  email: string;      
-  status: DraftStatus 
+  posting_date: string;
+  email: string;
+  status: DraftStatus
   checked: boolean;
+  docentry: number;
+
+}
+
+export interface DocumentApproval {
+  id: number;
+  docentry: number;
+  status: DraftStatus;
+  decided_by_email: string | null;
+  decided_at: string | null; // ISO timestamp
+  remarks: string | null;
+  created_at: string; // ISO timestamp
 }

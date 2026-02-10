@@ -1,6 +1,20 @@
 // app/a_dean/receiving/approval/api.ts
 import { db } from '@/lib/Supabase/supabaseClient'
 
+/* -------------------------------- TYPES -------------------------------- */
+
+export type ApproveHatcheryDraftPayload = {
+  docentry: number
+  posting_date: string // YYYY-MM-DD
+  temperature: string
+  humidity: string
+  items: {
+    sku: string
+    actual_count: number
+  }[]
+}
+
+/* ----------------------------- FETCH ITEMS ------------------------------ */
 
 export async function getHatcheryDraftItems(docEntryId: number) {
   try {
@@ -19,10 +33,26 @@ export async function getHatcheryDraftItems(docEntryId: number) {
   }
 }
 
-export async function approveHatcheryDraft(docEntryId: number) {
+/* ----------------------------- APPROVE ---------------------------------- */
+
+export async function approveHatcheryDraft(
+  payload: ApproveHatcheryDraftPayload
+) {
   try {
+    const {
+      docentry,
+      posting_date,
+      temperature,
+      humidity,
+      items,
+    } = payload
+
     const { error } = await db.rpc('approve_hatchery_draft', {
-      p_docentry: docEntryId,
+      p_docentry: docentry,
+      p_posting_date: posting_date,
+      p_temperature: temperature,
+      p_humidity: humidity,
+      p_items: items, // JSONB
     })
 
     if (error) throw error
@@ -36,6 +66,8 @@ export async function approveHatcheryDraft(docEntryId: number) {
     }
   }
 }
+
+/* ----------------------------- REJECT ----------------------------------- */
 
 export async function rejectHatcheryDraft(
   docEntryId: number,

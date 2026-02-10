@@ -59,6 +59,7 @@ export const NavFolders = [
       {
         group: "Reports",
         children: [
+          { type: "Report", title: "Relationship Map", url: "#" },
           { type: "Report", title: "Room Monitoring", url: "#" },
           { type: "Report", title: "Machine Monitoring", url: "#" },
         ],
@@ -121,3 +122,5 @@ export const ListOfYear: CodeNameBase[] = Array.from(
 );
 
 export const DefaultGenders = [{ code: "Male" }, { code: "Female" }];
+
+export  const today = new Date().toISOString().slice(0, 10)
