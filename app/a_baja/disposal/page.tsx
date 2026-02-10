@@ -24,73 +24,58 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
+} from "@/components/ui/table" 
 
-export default function DeliveryReceiptLayout() {
+export default function DisposalReleaseLayout() {
+
   return (
     <Card className="max-w-7xl mx-auto">
       <CardHeader>
-        <CardTitle>Delivery Receipt</CardTitle>
+        <CardTitle>Delivery Receipt – Disposal / Release</CardTitle>
       </CardHeader>
 
       <CardContent className="space-y-6">
 
-        {/* ===== HEADER SECTION ===== */}
+        {/* ===== HEADER ===== */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* LEFT */}
           <div className="space-y-3">
             <Field label="Date">
               <Input value="01/01/2026" readOnly />
             </Field>
 
-            <Field label="Farm Name">
-              <Input value="BROILER FARM 1" />
+            <Field label="Customer Name">
+              <Input placeholder="Enter customer name" />
             </Field>
 
-            <Field label="Hauler Plate Number">
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select plate number" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="plate1">ABC-123</SelectItem>
-                </SelectContent>
-              </Select>
-            </Field>
-
-            <Field label="Chick Van Temp">
-              <Input placeholder="°C" />
+            <Field label="Contact No.">
+              <Input placeholder="Enter contact number" />
             </Field>
           </div>
 
-          {/* RIGHT */}
           <div className="space-y-3">
             <Field label="Delivery Receipt No.">
               <Input value="DR-11XXX11" readOnly />
             </Field>
 
-            <Field label="Hauler Name">
+            <Field label="Customer Address">
+              <Input placeholder="Enter address" />
+            </Field>
+
+            <Field label="Mode of Release">
               <Select>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select hauler" />
+                  <SelectValue placeholder="Pick up / Delivery" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="hauler1">HAULER A</SelectItem>
+                  <SelectItem value="pickup">Pick Up</SelectItem>
+                  <SelectItem value="delivery">Delivery</SelectItem>
                 </SelectContent>
               </Select>
-            </Field>
-
-            <Field label="Truck Seal Number">
-              <Input />
-            </Field>
-
-            <Field label="Number of Fans">
-              <Input />
             </Field>
           </div>
         </div>
 
-        {/* ===== BATCH / SKU SECTION ===== */}
+        {/* ===== BATCH / SKU ===== */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t pt-6">
           <div className="space-y-3">
             <Field label="DOC Batch Code">
@@ -98,20 +83,20 @@ export default function DeliveryReceiptLayout() {
             </Field>
 
             <Field label="SKU Classification">
-              <Input value="Saleable / By Product" />
+              <Input value="DISPOSAL" readOnly />
             </Field>
           </div>
 
           <div className="space-y-3">
             <Field label="Qty">
-              <Input />
+              <Input value="100" />
             </Field>
 
             <Field label="SKU Name">
-              <Input value="Class C" />
+              <Input value="CC / UH / DP / RT" />
             </Field>
 
-            <Button className="w-fit self-end mt-6">Add Item</Button>
+            <Button className="w-fit mt-6">Add Item</Button>
           </div>
         </div>
 
@@ -123,38 +108,34 @@ export default function DeliveryReceiptLayout() {
                 <TableHead>Action</TableHead>
                 <TableHead>Doc Batch Code</TableHead>
                 <TableHead>SKU</TableHead>
-                <TableHead>Classification</TableHead>
+                <TableHead>Description</TableHead>
                 <TableHead>UoM</TableHead>
                 <TableHead className="text-right">Qty</TableHead>
               </TableRow>
             </TableHeader>
 
             <TableBody>
-              <TableRow>
-                <TableCell>
-                  <Button variant="destructive" size="sm">
-                    Remove
-                  </Button>
-                </TableCell>
-                <TableCell>001FARM1B1P1-010126-B1%</TableCell>
-                <TableCell>Class A</TableCell>
-                <TableCell>SALEABLE</TableCell>
-                <TableCell>TRAY</TableCell>
-                <TableCell className="text-right">100</TableCell>
-              </TableRow>
-
-              <TableRow>
-                <TableCell>
-                  <Button variant="destructive" size="sm">
-                    Remove
-                  </Button>
-                </TableCell>
-                <TableCell>001FARM1B1P1-010126-B1%</TableCell>
-                <TableCell>Class C</TableCell>
-                <TableCell>SALEABLE</TableCell>
-                <TableCell>PCS</TableCell>
-                <TableCell className="text-right">100</TableCell>
-              </TableRow>
+              {[
+                { sku: "CC", desc: "Cull Chick" },
+                { sku: "UH", desc: "Unhatched" },
+                { sku: "DP", desc: "Dead Pip" },
+                { sku: "RT", desc: "Rotten" },
+              ].map((item) => (
+                <TableRow key={item.sku}>
+                  <TableCell>
+                    <Button size="sm" variant="destructive">
+                      Remove
+                    </Button>
+                  </TableCell>
+                  <TableCell>
+                    001FARM1B1P1-010126-B1%
+                  </TableCell>
+                  <TableCell>{item.sku}</TableCell>
+                  <TableCell>{item.desc}</TableCell>
+                  <TableCell>PCS</TableCell>
+                  <TableCell className="text-right">100</TableCell>
+                </TableRow>
+              ))}
             </TableBody>
           </Table>
         </div>
@@ -178,7 +159,7 @@ export default function DeliveryReceiptLayout() {
   )
 }
 
-/* ===== Small Helper Component ===== */
+/* ===== FIELD WRAPPER ===== */
 function Field({
   label,
   children,

@@ -54,12 +54,12 @@ export const NavFolders = [
           { type: "Module", title: "Egg Hatchery Process", url: "/a_baja/egghatcheryprocessform" },
           { type: "Module", title: "Chick Grading", url: "/a_baja/chickgrading" },
           { type: "Module", title: "Doc Dispatch", url: "/a_baja/docdispatch" },
+          { type: "Module", title: "Disposal", url: "/a_baja/disposal" },
         ],
       },
       {
         group: "Reports",
         children: [
-          { type: "Report", title: "Relationship Map", url: "#" },
           { type: "Report", title: "Room Monitoring", url: "#" },
           { type: "Report", title: "Machine Monitoring", url: "#" },
         ],
@@ -122,5 +122,3 @@ export const ListOfYear: CodeNameBase[] = Array.from(
 );
 
 export const DefaultGenders = [{ code: "Male" }, { code: "Female" }];
-
-export  const today = new Date().toISOString().slice(0, 10)
