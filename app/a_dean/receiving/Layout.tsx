@@ -8,6 +8,7 @@ import TableSkeleton from '@/components/ui/TableSkeleton'
 import { sleep } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
 import { useGlobalContext } from '@/lib/context/GlobalContext'
+import { toast } from 'sonner'
 
 export default function Layout() {
     const { setValue, getValue } = useGlobalContext()
@@ -63,11 +64,15 @@ export default function Layout() {
                     onChange={() => console.log("trigger on change")}
                     rowOnClick={(e) => {
                         // console.log({ e })
+                        if (e.row.status === "Approved") {
+                            toast.warning("Only pending documents are allowed to be edited on this module")
+                            return
+                        }
+                        console.log({ e })
                         setValue("forApproval", e)
                         route.push("/a_dean/receiving/approval")
                     }}
                     DisableAddLine
-
                 />}
 
             </div>

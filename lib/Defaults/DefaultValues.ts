@@ -58,6 +58,7 @@ export const NavFolders = [
       {
         group: "Reports",
         children: [
+          { type: "Report", title: "Relationship Map", url: "#" },
           { type: "Report", title: "Room Monitoring", url: "#" },
           { type: "Report", title: "Machine Monitoring", url: "#" },
         ],
