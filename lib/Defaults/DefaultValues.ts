@@ -53,6 +53,7 @@ export const NavFolders = [
           { type: "Module", title: "Egg Transfer Process", url: "/a_baja/eggtransfer" },
           { type: "Module", title: "Egg Hatchery Process", url: "/a_baja/egghatcheryprocessform" },
           { type: "Module", title: "Chick Grading", url: "/a_baja/chickgrading" },
+          { type: "Module", title: "Doc Dispatch", url: "/a_baja/docdispatch" },
         ],
       },
       {
