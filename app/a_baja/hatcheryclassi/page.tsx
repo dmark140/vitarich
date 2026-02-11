@@ -24,6 +24,7 @@ import { HatchClassification } from "@/lib/types";
 import { Filter, Pencil, Plus, RefreshCwIcon, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useRouter } from 'next/navigation';
 
 function TableActions({ item, onEdit }: { item: HatchClassification; onEdit: (item: HatchClassification) => void }) {
   return (
@@ -47,9 +48,11 @@ export default function page() {
   const [columnFilters, setColumnFilters] = useState<any>([]);
   const [columnVisibility, setColumnVisibility] = useState<any>({});
   const [rowSelection, setRowSelection] = useState<any>({});
+  const Router = useRouter();
 
   useEffect(() => {
     (async () => {
+      Router.prefetch('/a_baja/hatcheryclassi/new');
       const data = await getHatches();
       if (data && !Array.isArray(data) || (Array.isArray(data) && data.length > 0 && 'error' in data[0])) {
         setItems([]);
@@ -123,19 +126,7 @@ export default function page() {
       <form action="" className="upper">
         <div className="mb-4 flex justify-between">
           <div></div>
-          <div className="flex items-center gap-2 mt-4">
- 
-            {/* <Button
-              type="button"
-              className="mr-4 flex items-center"
-              onClick={() => {
-                // setSelectedItem(null);
-                // setFormData({});
-                // setOpenModal(true);
-              }}
-            >
-              <Plus className="size-4" /> Add Item
-            </Button> */}
+          <div className="flex items-center gap-2 mt-4"> 
           </div>
         </div>
 
@@ -156,6 +147,15 @@ export default function page() {
             <Button>
               Search
             </Button>
+              <Button
+                type="button"
+                className="mr-4 flex items-center"
+                onClick={() => {
+                Router.push('/a_baja/hatcheryclassi/new');
+                }}
+              >
+                <Plus className="size-4" /> New Classification
+              </Button>
           </div>
 
           {/* Data Table */}
