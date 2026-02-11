@@ -1,164 +1,252 @@
 "use client";
 
-import { useState, ChangeEvent } from "react";
+import { useEffect, useState, ChangeEvent } from "react"; 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"; 
+import { db } from "@/lib/Supabase/supabaseClient";
+import { useRouter } from "next/navigation";
 
-export type HatchForm = {
-  daterec: string | null;
-  br_no: string;
-  good_egg: number | null;
-  trans_crack: number | null;
-  hatc_crack: number | null;
-  trans_condemn: number | null;
-  hatc_condemn: number | null;
-  thin_shell: number | null;
-  pee_wee: number | null;
-  small: number | null;
-  jumbo: number | null;
-  d_yolk: number | null;
-  ttl_count: number | null;
-  is_active: boolean;
-};
+export default function Hatchform() {
+const router = useRouter(); // Add this hook
+  const [breeders, setBreeders] = useState<any[]>([]);
+  const [form, setForm] = useState<any>({
+    br_no: "",
+    dr_no: "",
+    dr_date: "",
+    temperature: "",
+    sku: "",
+    uom: "",
+    total_count_view: 0,
 
-const initialState: HatchForm = {
-  daterec: null,
-  br_no: "",
-  good_egg: null,
-  trans_crack: null,
-  hatc_crack: null,
-  trans_condemn: null,
-  hatc_condemn: null,
-  thin_shell: null,
-  pee_wee: null,
-  small: null,
-  jumbo: null,
-  d_yolk: null,
-  ttl_count: null,
-  is_active: true,
-};
+    good_egg: null,
+    trans_crack: null,
+    hatc_crack: null,
+    trans_condemn: null,
+    hatc_condemn: null,
+    thin_shell: null,
+    pee_wee: null,
+    small: null,
+    jumbo: null,
+    d_yolk: null,
+    ttl_count: 0,
+    discrepancy: 0,
+  });
 
-export default function Hatchfrom() {
-  const [form, setForm] = useState<HatchForm>(initialState);
+  const numericFields = [
+  "Good_Egg",
+  "Transoprt_Crack",
+  "Hatch_Crack",
+  "Transoprt_Condemn",
+  "Hatch_Condemn",
+  "Thin_Shell",
+  "Pee_Wee",
+  "Small",
+  "Jumbo",
+  "Double_Yolk"
+];
 
+  // 🔥 LOAD VIEW DATA
+  useEffect(() => {
+    const loadBreeders = async () => {
+      const { data, error } = await db
+        .from("viewforhatcheryclassi")
+        .select("*")
+        .order("doc_date", { ascending: false });
+
+      if (!error && data) {
+        setBreeders(data);
+      }
+    };
+
+    loadBreeders();
+  }, []);
+
+  // 🔥 WHEN BREEDER SELECTED
+  const handleBreederChange = (value: string) => {
+    const selected = breeders.find(
+      (b) => b.brdr_ref_no === value
+    );
+
+    if (!selected) return;
+
+    setForm((prev: any) => ({
+      ...prev,
+      br_no: selected.brdr_ref_no,
+      dr_no: selected.dr_num,
+      dr_date: selected.doc_date,
+      temperature: selected.temperature,
+      sku: selected.sku,
+      uom: selected.UoM,
+      total_count_view: selected.actual_count,
+    }));
+  };
+
+  // 🔥 CLASSIFICATION INPUT
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type } = e.target;
+    const { name, value } = e.target;
 
-    const numericFields = [
-      "trans_crack",
-      "good_egg",
-      "trans_condemn",
-      "hatc_crack",
-      "thin_shell",
-      "hatc_condemn",
-      "small",
-      "pee_wee",
-      "d_yolk",
-      "jumbo",
-    ];
-
-    setForm((prev) => {
-      const parsedValue =
-        type === "number"
-          ? value === ""
-            ? null
-            : Number(value)
-          : value;
-
+    setForm((prev: any) => {
       const updated = {
         ...prev,
-        [name]: parsedValue,
-      } as any;
+        [name]: value === "" ? null : Number(value),
+      };
 
-      const ttl = numericFields.reduce((sum, key) => {
-        const v = updated[key];
-        if (v === null || v === "") return sum;
-        return sum + Number(v || 0);
+      const total = numericFields.reduce((sum, key) => {
+        return sum + Number(updated[key] || 0);
       }, 0);
 
-      updated.ttl_count = ttl;
+      updated.ttl_count = total;
+      updated.discrepancy =
+        (updated.total_count_view || 0) - total;
 
       return updated;
     });
   };
 
-  const handleSubmit = () => {
-    console.log("Submitted Data:", form);
-    // TODO: call API here
-    setForm(initialState);
-  };
-
-  const listofcom = [
-    { label: "Transport Crack", name: "trans_crack", disable: false },
-    { label: "Good Egg", name: "good_egg", disable: false },
-    { label: "Transport Condemn", name: "trans_condemn", disable: false },
-    { label: "Hatch Crack", name: "hatc_crack", disable: false },
-    { label: "Thin Shell", name: "thin_shell", disable: false },
-    { label: "Hatch Condemn", name: "hatc_condemn", disable: false },
-    { label: "Small", name: "small", disable: false },
-    { label: "Pee Wee", name: "pee_wee", disable: false },
-    { label: "Double Yolk", name: "d_yolk", disable: false },
-    { label: "Jumbo", name: "jumbo", disable: false },
-    { label: "Total Count", name: "ttl_count", disable: true },
-  ];
-
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <h1 className="text-2xl font-bold">Hatch Classification</h1>
-      <p className="text-muted-foreground">
-        Enter hatch classification details
-      </p>
+    <div className="max-w-6xl mx-auto p-6 space-y-6">
+      <h1 className="text-2xl font-bold">
+        Hatch Classification
+      </h1>
 
-      <Separator className="my-6" />
+      {/* ================= VIEW SECTION ================= */}
+      <Card>
+        {/* <CardHeader className="bg-muted">
+          <CardTitle>
+            This data from viewforhatcheryclassi
+          </CardTitle>
+        </CardHeader> */}
 
-      <div className="grid sm:grid-cols-2 gap-4">
-        {/* Date */}
-        <div className="space-y-1">
-          <Label>Date Received</Label>
-          <Input
-            type="date"
-            name="daterec"
-            value={form.daterec ?? ""}
-            onChange={handleChange}
-          />
-        </div>
+        <CardContent className="space-y-6 pt-6">
 
-        {/* BR No */}
-        <div className="space-y-1">
-          <Label>Breeder Ref. No.</Label>
-          <Input
-            name="br_no"
-            value={form.br_no}
-            onChange={handleChange}
-          />
-        </div>
+          {/* Breeder Dropdown */}
+          <div className="space-y-2">
+            <Label>Breeder Ref. No.</Label>
+            <Select onValueChange={handleBreederChange}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select Breeder Ref No" />
+              </SelectTrigger>
+              <SelectContent>
+                {breeders.map((b) => (
+                  <SelectItem
+                    key={b.brdr_ref_no}
+                    value={b.brdr_ref_no}
+                  >
+                    {b.brdr_ref_no}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-        {/* Dynamic Fields */}
-        {listofcom.map((field) => (
-          <div key={field.name} className="space-y-1">
-            <Label>{field.label}</Label>
-            <Input
-              type="number"
-              name={field.name}
-              disabled={field.disable}
-              value={(form as any)[field.name] ?? ""}
-              onChange={handleChange}
+          <Separator />
+
+          <div className="grid grid-cols-3 gap-6">
+            <DisabledField label="DR No." value={form.dr_no} />
+            <DisabledField label="DR Date" value={form.dr_date} />
+            <DisabledField label="Temperature" value={form.temperature} />
+            <DisabledField label="SKU" value={form.sku} />
+            <DisabledField label="UOM" value={form.uom} />
+            <DisabledField label="Total Count" value={form.total_count_view} />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ================= CLASSIFICATION ================= */}
+      <Card>
+        {/* <CardHeader className="">
+          <CardTitle>
+            Hatch Classification
+          </CardTitle>
+        </CardHeader> */}
+
+        <CardContent className="pt-6 space-y-6">
+
+          <div className="grid grid-cols-3 gap-6">
+            {numericFields.map((field) => (
+              <NumberField
+                key={field}
+                label={field.replace("_", " ")}
+                name={field}
+                form={form}
+                onChange={handleChange}
+              />
+            ))}
+            </div>
+            <div className="grid grid-cols-2 gap-6">
+            <NumberField
+              label="Total Classify"
+              name="ttl_count"
+              form={form}
+              disabled
+            />
+
+            <NumberField
+              label="Discrepancy"
+              name="discrepancy"
+              form={form}
+              disabled
             />
           </div>
-        ))}
-      </div>
 
-      <div className="flex gap-3 mt-8">
-        <Button onClick={handleSubmit}>Save</Button>
-        <Button
-          variant="outline"
-          onClick={() => setForm(initialState)}
-        >
-          Reset
-        </Button>
-      </div>
+          <div className="flex justify-end gap-3 pt-4">
+            <Button>Save</Button>
+            <Button 
+              variant="outline" 
+              onClick={() => router.push("/a_baja/hatcheryclassi")}
+            >
+              Cancel
+            </Button> 
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+/* ================= Reusable ================= */
+
+function DisabledField({ label, value }: any) {
+  return (
+    <div className="space-y-1">
+      <Label>{label}</Label>
+      <Input value={value ?? ""} disabled />
+    </div>
+  );
+}
+
+function NumberField({
+  label,
+  name,
+  form,
+  onChange,
+  disabled = false,
+}: any) {
+  return (
+    <div className="space-y-1">
+      <Label className="capitalize">{label}</Label>
+      <Input
+        type="number"
+        name={name}
+        disabled={disabled}
+        value={form[name] ?? ""}
+        onChange={onChange}
+      />
     </div>
   );
 }
