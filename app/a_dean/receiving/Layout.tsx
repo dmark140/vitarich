@@ -19,6 +19,24 @@ export default function Layout() {
         setScannedData(text); // Save the result
         setIsScanning(false); // Close the "function" (modal)
         console.log("Processing scanned data:", text);
+        const matchedRow = initialRows.find((row) => String(row.dr_num) === text);
+
+        if (!matchedRow) {
+            toast.error(`No record found with DR #: ${text}`);
+            return;
+        }
+
+        if (matchedRow.status === "Approved") {
+            toast.warning("Only pending documents are allowed to be edited on this module");
+            return;
+        }
+
+        console.log("Found match via scan:", matchedRow);
+
+        setValue("forApproval", { row: matchedRow });
+        route.push("/a_dean/receiving/approval");
+
+
     };
     const route = useRouter()
 
@@ -27,7 +45,7 @@ export default function Layout() {
     const tableColumnsx: ColumnConfig[] = useMemo(
         () => [
             { key: 'id', label: 'Approval ID', type: 'text', disabled: true },
-            { key: 'docentry', label: 'Document Entry', type: 'text', disabled: true },
+            { key: 'dr_num', label: 'Dr #', type: 'text', disabled: true },
             { key: 'status', label: 'Status', type: 'text', disabled: true },
             { key: 'decided_by_email', label: 'Decided By', type: 'text', disabled: true },
             { key: 'decided_at', label: 'Decision Date', type: 'text', disabled: true },
@@ -91,6 +109,7 @@ export default function Layout() {
                 />}
 
             </div>
+            {/* <Button onClick={() => console.log({ initialRows })}>check initialRows</Button> */}
         </div>
     )
 }

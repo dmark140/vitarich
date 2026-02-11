@@ -192,7 +192,7 @@ function TextCell({ value, onChange, disabled, onKeyDown, required }: { value: a
     const size = Math.max(10, displayValue.length + 2);
     if (disabled) {
         return (
-            <div className="h-8 px-2 text-sm border-none outline-none flex items-center whitespace-nowrap bg-black/5 dark:bg-white/5 text-black dark:text-white ">
+            <div className="h-8 px-2 text-sm border-none outline-none flex items-center whitespace-nowrap bg-black/5 dark:bg-white/5  ">
                 {displayValue}
             </div>
         );
