@@ -1,20 +1,13 @@
-"use client"
-import { useState } from "react" 
-import NavigationBar from '@/components/ui/sidebar/NavigationBar' 
-import EggPreWarmingLayout from './EggPreWarmingLayout'
-export default function Page() {
-  const [open, setOpen] = useState(true)
+import NavigationBar from "@/components/ui/sidebar/NavigationBar"
+import PrewarmTable from "./prewarm-table"
 
+export default function Page() {
   return (
-    <NavigationBar
-      currentLabel="Egg Pre-Warming Process"
-      fatherLink="./"
-      fatherLabel="Hatchery"
-    >
-      <EggPreWarmingLayout
-        open={open}
-        onClose={() => setOpen(false)}
-      />
+    <NavigationBar 
+    currentLabel="Egg Pre-Warming" 
+    fatherLink="/a_dean/hatchery" 
+    fatherLabel="Hatchery">
+      <PrewarmTable />
     </NavigationBar>
   )
 }
