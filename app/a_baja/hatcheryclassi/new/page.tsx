@@ -6,8 +6,7 @@ export default function page() {
         <div>
             <NavigationBar currentLabel='Hatch Classification Information' fatherLink='./' fatherLabel='Hatchery'>
                 <Hatchfromx />
-            </NavigationBar>
-
+            </NavigationBar> 
         </div>
     )
 }
