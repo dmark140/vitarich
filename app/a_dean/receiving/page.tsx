@@ -9,9 +9,9 @@ export default function page() {
    
     return (
         <div>
-            <NavigationBar currentLabel="Hatchery - Receiving" fatherLabel=''>
+            {/* <NavigationBar currentLabel="Hatchery - Receiving" fatherLabel=''> */}
                 <Layout />
-            </NavigationBar>
+            {/* </NavigationBar> */}
         </div>
     )
 }
