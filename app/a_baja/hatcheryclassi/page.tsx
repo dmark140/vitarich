@@ -6,7 +6,7 @@ export default function Page() {
     <div>
       <SideBarMain
         currentLabel="Hatchery Classification"
-        fatherLink="./"
+        fatherLink="/a_dean/hatchery"
         fatherLabel="Hatchery"
       >
         <HatchTable />

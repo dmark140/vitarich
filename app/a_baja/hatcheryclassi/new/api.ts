@@ -1,71 +1,86 @@
 import { db } from "@/lib/Supabase/supabaseClient";
-import { HatchClassification } from "@/lib/types";
 
-// craete hatchery classification record 
-export async function createHatch(
-  payload: Partial<HatchClassification>
-) {
-  // Set created_at to current timestamp if not provided
-  const payloadWithTimestamp = {
-    ...payload,
-    created_at: payload.created_at || new Date().toISOString(),
-  };
+export type HatchClassificationInsert = {
+  created_at?: string; // ✅ add
+  daterec: string | null;
+  br_no: string | null; 
+  good_egg: number | null;
+  trans_crack: number | null;
+  hatc_crack: number | null;
+  trans_condemn: number | null;
+  hatc_condemn: number | null;
+  thin_shell: number | null;
+  pee_wee: number | null;
+  small: number | null;
+  jumbo: number | null;
+  d_yolk: number | null;
 
-  const { data, error } = await db
-    .from("hatch_classification")
-    .insert(payloadWithTimestamp)
-    .select()
-    .single();
+  ttl_count: number | null;
+  is_active: boolean | null;
+};
 
-  if (error) throw error;
-  return data;
-}
-
-/**
- * Dynamic SELECT with filters
- */
-export type HatchFilter = Partial<{
+export type HatchClassificationRow = HatchClassificationInsert & {
   id: number;
-  br_no: string;
-  daterec: string;
-  is_active: boolean;
-}>;
+  created_at: string;
+  created_by: string | null;
+  updated_at: string | null;
+  updated_by: string | null;
+};
 
-export async function getHatches(
-  filters?: HatchFilter,
-  selectFields: (keyof HatchClassification)[] = ["*"] as any
-) {
-  let query = db
-    .from("hatch_classification")
-    .select(selectFields.join(","));
-
-  if (filters) {
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        query = query.eq(key, value);
-      }
-    });
-  }
-
-  const { data, error } = await query;
-
-  if (error) throw error;
-  return data;
-}
-
-export async function updateHatch(
-  id: number,
-  payload: Partial<HatchClassification>
-) {
+export async function createHatchClassification(payload: HatchClassificationInsert) {
   const { data, error } = await db
     .from("hatch_classification")
-    .update(payload)
-    .eq("id", id)
-    .select()
+    .insert(payload)
+    .select("*")
     .single();
 
-  if (error) throw error;
-  return data;
+  if (error) throw new Error(error.message);
+  return data as HatchClassificationRow;
 }
 
- 
+export async function getHatchClassificationById(id: number) {
+  const { data, error } = await db
+    .from("hatch_classification")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error) throw new Error(error.message);
+  return data as HatchClassificationRow;
+}
+
+export async function listHatchClassification(limit = 50) {
+  const { data, error } = await db
+    .from("hatch_classification")
+    .select("*")
+    .order("id", { ascending: false })
+    .limit(limit);
+
+  if (error) throw new Error(error.message);
+  return (data ?? []) as HatchClassificationRow[];
+}
+
+export async function updateHatchClassification(id: number, payload: Partial<HatchClassificationInsert>) {
+  const { data, error } = await db
+    .from("hatch_classification")
+    .update({
+      ...payload,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", id)
+    .select("*")
+    .single();
+
+  if (error) throw new Error(error.message);
+  return data as HatchClassificationRow;
+}
+
+export async function deleteHatchClassification(id: number) {
+  const { error } = await db
+    .from("hatch_classification")
+    .delete()
+    .eq("id", id);
+
+  if (error) throw new Error(error.message);
+  return true;
+}

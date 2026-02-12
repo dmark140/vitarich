@@ -26,7 +26,7 @@ import { Input } from "@/components/ui/input"
 import { Search, Plus } from "lucide-react"
 
 import { HatchClassification } from "@/lib/types"
-import { getHatches } from "./new/api"
+import { listHatchClassification } from "./new/api"
 
 export default function HatchTable() {
   const [items, setItems] = useState<HatchClassification[]>([])
@@ -40,7 +40,7 @@ export default function HatchTable() {
   useEffect(() => {
     ;(async () => {
       router.prefetch("/a_baja/hatcheryclassi/new")
-      const data = await getHatches()
+      const data = await listHatchClassification()
 
       if (
         (data && !Array.isArray(data)) ||
@@ -54,6 +54,13 @@ export default function HatchTable() {
       }
     })()
   }, [])
+ 
+        
+        // thin_shell: form.thin_shell,
+        // pee_wee: form.pee_wee,
+        // small: form.small,
+        // jumbo: form.jumbo,
+        // d_yolk: form.d_yolk,
 
   const columns: ColumnDef<HatchClassification>[] = [
     {
@@ -69,14 +76,50 @@ export default function HatchTable() {
       accessorKey: "br_no",
       header: "Breeder Ref. No.",
     },
+     {
+      accessorKey: "trans_crack",
+      header: "Transport Crack",
+    },
+     {
+      accessorKey: "good_egg",
+      header: "Good Egg",
+    },
+     {
+      accessorKey: "hatc_crack",
+      header: "Hatch Crack",
+    },
+     {
+      accessorKey: "trans_condemn",
+      header: "Transport Condemn",
+    },
+     {
+      accessorKey: "hatc_condemn",
+      header: "Hatch Condemn",
+    },
+     {
+      accessorKey: "thin_shell",
+      header: "Thin Shell",
+    },
+    {
+      accessorKey: "pee_wee",
+      header: "Pee Wee",
+    }, 
+    {
+      accessorKey: "small",
+      header: "Small",
+    }, 
+    {
+      accessorKey: "jumbo",
+      header: "Jumbo",
+    }, 
+    {
+      accessorKey: "d_yolk",
+      header: "Double Yolk",
+    }, 
     {
       accessorKey: "ttl_count",
       header: "Total Count",
-    },
-    {
-      accessorKey: "sStus",
-      header: "Status",
-    },
+    }, 
   ]
 
   const table = useReactTable({
@@ -137,7 +180,9 @@ export default function HatchTable() {
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
+                  <TableHead 
+                  key={header.id}
+                  className="whitespace-normal wrap-break-word text-center align-middle">
                     {header.isPlaceholder
                       ? null
                       : flexRender(
