@@ -1,3 +1,6 @@
+﻿export const dynamic = 'force-dynamic'
+
+
 import NavigationBar from '@/components/ui/sidebar/NavigationBar'
 import ChildFolder from '@/components/ChildFolder'
 import Layout from './Layout'
@@ -12,3 +15,4 @@ export default function page() {
         </div>
     )
 }
+

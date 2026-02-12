@@ -1,3 +1,6 @@
+﻿export const dynamic = 'force-dynamic'
+
+
 import NavigationBar from "@/components/ui/sidebar/NavigationBar"
 import EggTable from "./egg-table"
 export default function Page() {
@@ -13,3 +16,5 @@ export default function Page() {
     </div>
   )
 }
+
+

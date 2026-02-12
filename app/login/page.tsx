@@ -1,3 +1,6 @@
+﻿export const dynamic = 'force-dynamic'
+
+
 import bg from "./lofi.jpg"
 import bg2 from "./avian.png"
 import Image from "next/image"
@@ -31,3 +34,5 @@ export default function LoginPage() {
         </div>
     )
 }
+
+

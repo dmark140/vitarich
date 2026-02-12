@@ -1,4 +1,7 @@
+﻿
 "use client"
+
+export const dynamic = 'force-dynamic'
 
 import {
   Card,
@@ -35,7 +38,7 @@ export default function DisposalReleaseLayout() {
                    
             <Card className="max-w-7xl mx-auto">
               <CardHeader>
-                <CardTitle>Delivery Receipt – Disposal / Release</CardTitle>
+                <CardTitle>Delivery Receipt â€“ Disposal / Release</CardTitle>
               </CardHeader>
 
               <CardContent className="space-y-6">
@@ -181,3 +184,5 @@ function Field({
     </div>
   )
 }
+
+

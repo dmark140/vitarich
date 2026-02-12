@@ -1,4 +1,7 @@
+﻿
 "use client"
+
+export const dynamic = 'force-dynamic'
 
 import {
   Card,
@@ -62,7 +65,7 @@ export default function DeliveryReceiptLayout() {
                   </Field>
 
                   <Field label="Chick Van Temp">
-                    <Input placeholder="°C" />
+                    <Input placeholder="Â°C" />
                   </Field>
                 </div>
 
@@ -198,3 +201,5 @@ function Field({
     </div>
   )
 }
+
+

@@ -1,3 +1,6 @@
+﻿export const dynamic = 'force-dynamic'
+
+
 import NavigationBar from '@/components/ui/sidebar/NavigationBar'
 import ChildFolder from '@/components/ChildFolder'
 import Breadcrumb from '@/lib/Breadcrumb'
@@ -24,3 +27,4 @@ export default function page() {
         </div>
     )
 }
+

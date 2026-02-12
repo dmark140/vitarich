@@ -1,3 +1,6 @@
+﻿export const dynamic = 'force-dynamic'
+
+
 import NavigationBar from "@/components/ui/sidebar/NavigationBar" 
 import EggsetterForm from "./Eggsetterform" 
 
@@ -14,3 +17,4 @@ export default function Page() {
     </div>
   )
 }
+

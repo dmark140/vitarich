@@ -1,4 +1,7 @@
+﻿
 "use client"
+
+export const dynamic = 'force-dynamic'
 import { useState } from "react" 
 import EggTransferForm from "./EggTransferForm"
 import NavigationBar from "@/components/ui/sidebar/NavigationBar"
@@ -19,3 +22,5 @@ export default function Page() {
     </NavigationBar>
   )
 }
+
+

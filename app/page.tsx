@@ -1,4 +1,7 @@
+﻿
 'use client'
+
+export const dynamic = 'force-dynamic'
 import { LoginForm } from '@/lib/Login/loginform'
 import { useRouter } from 'next/navigation';
 import React, { useEffectEvent } from 'react'
@@ -35,3 +38,5 @@ export default function page() {
     </div>
   )
 }
+
+

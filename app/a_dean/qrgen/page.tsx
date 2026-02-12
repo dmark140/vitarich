@@ -1,3 +1,6 @@
+﻿export const dynamic = 'force-dynamic'
+
+
 // 'use client'
 import React from 'react'
 import Layout from './Layout';
@@ -14,3 +17,5 @@ export default async function page() {
         </div>
     )
 }
+
+

@@ -1,3 +1,6 @@
+﻿export const dynamic = 'force-dynamic'
+
+
 import NavigationBar from '@/components/ui/sidebar/NavigationBar' 
 import Chickgrading from './Chickgrading'
 
@@ -11,3 +14,4 @@ export default function page() {
         </div>
     )
 }
+

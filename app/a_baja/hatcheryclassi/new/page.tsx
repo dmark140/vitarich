@@ -1,3 +1,6 @@
+﻿export const dynamic = 'force-dynamic'
+
+
 import NavigationBar from '@/components/ui/sidebar/NavigationBar'    
 import Hatchfromx from './Hatchform'
 
@@ -10,3 +13,4 @@ export default function page() {
         </div>
     )
 }
+
