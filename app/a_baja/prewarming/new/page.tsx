@@ -1,13 +1,13 @@
- import SideBarMain from "@/components/ui/sidebar/SideBarMain"
+ import NavigationBar from "@/components/ui/sidebar/NavigationBar"
 import Prewarmingform from "./Prewarmingform"
 
 export default function Page() {
   return (
-    <SideBarMain 
+    <NavigationBar 
     currentLabel="Egg Pre-Warming" 
     fatherLink="/a_dean/hatchery" 
     fatherLabel="Hatchery">
       <Prewarmingform />
-    </SideBarMain>
+    </NavigationBar>
   )
 }

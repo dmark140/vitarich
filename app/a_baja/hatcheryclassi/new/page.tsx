@@ -1,12 +1,12 @@
-import SideBarMain from '@/components/ui/sidebar/SideBarMain'    
+import NavigationBar from '@/components/ui/sidebar/NavigationBar'    
 import Hatchfromx from './Hatchform'
 
 export default function page() {
     return (
         <div>
-            <SideBarMain currentLabel='Hatch Classification Information' fatherLink='./' fatherLabel='Hatchery'>
+            <NavigationBar currentLabel='Hatch Classification Information' fatherLink='./' fatherLabel='Hatchery'>
                 <Hatchfromx />
-            </SideBarMain>
+            </NavigationBar>
 
         </div>
     )

@@ -1,16 +1,16 @@
-import SideBarMain from "@/components/ui/sidebar/SideBarMain" 
+import NavigationBar from "@/components/ui/sidebar/NavigationBar" 
 import EggsetterForm from "./Eggsetterform" 
 
 export default function Page() {
   return (
     <div>
-      <SideBarMain
+      <NavigationBar
         currentLabel="New Egg Setting"
         fatherLink="/a_baja/eggsetter"
         fatherLabel="Egg Setter"
       >
         <EggsetterForm />
-      </SideBarMain>
+      </NavigationBar>
     </div>
   )
 }
