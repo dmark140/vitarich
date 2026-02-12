@@ -55,13 +55,6 @@ export default function HatchTable() {
     })()
   }, [])
  
-        
-        // thin_shell: form.thin_shell,
-        // pee_wee: form.pee_wee,
-        // small: form.small,
-        // jumbo: form.jumbo,
-        // d_yolk: form.d_yolk,
-
   const columns: ColumnDef<HatchClassification>[] = [
     {
       accessorKey: "id",

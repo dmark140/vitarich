@@ -1,5 +1,5 @@
-import SideBarMain from "@/components/ui/sidebar/SideBarMain"
-import PrewarmTable from "./prewarm-table"
+ import SideBarMain from "@/components/ui/sidebar/SideBarMain"
+import Prewarmingform from "./Prewarmingform"
 
 export default function Page() {
   return (
@@ -7,7 +7,7 @@ export default function Page() {
     currentLabel="Egg Pre-Warming" 
     fatherLink="/a_dean/hatchery" 
     fatherLabel="Hatchery">
-      <PrewarmTable />
+      <Prewarmingform />
     </SideBarMain>
   )
 }

@@ -89,8 +89,7 @@ export default function Eggstorageform() {
     <Card className="max-w-6xl mx-auto">
       <CardHeader>
         <CardTitle>Egg Storage Management</CardTitle>
-      </CardHeader>
-
+      </CardHeader> 
       <Separator />
 
       <CardContent className="p-4 space-y-4"> 

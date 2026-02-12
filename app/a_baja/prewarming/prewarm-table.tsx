@@ -23,78 +23,69 @@ import {
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Search, Plus } from "lucide-react"
+import { Search, Plus, RefreshCw } from "lucide-react"
 
-import { EggStorageMngt, listEggStorage } from "./new/api"
+import { EggPreWarmingRow, listPreWarmings } from "./new/api"
 
-export default function EggTable() {
-  const [items, setItems] = useState<EggStorageMngt[]>([])
+export default function PrewarmTable() {
+  const [items, setItems] = useState<EggPreWarmingRow[]>([])
   const [sorting, setSorting] = useState<any>([])
   const [columnFilters, setColumnFilters] = useState<any>([])
   const [columnVisibility, setColumnVisibility] = useState<any>({})
   const [rowSelection, setRowSelection] = useState<any>({})
+  const [loading, setLoading] = useState(false)
 
   const router = useRouter()
 
+  const fetchData = async () => {
+    setLoading(true)
+    try {
+      const data = await listPreWarmings({ is_active: true, limit: 200 })
+      setItems((Array.isArray(data) ? data : []) as EggPreWarmingRow[])
+    } catch (e) {
+      setItems([])
+    } finally {
+      setLoading(false)
+    }
+  }
+
   useEffect(() => {
     ;(async () => {
-      router.prefetch("/a_baja/eggstorage/new")
-
-      try {
-        const data = await listEggStorage()
-
-        if (
-          (data && !Array.isArray(data)) ||
-          (Array.isArray(data) && data.length > 0 && "error" in (data as any)[0])
-        ) {
-          setItems([])
-        } else {
-          setItems((Array.isArray(data) ? data : []) as EggStorageMngt[])
-        }
-      } catch {
-        setItems([])
-      }
+      router.prefetch("/a_baja/prewarming/new")
+      await fetchData()
     })()
-  }, [router])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
-  const columns: ColumnDef<EggStorageMngt>[] = [
+  const columns: ColumnDef<EggPreWarmingRow>[] = [
     {
       accessorKey: "id",
       header: "#",
       cell: ({ row }) => row.index + 1,
     },
     {
-      accessorKey: "stor_temp",
-      header: "Storage Temperature",
+      accessorKey: "egg_ref_no",
+      header: "Egg Reference No.",
     },
     {
-      accessorKey: "room_temp",
-      header: "Room Temperature",
+      accessorKey: "pre_temp",
+      header: "Pre-Warming Temp",
     },
     {
-      accessorKey: "stor_humi",
-      header: "Storage Humidity",
+      accessorKey: "egg_temp",
+      header: "Egg Shell Temp",
     },
     {
-      accessorKey: "shell_start",
-      header: "Shell Temp Start",
-      cell: ({ row }) => {
-        const v = row.original.shell_start
-        return v ? new Date(v).toLocaleString() : ""
-      },
+      accessorKey: "egg_temp_time_start",
+      header: "Start Time",
     },
     {
-      accessorKey: "shell_end",
-      header: "Shell Temp End",
-      cell: ({ row }) => {
-        const v = row.original.shell_end
-        return v ? new Date(v).toLocaleString() : ""
-      },
+      accessorKey: "egg_temp_time_end",
+      header: "End Time",
     },
     {
       accessorKey: "duration",
-      header: "Duration (min)",
-      cell: ({ row }) => row.original.duration ?? "",
+      header: "Duration (minutes)",
     },
     {
       accessorKey: "remarks",
@@ -128,25 +119,37 @@ export default function EggTable() {
         <div className="flex items-center gap-2">
           <div className="relative w-72">
             <Input
-              placeholder="Filter Remarks"
+              placeholder="Filter Egg Reference No."
               className="pl-10"
               value={
-                (table.getColumn("remarks")?.getFilterValue() as string) ?? ""
+                (table.getColumn("egg_ref_no")?.getFilterValue() as string) ?? ""
               }
               onChange={(e) =>
-                table.getColumn("remarks")?.setFilterValue(e.target.value)
+                table.getColumn("egg_ref_no")?.setFilterValue(e.target.value)
               }
             />
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
           </div>
+
+          <Button
+            type="button"
+            variant="outline"
+            onClick={fetchData}
+            disabled={loading}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className="size-4" />
+            {loading ? "Refreshing..." : "Refresh"}
+          </Button>
         </div>
 
         <Button
           type="button"
-          onClick={() => router.push("/a_baja/eggstorage/new")}
+          onClick={() => router.push("/a_baja/prewarming/new")}
           className="flex items-center gap-2"
         >
-          <Plus className="size-4" /> Egg Storage
+          <Plus className="size-4" />
+          New Record
         </Button>
       </div>
 
