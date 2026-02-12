@@ -50,7 +50,7 @@ const Breadcrumb = ({
       </div>
 
       {/* Current Page - Always visible */}
-      <span className="text-white font-semibold mx-6  sm:mx-0">
+      <span className="text-white font-semibold mx-10  sm:mx-0">
         {CurrentPageName}
       </span>
     </nav>

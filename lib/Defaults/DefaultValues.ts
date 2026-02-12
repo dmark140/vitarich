@@ -68,16 +68,16 @@ export const NavFolders = [
   },
   {
     id: 2,
-    title: "Inventory Management",
+    title: "Inventory ",
     url: "/a_dean/inventory",
     icon: Boxes, // Example icon name
     items: [
       {
-        group: "Item Management",
+        group: "Masters",
         children: [
           { type: "Module", title: "Item Master Data", url: "#" },
           { type: "Module", title: "Warehouse Master Data", url: "/a_dean/warehouse" },
-          { type: "Module", title: "Bin  Master Data", url: "#" },
+          { type: "Module", title: "Bin  Master Data", url: "/a_dean/inventory/bin" },
           // { type: "Module", title: "Alternative Items", url: "#" },
         ],
       },

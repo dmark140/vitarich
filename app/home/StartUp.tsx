@@ -20,7 +20,7 @@ export default function StartUp() {
 
 
     return (
-        <div className="flex flex-col items-start justify-center   text-slate-900 dark:text-white p-8 mr-4  transition-colors duration-300">
+        <div className="flex flex-col items-start justify-center    p-8 mr-4  transition-colors duration-300">
             <div className="max-w-2xl w-full space-y-8">
 
                 {/* Header Section */}

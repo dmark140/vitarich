@@ -7,10 +7,10 @@ export default function page() {
 
     return (
         <div>
-            <NavigationBar currentLabel="Home" fatherLabel=''>
+            {/* <NavigationBar currentLabel="Home" fatherLabel=''> */}
                 {/* <Layout/> */}
                 <StartUp/> 
-            </NavigationBar>
+            {/* </NavigationBar> */}
         </div>
     )
 }

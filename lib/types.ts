@@ -171,3 +171,18 @@ export interface WarehouseData {
   is_active?: boolean;
   bin_activated?: boolean;
 }
+
+
+export interface StorageLocationData {
+  id: number
+  warehouse_id: number
+  parent_id: number | null
+  level_no: number
+  location_code: string
+  location_name: string | null
+  full_location_code: string
+  is_lowest_level: boolean
+  void: boolean
+  is_active: boolean
+  created_at: string
+}
