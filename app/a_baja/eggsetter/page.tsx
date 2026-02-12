@@ -1,25 +1,10 @@
-"use client";
-import SideBarMain from '@/components/ui/sidebar/SideBarMain'
-import React, { useState } from 'react'  
-import EggSettingForm from './SetterIncubation' 
-import { Plus } from 'lucide-react';
-import { Button } from '@/components/ui/button'; 
-
+import SideBarMain from "@/components/ui/sidebar/SideBarMain"
+import EggsetterTable from "./eggsetter-table"
 
 export default function Page() {
-  const [open, setOpen] = useState(true)
-
-      return (
-        <SideBarMain
-          currentLabel="Egg Setter"
-          fatherLink="./"
-          fatherLabel="Hatchery"
-        >
-          <EggSettingForm
-            open={open}
-            onClose={() => setOpen(false)}
-          />
-        </SideBarMain>
-      )
-
+  return (
+    <SideBarMain currentLabel="Egg Setter" fatherLink="/a_dean/hatchery" fatherLabel="Hatchery">
+      <EggsetterTable />
+    </SideBarMain>
+  )
 }
