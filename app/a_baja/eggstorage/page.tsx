@@ -1,5 +1,5 @@
 "use client";
-import SideBarMain from '@/components/ui/sidebar/SideBarMain'
+import NavigationBar from '@/components/ui/sidebar/NavigationBar'
 import React, { useState } from 'react'  
 import Layout from './Layout' 
 import { Plus } from 'lucide-react';
@@ -11,7 +11,7 @@ export default function page() {
 
     return (
         <div>
-            <SideBarMain currentLabel='Egg Storage Management' fatherLink='./' fatherLabel='Hatchery'>
+            <NavigationBar currentLabel='Egg Storage Management' fatherLink='./' fatherLabel='Hatchery'>
                  {/* <div className="flex items-center gap-2 mt-4">
                 <button onClick={() =>} className="mb-4 px-4 py-2 bg-blue-600 text-white rounded">
                     Add New Egg Storage
@@ -39,7 +39,7 @@ export default function page() {
             
 
 
-        </SideBarMain>
+        </NavigationBar>
         </div>
     );
 }

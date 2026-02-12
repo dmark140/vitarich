@@ -1,13 +1,13 @@
-import SideBarMain from '@/components/ui/sidebar/SideBarMain'
+import NavigationBar from '@/components/ui/sidebar/NavigationBar'
 import React from 'react' 
 import Layout from './Layout'
 
 export default function page() {
     return (
         <div>
-            <SideBarMain currentLabel='User' fatherLabel='Administrator' fatherLink='/a_dean/admin' >
+            <NavigationBar currentLabel='User' fatherLabel='Administrator' fatherLink='/a_dean/admin' >
                 <Layout />
-            </SideBarMain>
+            </NavigationBar>
         </div>
     )
 } 

@@ -1,14 +1,14 @@
 import React from 'react'
-import SideBarMain from '@/components/ui/sidebar/SideBarMain';
+import NavigationBar from '@/components/ui/sidebar/NavigationBar';
 import Layout from './Layout';
 
 export default function page() {
 
     return (
         <div>
-            <SideBarMain currentLabel="Hatchery - Receiving" fatherLabel=''>
+            <NavigationBar currentLabel="Hatchery - Receiving" fatherLabel=''>
                 <Layout />
-            </SideBarMain>
+            </NavigationBar>
         </div>
     )
 }

@@ -25,13 +25,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table" 
-import SideBarMain from "@/components/ui/sidebar/SideBarMain"
+import NavigationBar from "@/components/ui/sidebar/NavigationBar"
 
 export default function DisposalReleaseLayout() {
 
   return (
       <div>
-        <SideBarMain currentLabel='Disposal' fatherLink='./' fatherLabel='Hatchery'>
+        <NavigationBar currentLabel='Disposal' fatherLink='./' fatherLabel='Hatchery'>
                    
             <Card className="max-w-7xl mx-auto">
               <CardHeader>
@@ -161,7 +161,7 @@ export default function DisposalReleaseLayout() {
               </CardContent>
             </Card>
 
-        </SideBarMain>
+        </NavigationBar>
       </div>
   )
 }

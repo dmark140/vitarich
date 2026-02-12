@@ -1,5 +1,5 @@
 "use client"
-import SideBarMain from '@/components/ui/sidebar/SideBarMain'
+
 import { useState, useEffect } from "react";
 import HatchFormModal from "./HatchFormModal";
 import { createHatch, getHatches } from "./api"; 
@@ -24,6 +24,7 @@ import { HatchClassification } from "@/lib/types";
 import { Filter, Pencil, Plus, RefreshCwIcon, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import NavigationBar from "@/components/ui/sidebar/NavigationBar";
 
 function TableActions({ item, onEdit }: { item: HatchClassification; onEdit: (item: HatchClassification) => void }) {
   return (
@@ -119,7 +120,7 @@ export default function page() {
 
   return (
     <div>
-      <SideBarMain currentLabel='Hatchery Classification' fatherLink='./' fatherLabel='Hatchery'>
+      <NavigationBar currentLabel='Hatchery Classification' fatherLink='./' fatherLabel='Hatchery'>
       <form action="" className="upper">
         <div className="mb-4 flex justify-between">
           <div></div>
@@ -281,7 +282,7 @@ export default function page() {
             await createHatch(data);
           }}
         />
-      </SideBarMain>
+      </NavigationBar>
     </div>
   );
 }

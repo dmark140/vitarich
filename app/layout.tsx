@@ -1,3 +1,4 @@
+import NextTopLoader from 'nextjs-toploader';
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -5,7 +6,7 @@ import { GlobalProvider } from "@/lib/context/GlobalContext";
 import { ThemeProvider } from "@/lib/ThemeProvider";
 import { ConfirmProvider } from "@/lib/ConfirmProvider";
 import { FloatingDialogProvider } from "@/lib/FloatingDialog";
-import GlobalLoading from "@/lib/Loading";
+import GlobalLoading from "@/loading";
 import { SidebarProvider } from "@/lib/sidebar/SidebarProvider";
 import AppSideBarControler from "@/lib/sidebar/AppSideBarControler";
 import { Toaster } from "sonner";
@@ -35,6 +36,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <NextTopLoader color="#2563eb" showSpinner={false} />
         <GlobalProvider>
 
           <ThemeProvider

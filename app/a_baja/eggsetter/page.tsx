@@ -1,5 +1,5 @@
 "use client";
-import SideBarMain from '@/components/ui/sidebar/SideBarMain'
+import NavigationBar from '@/components/ui/sidebar/NavigationBar'
 import React, { useState } from 'react'  
 import EggSettingForm from './SetterIncubation' 
 import { Plus } from 'lucide-react';
@@ -10,7 +10,7 @@ export default function Page() {
   const [open, setOpen] = useState(true)
 
       return (
-        <SideBarMain
+        <NavigationBar
           currentLabel="Egg Setter"
           fatherLink="./"
           fatherLabel="Hatchery"
@@ -19,7 +19,7 @@ export default function Page() {
             open={open}
             onClose={() => setOpen(false)}
           />
-        </SideBarMain>
+        </NavigationBar>
       )
 
 }

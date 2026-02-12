@@ -140,3 +140,34 @@ export interface DocumentApproval {
   remarks: string | null;
   created_at: string; // ISO timestamp
 }
+
+
+export interface Warehouse {
+  id: number
+  whse_code: string | null
+  whse_name: string | null
+  full_location_code: string | null
+  warehouse_type: string | null
+  subinventory_code: string | null
+  subinventory_desc: string | null
+  bin_activated: boolean
+  is_active: boolean
+  created_at: string
+}
+
+
+
+export interface WarehouseData {
+  whse_name: string;
+  warehouse_type: string;
+  subinventory_code: string;
+  subinventory_desc?: string;
+  phone?: string;
+  addr1?: string;
+  mobile?: string;
+  addr2?: string;
+  city?: string;
+  province?: string;
+  is_active?: boolean;
+  bin_activated?: boolean;
+}

@@ -12,13 +12,17 @@ import { toast } from 'sonner'
 import ScannerModal from '@/components/ScannerModal'
 
 export default function Layout() {
+    const get = async () => {
+        await new Promise(resolve => setTimeout(resolve, 3000))
+
+    }
     const { setValue, getValue } = useGlobalContext()
     const [isScanning, setIsScanning] = useState(false);
     const [scannedData, setScannedData] = useState<string | null>(null);
     const handleScanSuccess = (text: string) => {
-        setScannedData(text); // Save the result
-        setIsScanning(false); // Close the "function" (modal)
-        console.log("Processing scanned data:", text);
+        setScannedData(text);
+        setIsScanning(false);
+
         const matchedRow = initialRows.find((row) => String(row.dr_num) === text);
 
         if (!matchedRow) {
@@ -67,6 +71,7 @@ export default function Layout() {
     }
 
     useEffect(() => {
+        get()
         getData()
         route.prefetch("/a_dean/receiving/approval")
     }, [])
@@ -92,6 +97,7 @@ export default function Layout() {
                 List of Delivery for Receiving from Breeder
                 {loading && <div className='max-w-xl'><TableSkeleton /></div>}
                 {!loading && <DataTable
+                    widthFull={true}
                     rows={initialRows}
                     columns={tableColumnsx}
                     onChange={() => console.log("trigger on change")}

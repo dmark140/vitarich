@@ -1,13 +1,13 @@
-import SideBarMain from '@/components/ui/sidebar/SideBarMain'
+import NavigationBar from '@/components/ui/sidebar/NavigationBar'
 import React from 'react'
 import HatcheryProcessForm from './HatcheryProcessForm'
 
 export default function page() {
     return (
         <div>
-            <SideBarMain currentLabel='Egg Hatchery Process' fatherLink='./' fatherLabel='Hatchery'>
+            <NavigationBar currentLabel='Egg Hatchery Process' fatherLink='./' fatherLabel='Hatchery'>
                 <HatcheryProcessForm />
-            </SideBarMain>
+            </NavigationBar>
 
         </div>
     )

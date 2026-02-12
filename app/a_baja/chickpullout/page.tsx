@@ -1,13 +1,13 @@
 "use client"
 import { useState } from "react" 
-import SideBarMain from '@/components/ui/sidebar/SideBarMain' 
 import ChickProcessForm from './ChickProcessForm'
+import NavigationBar from "@/components/ui/sidebar/NavigationBar"
 
 export default function Page() {
   const [open, setOpen] = useState(true)
 
   return (
-    <SideBarMain
+    <NavigationBar
       currentLabel="Chick Pullout Process"
       fatherLink="./"
       fatherLabel="Hatchery"
@@ -16,6 +16,6 @@ export default function Page() {
         open={open}
         onClose={() => setOpen(false)}
       />
-    </SideBarMain>
+    </NavigationBar>
   )
 }

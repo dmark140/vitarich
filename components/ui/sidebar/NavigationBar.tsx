@@ -29,8 +29,8 @@ type SideBarMainProps = {
     fatherLink?: string
     currentLabel: string
 }
-
-export default function SideBarMain({
+// navigation bar
+export default function NavigationBar({
     children,
     fatherLabel = "",
     fatherLink = "#",
@@ -40,7 +40,7 @@ export default function SideBarMain({
     return (
         <SidebarProvider >
             <SidebarInset>
-                <header className="flex h-12 items-center gap-2 px-4 my-2.75 max-w-content mx-auto w-full">
+                <header className="flex h-12 items-center gap-2 px-4 my-2.75  mx-auto w-full">
                     <div className="w-10 sm:w-0"></div>
                     <Separator
                         orientation="vertical"
@@ -60,14 +60,14 @@ export default function SideBarMain({
                             )}
 
                             <BreadcrumbItem>
-                                <BreadcrumbPage>{currentLabel}</BreadcrumbPage>
+                                <BreadcrumbPage><div className="font-semibold">{currentLabel}</div></BreadcrumbPage>
                             </BreadcrumbItem>
                         </BreadcrumbList>
                     </Breadcrumb>
                     <div className="float-right ml-auto flex gap-4 items-center">
-                        <GlobalSearch />
+                        {/* <GlobalSearch />
                         {/* <DefaultBranch /> */}
-                        <GlobalDefaults />
+                        {/* <GlobalDefaults /> */}
                         <Button onClick={() => theme == "light" ? setTheme("dark") : setTheme("light")}>
                             <Sun />
                         </Button>
@@ -87,7 +87,8 @@ export default function SideBarMain({
                         </DropdownMenu>
                     </div>
                 </header>
-                <div className="overflow-auto border-t max-w-content mx-auto w-full pt-4">
+                {/* <Separator className=""/> */}
+                <div className="overflow-auto   mx-auto w-full ">
                     {children}
                 </div>
             </SidebarInset>

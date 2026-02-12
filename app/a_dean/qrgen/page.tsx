@@ -1,14 +1,16 @@
+// 'use client'
 import React from 'react'
 import Layout from './Layout';
-import SideBarMain from '@/components/ui/sidebar/SideBarMain';
+import NavigationBar from '@/components/ui/sidebar/NavigationBar';
 
-export default function page() {
-   
+export default async function page() {
+   await new Promise((resolve) => setTimeout(resolve, 3000));
     return (
         <div>
-            <SideBarMain currentLabel="Hatchery - Receiving" fatherLabel=''>
-                <Layout />
-            </SideBarMain>
+            <NavigationBar currentLabel="Hatchery - Receiving" fatherLabel=''>
+                {/* <Layout /> */}
+                x
+            </NavigationBar>
         </div>
     )
 }

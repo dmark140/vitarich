@@ -24,13 +24,13 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import SideBarMain from "@/components/ui/sidebar/SideBarMain"
+} from "@/components/ui/table" 
+import NavigationBar from "@/components/ui/sidebar/NavigationBar"
 
 export default function DeliveryReceiptLayout() {
   return (
      <div>
-    <SideBarMain currentLabel='Doc Dispatch' fatherLink='./' fatherLabel='Hatchery'>
+    <NavigationBar currentLabel='Doc Dispatch' fatherLink='./' fatherLabel='Hatchery'>
           <Card className="max-w-7xl mx-auto">
             <CardHeader>
               <CardTitle>Delivery Receipt</CardTitle>
@@ -178,7 +178,7 @@ export default function DeliveryReceiptLayout() {
 
             </CardContent>
           </Card>
-    </SideBarMain>
+    </NavigationBar>
      </div>
   )
 }

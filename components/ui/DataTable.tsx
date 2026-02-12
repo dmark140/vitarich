@@ -15,8 +15,8 @@ export type ColumnConfig = {
     width?: number | string;
 };
 
-export type RowData = Record<string, any> & { 
-    id?: string | number; 
+export type RowData = Record<string, any> & {
+    id?: string | number;
     checked?: boolean;
     CellProperty?: { column: string; disabled: boolean }[];
 };
@@ -37,7 +37,7 @@ function ButtonCell({
     onClick?: (e: { rowIndex: number; row: RowData }) => void;
 }) {
     return (
-        <div className="flex justify-center items-center h-8 px-2">
+        <div className="flex   items-center h-8 px-2">
             <Button
                 type="button"
                 disabled={disabled}
@@ -351,13 +351,15 @@ export function DataTable({
     columns = [] as ColumnConfig[],
     onChange,
     DisableAddLine = false,
-    rowOnClick
+    rowOnClick,
+    widthFull = false
 }: {
     rows?: RowData[];
     columns: ColumnConfig[];
     onChange?: (rows: RowData[]) => void;
     DisableAddLine?: boolean;
     rowOnClick?: (e: { rowIndex: number; row: RowData }) => void;
+    widthFull?: boolean;
 }) {
     const pendingTabRef = useRef<{ row: number; col: number } | null>(null);
     const [internalData, setInternalData] = useState<RowData[]>(() => {
@@ -409,9 +411,9 @@ export function DataTable({
         const prev = [...internalData];
         let n = prev.map((r) => ({ ...r }));
         n[rowIndex] = { ...n[rowIndex], [key]: value };
-        
+
         const sourceCol = columns.find((c) => c.key === key);
-        
+
         if (sourceCol && sourceCol.type === "search" && sourceCol.data) {
             let selectedObject = null;
             if (value && typeof value === "object") {
@@ -424,10 +426,10 @@ export function DataTable({
                 columns.forEach((targetCol) => {
                     if (targetCol.searchWithKey === key) {
                         const outputKey = targetCol.searchOutputKey;
-                        const fillValue = outputKey 
-                            ? selectedObject[outputKey] 
+                        const fillValue = outputKey
+                            ? selectedObject[outputKey]
                             : (selectedObject[targetCol.key] ?? selectedObject.name ?? selectedObject.description ?? selectedObject.desc ?? selectedObject.label);
-                        
+
                         if (fillValue !== undefined) {
                             n[rowIndex][targetCol.key] = fillValue;
                         }
@@ -566,24 +568,30 @@ export function DataTable({
     return (
         <div className="w-full">
             <div className="w-full overflow-auto">
-                <table ref={tableRef} className="border-collapse text-sm" style={{ tableLayout: 'auto' }}>
-                    <thead>
-                        <tr>
-                            <th className="text-center p-2 border-b" style={{ width: 40, minWidth: 40 }}>
+                <table ref={tableRef} className={`border-collapse text-sm ${widthFull && "w-full "}`}   >
+                    <thead  >
+                        <tr  >
+                            <th className="rounded-l-lg bg-muted text-center p-1 " style={{ width: 40, minWidth: 40 }}>
                                 <input type="checkbox" checked={internalData.length > 0 && checkedRowsCount === internalData.length} onChange={() => {
                                     const allChecked = internalData.length > 0 && checkedRowsCount === internalData.length;
                                     setInternalData((prev) => prev.map((r) => ({ ...r, checked: !allChecked })));
                                 }} className="w-fit" />
                             </th>
-                            {columns.map((col) => (
-                                <th key={col.key} className="text-left p-2 border-b" style={{ width: col.width ?? 'auto', whiteSpace: 'nowrap' }}>
+                            {columns.map((col, i) => (
+                                // <th key={col.key} className={`bg-muted   p-1  ${i === columns.length-1 ?"rounded-r-lg text-right":" text-left mr-2"}`} style={{ width: col.width ?? 'auto', whiteSpace: 'nowrap' }}>
+
+                                <th key={col.key} className={`bg-muted   p-1  ${i === columns.length - 1 ? "rounded-r-lg " : " text-left mr-2"}`} style={{ width: col.width ?? 'auto', whiteSpace: 'nowrap' }}>
                                     {col.label}
                                     {col.required && <span className="text-red-500 ml-1">*</span>}
                                 </th>
                             ))}
                         </tr>
                     </thead>
+
                     <tbody>
+                        <tr className="h-2">
+                            <td colSpan={columns.length + 1}></td>
+                        </tr>
                         {internalData.map((row, ri) => (
                             <tr key={ri + 'r'} className={row.checked ? "bg-[#FFDE21]/90 text-black" : ""}>
                                 <td className="p-0 border-t border-r text-center w-fit">

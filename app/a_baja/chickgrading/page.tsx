@@ -1,12 +1,12 @@
-import SideBarMain from '@/components/ui/sidebar/SideBarMain' 
+import NavigationBar from '@/components/ui/sidebar/NavigationBar' 
 import Chickgrading from './Chickgrading'
 
 export default function page() {
     return (
         <div>
-            <SideBarMain currentLabel='Chick Grading Information' fatherLink='./' fatherLabel='Hatchery'>
+            <NavigationBar currentLabel='Chick Grading Information' fatherLink='./' fatherLabel='Hatchery'>
                 <Chickgrading />
-            </SideBarMain>
+            </NavigationBar>
 
         </div>
     )

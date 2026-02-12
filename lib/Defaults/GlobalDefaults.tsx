@@ -10,7 +10,7 @@ import { CloudDownload, RefreshCcw } from "lucide-react";
 export function useGlobalDefaults() {
   const { setValue } = useGlobalContext();
   const [loading, setLoading] = useState(false);
-// ------------------------------------------------------ //
+  // ------------------------------------------------------ //
 
   const setUserPermissions = async (): Promise<any> => {
     try {
@@ -50,17 +50,39 @@ export function useGlobalDefaults() {
   };
 }
 
-export default function GlobalDefaults() {
+
+
+interface collapsed {
+  collapsed: boolean
+}
+
+export default function GlobalDefaults({ collapsed }: collapsed) {
   const { loading, setGlobals } = useGlobalDefaults();
 
   return (
     <div>
-      <Button onClick={setGlobals} disabled={loading}>
+      {/* <Button onClick={setGlobals} disabled={loading}>
         {loading ? (
           <RefreshCcw className="size-4 animate-spin" />
         ) : (
           <CloudDownload className="size-4" />
         )}
+      </Button> */}
+
+
+      <Button
+        variant="ghost"
+        type="button"
+        onClick={setGlobals} disabled={loading}
+        // onClick={() => setOpenModal(!openModal)}
+        className={`w-full gap-2 px-3 py-2 justify-start ${collapsed ? "justify-center" : ""}`}
+      >
+        {loading ? (
+          <RefreshCcw className="size-4 animate-spin" />
+        ) : (
+          <CloudDownload className="size-4" />
+        )}
+        {!collapsed && <span>Refresh Data</span>}
       </Button>
     </div>
   );

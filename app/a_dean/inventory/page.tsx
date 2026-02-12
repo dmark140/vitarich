@@ -1,12 +1,12 @@
-import SideBarMain from '@/components/ui/sidebar/SideBarMain'
+import NavigationBar from '@/components/ui/sidebar/NavigationBar'
 import ChildFolder from '@/components/ChildFolder'
 
 export default function page() {
     return (
         <div>
-            <SideBarMain currentLabel='Hatchery' fatherLink='./' fatherLabel=''>
+            <NavigationBar currentLabel='Hatchery' fatherLink='./' fatherLabel=''>
                 <ChildFolder id={2} />
-            </SideBarMain>
+            </NavigationBar>
 
         </div>
     )

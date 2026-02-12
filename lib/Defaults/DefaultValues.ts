@@ -76,7 +76,7 @@ export const NavFolders = [
         group: "Item Management",
         children: [
           { type: "Module", title: "Item Master Data", url: "#" },
-          { type: "Module", title: "Warehouse Master Data", url: "#" },
+          { type: "Module", title: "Warehouse Master Data", url: "/a_dean/warehouse" },
           { type: "Module", title: "Bin  Master Data", url: "#" },
           // { type: "Module", title: "Alternative Items", url: "#" },
         ],

@@ -1,12 +1,12 @@
 "use client"
 import { useState } from "react" 
-import SideBarMain from '@/components/ui/sidebar/SideBarMain' 
+import NavigationBar from '@/components/ui/sidebar/NavigationBar' 
 import EggPreWarmingLayout from './EggPreWarmingLayout'
 export default function Page() {
   const [open, setOpen] = useState(true)
 
   return (
-    <SideBarMain
+    <NavigationBar
       currentLabel="Egg Pre-Warming Process"
       fatherLink="./"
       fatherLabel="Hatchery"
@@ -15,6 +15,6 @@ export default function Page() {
         open={open}
         onClose={() => setOpen(false)}
       />
-    </SideBarMain>
+    </NavigationBar>
   )
 }
