@@ -1,4 +1,4 @@
-import { StorageLocationData } from "@/lib/types"
+import { StorageLocationData } from "../types"
 
 export interface StorageNode extends StorageLocationData {
   children: StorageNode[]
@@ -11,12 +11,10 @@ export function buildStorageTree(
   const map = new Map<number, StorageNode>()
   const roots: StorageNode[] = []
 
-  // Initialize map
   data.forEach(item => {
     map.set(item.id, { ...item, children: [] })
   })
 
-  // Build hierarchy
   map.forEach(node => {
     if (node.parent_id === null) {
       roots.push(node)
