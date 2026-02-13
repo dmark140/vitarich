@@ -6,7 +6,7 @@ import React, { useState } from 'react'
 export default async function Layout() {
     const [data, setdata] = useState("DR-772")
 
-    await new Promise((resolve) => setTimeout(resolve, 3000));
+    // await new Promise((resolve) => setTimeout(resolve, 3));
 
     return (
         <div className='w-md'>

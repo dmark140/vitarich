@@ -1,9 +1,9 @@
-'use client'
+"use client"
 
-import { useState } from 'react'
-import { ChevronRight, ChevronDown, Folder } from 'lucide-react'
-import { StorageNode } from '@/lib/utils/buildStorageTree'
-import { cn } from '@/lib/utils'
+import { useState } from "react"
+import { ChevronRight, ChevronDown } from "lucide-react"
+import { StorageNode } from "@/lib/utils/buildStorageTree"
+import { Button } from "@/components/ui/button"
 
 interface Props {
   nodes: StorageNode[]
@@ -17,7 +17,7 @@ export default function StorageTree({
   onSelect
 }: Props) {
   return (
-    <div className="space-y-1">
+    <div>
       {nodes.map(node => (
         <TreeItem
           key={node.id}
@@ -39,44 +39,55 @@ function TreeItem({
   level: number
   onSelect: (node: StorageNode) => void
 }) {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(true)
   const hasChildren = node.children.length > 0
 
   return (
     <div>
       <div
-        className={cn(
-          "flex items-center gap-2 cursor-pointer hover:bg-muted px-2 py-1 rounded"
-        )}
-        style={{ paddingLeft: `${level * 16}px` }}
-        onClick={() => onSelect(node)}
+        className="group flex items-center justify-between py-1 px-2 rounded hover:bg-muted transition"
+        style={{ paddingLeft: `${level * 20}px` }}
       >
-        {hasChildren ? (
-          open ? (
-            <ChevronDown
-              size={14}
-              onClick={(e) => {
-                e.stopPropagation()
-                setOpen(!open)
-              }}
-            />
+        <div
+          className="flex items-center gap-2 cursor-pointer"
+          onClick={() => onSelect(node)}
+        >
+          {hasChildren ? (
+            open ? (
+              <ChevronDown
+                size={14}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setOpen(false)
+                }}
+              />
+            ) : (
+              <ChevronRight
+                size={14}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setOpen(true)
+                }}
+              />
+            )
           ) : (
-            <ChevronRight
-              size={14}
-              onClick={(e) => {
-                e.stopPropagation()
-                setOpen(!open)
-              }}
-            />
-          )
-        ) : (
-          <div className="w-[14px]" />
-        )}
+            <div className="w-[14px]" />
+          )}
 
-        <Folder size={14} />
-        <span className="text-sm">
-          {node.location_code}
-        </span>
+          <span className="text-sm font-medium">
+            {node.location_name ?? node.location_code}
+          </span>
+
+          <span className="text-xs text-muted-foreground">
+            ({node.location_code})
+          </span>
+        </div>
+
+        {/* Action Buttons (Hover Only) */}
+        <div className="hidden group-hover:flex gap-1">
+          <Button size="sm" variant="ghost">Edit</Button>
+          <Button size="sm" variant="ghost">Add Child</Button>
+        </div>
       </div>
 
       {open && hasChildren && (

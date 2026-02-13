@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation'
 import { useGlobalContext } from '@/lib/context/GlobalContext'
 import { toast } from 'sonner'
 import ScannerModal from '@/components/ScannerModal'
+import Breadcrumb from '@/lib/Breadcrumb'
 
 export default function Layout() {
     const get = async () => {
@@ -85,7 +86,11 @@ export default function Layout() {
                 />
             )}
             <div className='mx-4 flex justify-between items-center mb-4 mt-4'>
-                <h1 className='text-2xl font-bold'>Receiving</h1>
+                {/* <h1 className='text-2xl font-bold'>Receiving</h1> */}
+                <Breadcrumb
+                FirstPreviewsPageName='Hatchery'
+                    CurrentPageName='Receiving'
+                />
                 <div className=''>
                     <Button
                         onClick={() => setIsScanning(true)}

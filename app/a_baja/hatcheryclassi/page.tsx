@@ -1,3 +1,6 @@
+﻿export const dynamic = 'force-dynamic'
+
+
 import NavigationBar from "@/components/ui/sidebar/NavigationBar"
 import HatchTable from "./hatch-table"
 
@@ -14,3 +17,5 @@ export default function Page() {
     </div>
   )
 }
+
+

@@ -6,8 +6,10 @@ import ThemeSwitch from "./ThemeSwitch";
 import { UserProfileCard } from "./DefaultFunctions";
 import GlobalDefaults from "./Defaults/GlobalDefaults";
 import { useOnClickOutside } from "./hooks/useOnClickOutside";
+import { useRouter } from "next/navigation";
 
 export default function UserAccountMenu({ session, collapsed }: any) {
+  const route = useRouter()
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -24,13 +26,13 @@ export default function UserAccountMenu({ session, collapsed }: any) {
         <UserProfileCard
           email={session?.user?.email ?? "guest@example.com"}
           description="Software Engineer & UI Designer"
-          // If UserProfileCard has its own collapsed logic, pass it here
+        // If UserProfileCard has its own collapsed logic, pass it here
         />
       </button>
 
       {/* 2. THE MENU CONTENT */}
       {isOpen && (
-        <div 
+        <div
           className={`
             absolute bottom-full left-0 mb-2 w-full min-w-50
             bg-popover border border-border rounded-lg shadow-xl 
@@ -40,19 +42,26 @@ export default function UserAccountMenu({ session, collapsed }: any) {
           <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
             My Account
           </div>
-          
-          <Button 
-            variant="ghost" 
+
+          <Button
+            variant="ghost"
             className="w-full justify-start font-normal h-9 px-2 gap-2"
           >
             Profile
+          </Button>
+          <Button
+            onClick={() => route.push("/logout")}
+            variant="ghost"
+            className="w-full justify-start font-normal h-9 px-2 gap-2"
+          >
+            Logout
           </Button>
 
           <Separator className="my-2 bg-secondary/50" />
 
           {/* These components now live in a simple div, no "Dropdown Context" to break them */}
           <div className="flex flex-col gap-1">
-            <GlobalDefaults collapsed={false} /> 
+            <GlobalDefaults collapsed={false} />
           </div>
         </div>
       )}

@@ -101,9 +101,9 @@ export const NavFolders = [
       {
         group: "Inventory Reports",
         children: [
-          { type: "Report", title: "Inventory Audit Report", url: "/a_dean/report-audit" },
-          { type: "Report", title: "Inventory Status", url: "/a_dean/report-status" },
-          { type: "Report", title: "Warehouse Content List", url: "/a_dean/report-warehouse" },
+          { type: "Report", title: "Inventory Posting Report", url: "/a_dean/invaudit" },
+          { type: "Report", title: "Inventory Status", url: "#" },
+          { type: "Report", title: "Warehouse Content List", url: "#" },
         ],
       },
     ],
