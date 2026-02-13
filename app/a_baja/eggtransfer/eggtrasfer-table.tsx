@@ -23,13 +23,26 @@ import {
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Search, Plus, RefreshCw } from "lucide-react"
+import { Plus, RefreshCw, Search } from "lucide-react"
 
-import { EggPreWarmingRow, listPreWarmings } from "./new/api"
-import { Breadcrumb } from "@/components/ui/breadcrumb"
+import { EggTransferProcess, listEggTransfers } from "./new/api"
 
-export default function PrewarmTable() {
-  const [items, setItems] = useState<EggPreWarmingRow[]>([])
+function formatDateTime(v?: string | null) {
+  if (!v) return ""
+  const d = new Date(v)
+  if (isNaN(d.getTime())) return ""
+  return d.toLocaleString("en-PH", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  })
+}
+
+export default function EggTransferTable() {
+  const [items, setItems] = useState<EggTransferProcess[]>([])
   const [sorting, setSorting] = useState<any>([])
   const [columnFilters, setColumnFilters] = useState<any>([])
   const [columnVisibility, setColumnVisibility] = useState<any>({})
@@ -38,12 +51,20 @@ export default function PrewarmTable() {
 
   const router = useRouter()
 
-  const fetchData = async () => {
+  async function load() {
     setLoading(true)
     try {
-      const data = await listPreWarmings({ is_active: true, limit: 200 })
-      setItems((Array.isArray(data) ? data : []) as EggPreWarmingRow[])
-    } catch (e) {
+      const data = await listEggTransfers()
+
+      if (
+        (data && !Array.isArray(data)) ||
+        (Array.isArray(data) && data.length > 0 && "error" in (data as any)[0])
+      ) {
+        setItems([])
+      } else {
+        setItems((Array.isArray(data) ? data : []) as EggTransferProcess[])
+      }
+    } catch {
       setItems([])
     } finally {
       setLoading(false)
@@ -52,45 +73,50 @@ export default function PrewarmTable() {
 
   useEffect(() => {
     ;(async () => {
-      router.prefetch("/a_baja/prewarming/new")
-      await fetchData()
+      router.prefetch("/a_baja/eggtransfer/new")
+      await load()
     })()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [router])
 
-  const columns: ColumnDef<EggPreWarmingRow>[] = [
+  const columns: ColumnDef<EggTransferProcess>[] = [
     {
       accessorKey: "id",
       header: "#",
       cell: ({ row }) => row.index + 1,
     },
     {
-      accessorKey: "egg_ref_no",
-      header: "Egg Reference No.",
+      accessorKey: "ref_no",
+      header: "Reference No.",
     },
     {
-      accessorKey: "pre_temp",
-      header: "Pre-Warming Temp",
+      accessorKey: "farm_source",
+      header: "Farm Source",
     },
     {
-      accessorKey: "egg_temp",
-      header: "Egg Shell Temp",
+      accessorKey: "trans_date_start",
+      header: "Transfer Start",
+      cell: ({ row }) => formatDateTime(row.original.trans_date_start),
     },
     {
-      accessorKey: "egg_temp_time_start",
-      header: "Start Time",
-    },
-    {
-      accessorKey: "egg_temp_time_end",
-      header: "End Time",
+      accessorKey: "trans_date_end",
+      header: "Transfer End",
+      cell: ({ row }) => formatDateTime(row.original.trans_date_end),
     },
     {
       accessorKey: "duration",
-      header: "Duration (minutes)",
+      header: "Duration (min)",
+      cell: ({ row }) => row.original.duration ?? "",
     },
     {
-      accessorKey: "remarks",
-      header: "Remarks",
+      accessorKey: "num_bangers",
+      header: "No. of Bangers",
+      cell: ({ row }) => row.original.num_bangers ?? "",
+    },
+    {
+      accessorKey: "total_egg_transfer",
+      header: "Total Egg Transfer",
+      cell: ({ row }) => row.original.total_egg_transfer ?? "",
     },
   ]
 
@@ -115,24 +141,18 @@ export default function PrewarmTable() {
 
   return (
     <div className="rounded-md border p-4">
-        {/* <Breadcrumb
-          FirstPreviewsPageName="Inventory"
-          FirstPreviewsPageLink="/a_dean/inventory"
-          CurrentPageName="Warehouse Master"
-        /> */}
-        
       {/* Top Controls */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <div className="relative w-72">
             <Input
-              placeholder="Filter Egg Reference No."
+              placeholder="Filter Reference No."
               className="pl-10"
               value={
-                (table.getColumn("egg_ref_no")?.getFilterValue() as string) ?? ""
+                (table.getColumn("ref_no")?.getFilterValue() as string) ?? ""
               }
               onChange={(e) =>
-                table.getColumn("egg_ref_no")?.setFilterValue(e.target.value)
+                table.getColumn("ref_no")?.setFilterValue(e.target.value)
               }
             />
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -141,7 +161,7 @@ export default function PrewarmTable() {
           <Button
             type="button"
             variant="outline"
-            onClick={fetchData}
+            onClick={load}
             disabled={loading}
             className="flex items-center gap-2"
           >
@@ -152,11 +172,10 @@ export default function PrewarmTable() {
 
         <Button
           type="button"
-          onClick={() => router.push("/a_baja/prewarming/new")}
+          onClick={() => router.push("/a_baja/eggtransfer/new")}
           className="flex items-center gap-2"
         >
-          <Plus className="size-4" />
-          New Record
+          <Plus className="size-4" /> Egg Transfer
         </Button>
       </div>
 
@@ -200,7 +219,7 @@ export default function PrewarmTable() {
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                  No results.
+                  {loading ? "Loading..." : "No results."}
                 </TableCell>
               </TableRow>
             )}

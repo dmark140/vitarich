@@ -1,13 +1,16 @@
-import NavigationBar from '@/components/ui/sidebar/NavigationBar' 
-import Chickgrading from './Chickgrading'
 
-export default function page() {
-    return (
-        <div>
-            <NavigationBar currentLabel='Chick Grading Information' fatherLink='./' fatherLabel='Hatchery'>
-                <Chickgrading />
-            </NavigationBar>
+import ChickgradingTable from "./Chickgrading-table"
+import NavigationBar from "@/components/ui/sidebar/NavigationBar"
 
-        </div>
-    )
+export default function Page() {
+  return (
+    <NavigationBar 
+        currentLabel="Chick Grading" 
+        fatherLink="./" 
+        fatherLabel="Hatchery"
+    >
+
+      <ChickgradingTable />
+    </NavigationBar>
+  )
 }

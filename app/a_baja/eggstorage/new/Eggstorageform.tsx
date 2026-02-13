@@ -86,7 +86,7 @@ export default function Eggstorageform() {
   }
 
   return (
-    <Card className="max-w-6xl mx-auto">
+    <Card className="max-w-6xl ml-0 p-6 space-y-4">
       <CardHeader>
         <CardTitle>Egg Storage Management</CardTitle>
       </CardHeader> 

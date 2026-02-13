@@ -43,7 +43,6 @@ export const NavFolders = [
         children: [
 
           { type: "Module", title: "Receiving", url: "/a_dean/receiving" },
-          // { type: "Module", title: "Egg Process", url: "#" },
         
           { type: "Module", title: "Hatchery Classification", url: "/a_baja/hatcheryclassi" },
           { type: "Module", title: "Egg Storage", url: "/a_baja/eggstorage" },
@@ -68,16 +67,16 @@ export const NavFolders = [
   },
   {
     id: 2,
-    title: "Inventory ",
+    title: "Inventory Management",
     url: "/a_dean/inventory",
     icon: Boxes, // Example icon name
     items: [
       {
-        group: "Masters",
+        group: "Item Management",
         children: [
           { type: "Module", title: "Item Master Data", url: "#" },
           { type: "Module", title: "Warehouse Master Data", url: "/a_dean/warehouse" },
-          { type: "Module", title: "Bin  Master Data", url: "/a_dean/inventory/bin" },
+          { type: "Module", title: "Bin  Master Data", url: "#" },
           // { type: "Module", title: "Alternative Items", url: "#" },
         ],
       },

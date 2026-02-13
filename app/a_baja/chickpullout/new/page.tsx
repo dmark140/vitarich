@@ -1,14 +1,15 @@
+
 import NavigationBar from "@/components/ui/sidebar/NavigationBar"
-import EggHatchTable from "./egghatch-table"
+import CheckPulloutForm from "./CheckPulloutForm"
 
 export default function Page() {
   return (
     <NavigationBar
-      currentLabel="Egg Hatchery Process List"
+      currentLabel="Add Chick Pullout"
+      fatherLink="/a_baja/chickpullout"
       fatherLabel="Hatchery"
-      fatherLink="/a_dean/hatchery"
     >
-      <EggHatchTable />
+      <CheckPulloutForm />
     </NavigationBar>
   )
 }

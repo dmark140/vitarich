@@ -1,21 +1,14 @@
-"use client"
-import { useState } from "react" 
-import ChickProcessForm from './ChickProcessForm'
+import ChickPulloutTable from "./chickpullout-table"
 import NavigationBar from "@/components/ui/sidebar/NavigationBar"
 
 export default function Page() {
-  const [open, setOpen] = useState(true)
-
   return (
     <NavigationBar
-      currentLabel="Chick Pullout Process"
-      fatherLink="./"
+      currentLabel="Chick Pullout"
+      fatherLink="/a_dean/hatchery"
       fatherLabel="Hatchery"
     >
-      <ChickProcessForm
-        open={open}
-        onClose={() => setOpen(false)}
-      />
+      <ChickPulloutTable />
     </NavigationBar>
   )
 }

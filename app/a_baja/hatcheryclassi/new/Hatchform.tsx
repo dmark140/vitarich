@@ -166,7 +166,7 @@ export default function Hatchform() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-4">
+    <div className="max-w-6xl ml-0 p-6 space-y-4">
       <h1 className="text-2xl font-bold">Hatch Classification</h1>
 
       {/* VIEW SECTION */}
