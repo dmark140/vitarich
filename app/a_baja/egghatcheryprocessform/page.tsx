@@ -1,18 +1,14 @@
-﻿export const dynamic = 'force-dynamic'
+import NavigationBar from "@/components/ui/sidebar/NavigationBar"
+import EggHatchTable from "./egghatch-table"
 
-
-import NavigationBar from '@/components/ui/sidebar/NavigationBar'
-import React from 'react'
-import HatcheryProcessForm from './HatcheryProcessForm'
-
-export default function page() {
-    return (
-        <div>
-            <NavigationBar currentLabel='Egg Hatchery Process' fatherLink='./' fatherLabel='Hatchery'>
-                <HatcheryProcessForm />
-            </NavigationBar>
-
-        </div>
-    )
+export default function Page() {
+  return (
+    <NavigationBar
+      currentLabel="Egg Hatchery Process List"
+      fatherLabel="Hatchery"
+      fatherLink="/a_dean/hatchery"
+    >
+      <EggHatchTable />
+    </NavigationBar>
+  )
 }
-

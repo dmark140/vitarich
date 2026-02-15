@@ -1,17 +1,16 @@
-﻿export const dynamic = 'force-dynamic'
 
+import ChickgradingTable from "./Chickgrading-table"
+import NavigationBar from "@/components/ui/sidebar/NavigationBar"
 
-import NavigationBar from '@/components/ui/sidebar/NavigationBar' 
-import Chickgrading from './Chickgrading'
+export default function Page() {
+  return (
+    <NavigationBar 
+        currentLabel="Chick Grading" 
+        fatherLink="./" 
+        fatherLabel="Hatchery"
+    >
 
-export default function page() {
-    return (
-        <div>
-            <NavigationBar currentLabel='Chick Grading Information' fatherLink='./' fatherLabel='Hatchery'>
-                <Chickgrading />
-            </NavigationBar>
-
-        </div>
-    )
+      <ChickgradingTable />
+    </NavigationBar>
+  )
 }
-

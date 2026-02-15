@@ -175,7 +175,7 @@ export default function HatchTable() {
                 {headerGroup.headers.map((header) => (
                   <TableHead 
                   key={header.id}
-                  className="whitespace-normal wrap-break-word text-center align-middle">
+                  className="whitespace-normal wrap-break-word text-left align-middle">
                     {header.isPlaceholder
                       ? null
                       : flexRender(

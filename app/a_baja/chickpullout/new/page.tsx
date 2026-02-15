@@ -1,16 +1,15 @@
-import ChickPulloutTable from "./chickpullout-table"
+
 import NavigationBar from "@/components/ui/sidebar/NavigationBar"
+import CheckPulloutForm from "./CheckPulloutForm"
 
 export default function Page() {
   return (
     <NavigationBar
-      currentLabel="Chick Pullout"
-      fatherLink="/a_dean/hatchery"
+      currentLabel="Add Chick Pullout"
+      fatherLink="/a_baja/chickpullout"
       fatherLabel="Hatchery"
     >
-      <ChickPulloutTable />
+      <CheckPulloutForm />
     </NavigationBar>
   )
 }
-
-

@@ -120,7 +120,7 @@ export default function Eggsetterform() {
   }
 
   return (
-    <Card className="w-full max-w-4xl mx-auto">
+    <Card className="max-w-6xl ml-0 p-6 space-y-4">
       <CardHeader className="pb-3">
         <CardTitle>Egg Setting Record</CardTitle>
       </CardHeader>
