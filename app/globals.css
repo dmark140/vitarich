@@ -46,13 +46,14 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
+  --background: #f7f8f9;
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
+  /* --primary: oklch(0.205 0 0); */
+  --primary:#7638ff;
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
@@ -80,7 +81,7 @@
 }
 
 .dark {
-  --background: #171717 ;
+  --background: #171717;
   --foreground: oklch(0.985 0 0);
   --card: oklch(0% 0 0);
   --card-foreground: oklch(0.985 0 0);
@@ -117,6 +118,7 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
@@ -126,7 +128,7 @@
 
 .max-w-content {
   max-width: 1200px;
-} 
+}
 
 
 
@@ -138,19 +140,27 @@
   top: 0;
   left: 0;
   width: 100vw;
-  height: 10px; /* Make it thick so we can't miss it */
-  z-index: 999999; /* Max priority */
+  height: 10px;
+  /* Make it thick so we can't miss it */
+  z-index: 999999;
+  /* Max priority */
   pointer-events: none;
 }
 
 .loader-bar {
   height: 100%;
-  background: red; /* Red for testing */
+  background: red;
+  /* Red for testing */
   animation: loading-animation 2s linear infinite;
   transform-origin: left;
 }
 
 @keyframes loading-animation {
-  0% { transform: scaleX(0); }
-  100% { transform: scaleX(1); }
+  0% {
+    transform: scaleX(0);
+  }
+
+  100% {
+    transform: scaleX(1);
+  }
 }

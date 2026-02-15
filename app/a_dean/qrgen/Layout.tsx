@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input'
 import React, { useState } from 'react'
 
 export default async function Layout() {
-    const [data, setdata] = useState("DR-772")
+    const [data, setdata] = useState("DR-000166")
 
     // await new Promise((resolve) => setTimeout(resolve, 3));
 

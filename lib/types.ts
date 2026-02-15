@@ -186,3 +186,18 @@ export interface StorageLocationData {
   is_active: boolean
   created_at: string
 }
+
+
+
+export type ColumnConfig<T> = {
+  key: keyof T
+  label: string
+  sortable?: boolean
+  render?: (row: T) => React.ReactNode
+}
+
+export type DataTableAction<T> = {
+  label: string
+  variant?: 'default' | 'destructive'
+  onClick: (row: T) => void
+}

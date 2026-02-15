@@ -13,24 +13,7 @@ import {
 import { CodeNameBase } from "./DefaultTypes";
 
 export const NavFolders = [
-  {
-    id: 0,
-    title: "Administrator",
-    url: "/admin",
-    icon: FileSliders,
-    items: [
-      {
-        group: "Modules",
-        children: [
-          { type: "Module", title: "User Management", url: "/admin/user" },
-          { type: "Module", title: "Company Details", url: "#" },
-          { type: "Module", title: "General Settings", url: "#" },
-          { type: "Module", title: "Document Settings", url: "#" },
-          // { type: "Module", title: "User Details / Roles & Permissions", url: "/admin/user/new/" },
-        ],
-      },
-    ],
-  },
+
 
   {
     id: 1,
@@ -75,7 +58,7 @@ export const NavFolders = [
       {
         group: "Masters",
         children: [
-          { type: "Module", title: "Item Master Data", url: "#" },
+          { type: "Module", title: "Item Master Data", url: "/a_dean/items" },
           { type: "Module", title: "Warehouse Master Data", url: "/a_dean/warehouse" },
           { type: "Module", title: "Bin  Master Data", url: "/a_dean/inventory/bin" },
           // { type: "Module", title: "Alternative Items", url: "#" },
@@ -105,6 +88,25 @@ export const NavFolders = [
           { type: "Report", title: "Inventory Posting Report", url: "/a_dean/invaudit" },
           { type: "Report", title: "Inventory Status", url: "#" },
           { type: "Report", title: "Warehouse Content List", url: "#" },
+        ],
+      },
+    ],
+    
+  },
+    {
+    id: 99,
+    title: "Settings",
+    url: "/admin",
+    icon: FileSliders,
+    items: [
+      {
+        group: "Modules",
+        children: [
+          { type: "Module", title: "User Management", url: "/admin/user" },
+          { type: "Module", title: "Company Details", url: "#" },
+          { type: "Module", title: "General Settings", url: "#" },
+          { type: "Module", title: "Document Settings", url: "#" },
+          // { type: "Module", title: "User Details / Roles & Permissions", url: "/admin/user/new/" },
         ],
       },
     ],

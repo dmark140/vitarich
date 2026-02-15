@@ -25,7 +25,7 @@ export default function UserAccountMenu({ session, collapsed }: any) {
       >
         <UserProfileCard
           email={session?.user?.email ?? "guest@example.com"}
-          description="Software Engineer & UI Designer"
+          description=""
         // If UserProfileCard has its own collapsed logic, pass it here
         />
       </button>

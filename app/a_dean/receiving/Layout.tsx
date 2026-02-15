@@ -11,6 +11,11 @@ import { useGlobalContext } from '@/lib/context/GlobalContext'
 import { toast } from 'sonner'
 import ScannerModal from '@/components/ScannerModal'
 import Breadcrumb from '@/lib/Breadcrumb'
+import DataTableV2 from '@/components/ui/DataTableV2'
+import DynamicTable from '@/components/ui/DataTableV2'
+import { EditIcon, HandCoins, RefreshCcw } from 'lucide-react'
+
+
 
 export default function Layout() {
     const get = async () => {
@@ -88,7 +93,7 @@ export default function Layout() {
             <div className='mx-4 flex justify-between items-center mb-4 mt-4'>
                 {/* <h1 className='text-2xl font-bold'>Receiving</h1> */}
                 <Breadcrumb
-                FirstPreviewsPageName='Hatchery'
+                    FirstPreviewsPageName='Hatchery'
                     CurrentPageName='Receiving'
                 />
                 <div className=''>
@@ -97,29 +102,92 @@ export default function Layout() {
                     >Scan Search</Button>
                 </div>
             </div>
-
+            {/* 
             <div className='px-4'>
                 List of Delivery for Receiving from Breeder
                 {loading && <div className='max-w-xl'><TableSkeleton /></div>}
-                {!loading && <DataTable
-                    widthFull={true}
-                    rows={initialRows}
-                    columns={tableColumnsx}
-                    onChange={() => console.log("trigger on change")}
-                    rowOnClick={(e) => {
-                        // console.log({ e })
-                        if (e.row.status === "Approved") {
-                            toast.warning("Only pending documents are allowed to be edited on this module")
-                            return
-                        }
-                        console.log({ e })
-                        setValue("forApproval", e)
-                        route.push("/a_dean/receiving/approval")
-                    }}
-                    DisableAddLine
-                />}
+                {!loading &&
+                    <DataTable
+                        widthFull={true}
+                        rows={initialRows}
+                        columns={tableColumnsx}
+                        onChange={() => console.log("trigger on change")}
+                        rowOnClick={(e) => {
+                            // console.log({ e })
+                            if (e.row.status === "Approved") {
+                                toast.warning("Only pending documents are allowed to be edited on this module")
+                                return
+                            }
+                            console.log({ e })
+                            setValue("forApproval", e)
+                            route.push("/a_dean/receiving/approval")
+                        }}
+                        DisableAddLine
+                    />
 
-            </div>
+                }
+
+            </div> */}
+            <div className='my-4'></div>
+
+            {loading && (
+                <RefreshCcw className='animate-spin clasm  mx-auto' />
+            )}
+            {!loading && (
+                <DynamicTable
+                    initialFilters={[
+                        {
+                            id: crypto.randomUUID(),
+                            columnKey: 'status',
+                            operator: 'equals',
+                            value: 'Pending',
+                            joiner: 'and',
+                        },
+                    ]}
+                    columns={tableColumnsx.map((col) => ({
+                        key: col.key,
+                        label: col.label,
+                        align: col.key === 'action' ? 'right' : 'left',
+
+                        render: (row: RowDataKey) => {
+                            if (col.key === 'action') {
+                                return (
+                                    <div className="flex justify-end gap-2">
+                                        <Button
+                                            className='bg-background border hover:bg-foreground/10 border-green-400 text-green-400 p-1 rounded-xs   '
+
+                                            onClick={() => {
+                                                if (row.status === "Approved") {
+                                                    toast.warning(
+                                                        "Only pending documents are allowed to be edited on this module"
+                                                    )
+                                                    return
+                                                }
+
+                                                setValue("forApproval", { row })
+                                                route.push("/a_dean/receiving/approval")
+                                            }}
+                                        >
+                                            <HandCoins />
+                                            Receive
+                                        </Button>
+                                    </div>
+                                )
+                            }
+
+                            // 📝 Default rendering
+                            const value = row[col.key]
+
+                            if (!value) return "-"
+
+                            return String(value)
+                        },
+                    }))}
+
+                    data={initialRows}
+
+                />
+            )}
             {/* <Button onClick={() => console.log({ initialRows })}>check initialRows</Button> */}
         </div>
     )

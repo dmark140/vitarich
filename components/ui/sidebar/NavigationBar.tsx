@@ -88,7 +88,7 @@ export default function NavigationBar({
                     </div>
                 </header>
                 {/* <Separator className=""/> */}
-                <div className="overflow-auto   mx-auto w-full ">
+                <div className="overflow-auto   mx-auto w-full p-3">
                     {children}
                 </div>
             </SidebarInset>
