@@ -34,7 +34,7 @@ export default function UserAccountMenu({ session, collapsed }: any) {
       {isOpen && (
         <div
           className={`
-            absolute bottom-full left-0 mb-2 w-full min-w-50
+            absolute top-full right-0 mb-2 w-full min-w-50
             bg-popover border border-border rounded-lg shadow-xl 
             p-2 z-40 animate-in fade-in slide-in-from-bottom-2
           `}

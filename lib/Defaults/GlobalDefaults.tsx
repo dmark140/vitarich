@@ -7,10 +7,26 @@ import { getUserPermissions } from "@/app/admin/user/new/api";
 import { db } from "../Supabase/supabaseClient";
 import { Button } from "@/components/ui/button";
 import { CloudDownload, RefreshCcw } from "lucide-react";
+import { getItemById, getItems } from "@/app/a_dean/items/api";
 export function useGlobalDefaults() {
   const { setValue } = useGlobalContext();
   const [loading, setLoading] = useState(false);
   // ------------------------------------------------------ //
+
+  const setItems = async (): Promise<any> => {
+    try {
+      const {
+        data: { session },
+      } = await db.auth.getSession();
+      if (!session) return;
+      const data = await getItems();
+      setValue("itemmaster", data);
+      console.log({ data }, "itemmaster");
+      return data;
+    } catch (error) {
+      console.log(error, "itemmaster");
+    }
+  };
 
   const setUserPermissions = async (): Promise<any> => {
     try {
@@ -35,6 +51,7 @@ export function useGlobalDefaults() {
     try {
       await Promise.all([
         setUserPermissions(),
+        setItems(),
       ]);
     } catch (error) {
       console.log(error, "setGlobals");
@@ -47,6 +64,7 @@ export function useGlobalDefaults() {
     loading,
     setGlobals,
     setUserPermissions,
+    setItems,
   };
 }
 

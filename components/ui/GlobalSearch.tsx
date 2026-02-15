@@ -63,7 +63,7 @@ export default function GlobalSearch({ collapsed }: collapsed) {
                 type="button"
                 onClick={() => setOpen(true)}
                 // disabled={loading}
-                className={`relative h-9 w-full justify-start gap-2 px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary ${collapsed ? "justify-center" : ""
+                className={`relative h-9 w-56 justify-start gap-2 px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary ${collapsed ? "justify-center" : ""
                     }`}
             >
                 <Search className="h-4 w-4" />

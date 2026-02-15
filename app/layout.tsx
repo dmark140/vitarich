@@ -34,7 +34,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`  font-sans antialiased`}
       >
         <NextTopLoader color="#2563eb" showSpinner={false} />
         <GlobalProvider>

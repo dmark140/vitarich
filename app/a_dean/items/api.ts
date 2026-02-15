@@ -44,6 +44,17 @@ export async function getRecentItems() {
 }
 
 
+export async function getItems() {
+  const { data, error } = await db
+    .from('items')
+    .select('*')
+    // .eq('id', id)
+    // .single()
+
+  if (error) throw error
+
+  return data
+}
 
 
 export async function getItemById(id: number) {

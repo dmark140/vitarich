@@ -784,9 +784,9 @@ export function AppSidebar() {
               onClick={() => setMobileOpen(false)}
             />
 
-            <aside className="relative h-full w-72 bg-sidebar border-r shadow-lg p-3 overflow-y-auto">
+            <aside className="relative h-full w-72 bg-sidebar  shadow-lg p-3 overflow-y-auto">
 
-              <VersionSwitcher versions={versions} defaultVersion={versions[0]} />
+              {/* <VersionSwitcher versions={versions} defaultVersion={versions[0]} /> */}
               <GlobalSearch collapsed={false} />
 
               <div className="space-y-2 mt-4">
@@ -805,9 +805,8 @@ export function AppSidebar() {
                       </div>
 
                       <ChevronDown
-                        className={`size-4 transition ${
-                          openFolders.includes(folder.id) ? "rotate-180" : ""
-                        }`}
+                        className={`size-4 transition ${openFolders.includes(folder.id) ? "rotate-180" : ""
+                          }`}
                       />
                     </Button>
 
@@ -817,7 +816,7 @@ export function AppSidebar() {
                         {folder.items?.map((group: any, gi: number) => (
                           <div key={gi}>
 
-                            <div className="text-xs text-muted-foreground uppercase px-2">
+                            <div className="text-xs text-muted-foreground  px-2">
                               {group.group}
                             </div>
 
@@ -827,11 +826,10 @@ export function AppSidebar() {
                                 <Button
                                   key={ci}
                                   variant="ghost"
-                                  className={`w-full justify-start pl-4 ${
-                                    pathname.startsWith(child.url)
-                                      ? "bg-accent"
-                                      : ""
-                                  }`}
+                                  className={`w-full justify-start pl-4 ${pathname.startsWith(child.url)
+                                    ? "bg-accent"
+                                    : ""
+                                    }`}
                                   onClick={() => goTo(child.url)}
                                 >
                                   {child.title}
@@ -845,8 +843,8 @@ export function AppSidebar() {
                   </div>
                 ))}
 
-                <ThemeSwitch collapsed={false} />
-                <UserAccountMenu session={session} collapsed={false} />
+                {/* <ThemeSwitch collapsed={false} />
+                <UserAccountMenu session={session} collapsed={false} /> */}
 
               </div>
             </aside>
@@ -862,100 +860,104 @@ export function AppSidebar() {
 
   return (
     <aside
-      className={`flex flex-col h-screen border-r bg-sidebar transition-all ${
-        collapsed ? "w-16" : "w-72"
-      } duration-300`}
+      className={`flex flex-col h-screen    bg-sidebar transition-all ${collapsed ? "w-16" : "w-72"
+        } duration-300`}
     >
-      <div className="px-3 border-b pb-2">
+      <div className="px-3   h-13.5 shadow ">
         <div className="flex items-center justify-between">
-          <VersionSwitcher versions={versions} defaultVersion={versions[0]} />
-          <Button variant="ghost" size="icon" onClick={toggle}>
+          {/* <VersionSwitcher versions={versions} defaultVersion={versions[0]} /> */}
+          <Button className="m-3 text-foreground" variant="ghost" size="icon" onClick={toggle} >
             <Menu className="size-5" />
           </Button>
+          {!collapsed &&
+            <div className="">
+
+              <GlobalSearch collapsed={collapsed} />
+            </div>
+          }
         </div>
       </div>
 
-      <nav className="flex-1 overflow-y-auto px-2 py-3 space-y-2">
+      <nav className="flex-1 overflow-y-auto   mt-9 space-y-2  ">
 
-        <GlobalSearch collapsed={collapsed} />
+        <div className="bg-white shadow rounded-2xl h-[calc(100vh-6rem)] ">
+          <div className="text-sm px-3 text-muted-foreground py-4">{!collapsed && "Main"} </div>
+          {filteredNavFolders.map(folder => (
+            <div key={folder.id} className="text-foreground/60">
 
-        {filteredNavFolders.map(folder => (
-          <div key={folder.id}>
-
-            {/* HEADER */}
-            {collapsed ? (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    onClick={() => toggle()} // ⭐ expand sidebar
-                    className="w-full justify-center"
-                  >
+              {/* HEADER */}
+              {collapsed ? (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      onClick={() => toggle()} // ⭐ expand sidebar
+                      className="w-full justify-center "
+                    >
+                      <folder.icon className="size-5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>{folder.title}</TooltipContent>
+                </Tooltip>
+              ) : (
+                <Button
+                  variant="ghost"
+                  className="w-full justify-between"
+                  onClick={() => toggleFolder(folder.id)}
+                >
+                  <div className="flex items-center gap-2 hover:bg-primary/5 hover:text-primary p-1 w-full">
                     <folder.icon className="size-5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>{folder.title}</TooltipContent>
-              </Tooltip>
-            ) : (
-              <Button
-                variant="ghost"
-                className="w-full justify-between"
-                onClick={() => toggleFolder(folder.id)}
-              >
-                <div className="flex items-center gap-2">
-                  <folder.icon className="size-5" />
-                  {folder.title}
-                </div>
+                    {folder.title}
+                  </div>
 
-                <ChevronDown
-                  className={`size-4 transition ${
-                    openFolders.includes(folder.id) ? "rotate-180" : ""
-                  }`}
-                />
-              </Button>
-            )}
+                  <ChevronDown
+                    className={`size-4 transition ${openFolders.includes(folder.id) ? "rotate-180" : ""
+                      }`}
+                  />
+                </Button>
+              )}
 
-            {/* CONTENT */}
-            {!collapsed && openFolders.includes(folder.id) && (
-              <div className="ml-6 mt-2 space-y-3">
+              {/* CONTENT */}
+              {!collapsed && openFolders.includes(folder.id) && (
+                <div className="ml-6 mt- space-y-3">
 
-                {folder.items?.map((group: any, gi: number) => (
-                  <div key={gi}>
+                  {folder.items?.map((group: any, gi: number) => (
+                    <div key={gi}>
 
-                    <div className="text-xs text-muted-foreground uppercase px-2">
-                      {group.group}
-                    </div>
+                      {/* <div className="text-xs text-muted-foreground  px-2">
+                        {group.group}
+                      </div> */}
 
-                    {group.children
-                      .filter((c: any) => c.url && c.url !== "#")
-                      .map((child: any, ci: number) => (
-                        <Button
-                          key={ci}
-                          variant="ghost"
-                          className={`w-full justify-start pl-4 ${
-                            pathname.startsWith(child.url)
+                      {group.children
+                        .filter((c: any) => c.url && c.url !== "#")
+                        .map((child: any, ci: number) => (
+                          <Button
+                            key={ci}
+                            variant="ghost"
+                            className={`w-full rounded-none justify-start hover:bg-primary/5 hover:text-primary   pl-4 ${pathname.startsWith(child.url)
                               ? "bg-accent"
                               : ""
-                          }`}
-                          onClick={() => goTo(child.url)}
-                        >
-                          {child.title}
-                        </Button>
-                      ))}
-                  </div>
-                ))}
+                              }`}
+                            onClick={() => goTo(child.url)}
+                          >
+                            {child.title}
+                          </Button>
+                        ))}
+                    </div>
+                  ))}
 
-              </div>
-            )}
-          </div>
-        ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
 
-        {getValue("loading_s") && (
+        {/* {getValue("loading_s") && (
           <RefreshCw className="animate-spin size-4 fixed bottom-3 right-3" />
-        )}
+        )} */}
 
-        <ThemeSwitch collapsed={collapsed} />
-        <UserAccountMenu session={session} collapsed={false} />
+        {/* <ThemeSwitch collapsed={collapsed} />
+        <UserAccountMenu session={session} collapsed={false} /> */}
 
       </nav>
     </aside>

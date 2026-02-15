@@ -12,7 +12,7 @@ import {
     SidebarInset,
     SidebarProvider,
 } from "@/components/ui/sidebar"
-import { ReactNode } from "react"
+import { ReactNode, useEffect, useState } from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "../avatar"
 import { Button } from "../button"
 import { Sun } from "lucide-react"
@@ -21,6 +21,11 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { useTheme } from "next-themes"
 import GlobalSearch from "../GlobalSearch"
 import GlobalDefaults from "@/lib/Defaults/GlobalDefaults"
+import UserAccountMenu from "@/lib/UserAccountMenu"
+import ThemeSwitch from "@/lib/ThemeSwitch"
+import { Session } from "@supabase/supabase-js"
+
+import { db } from "@/lib/Supabase/supabaseClient"
 // import DefaultBranch from "@/components/DefaultBranch"
 
 type SideBarMainProps = {
@@ -37,12 +42,21 @@ export default function NavigationBar({
     currentLabel,
 }: SideBarMainProps) {
     const { setTheme, theme } = useTheme()
+    const [session, setSession] = useState<Session | null>()
+
+    useEffect(() => {
+        const getUser = async () => {
+            const { data: { session } } = await db.auth.getSession()
+            setSession(session)
+        }
+        getUser()
+    }, [])
     return (
         <SidebarProvider >
             <SidebarInset>
-                <header className="flex h-12 items-center gap-2 px-4 my-2.75  mx-auto w-full">
+                <header className="flex bg-white shadow  max-h-15 items-center gap-2 px-4  mx-auto w-full">
                     <div className="w-10 sm:w-0"></div>
-                    <Separator
+                    {/* <Separator
                         orientation="vertical"
                         className="mr-2 data-[orientation=vertical]:h-4"
                     />
@@ -63,28 +77,35 @@ export default function NavigationBar({
                                 <BreadcrumbPage><div className="font-semibold">{currentLabel}</div></BreadcrumbPage>
                             </BreadcrumbItem>
                         </BreadcrumbList>
-                    </Breadcrumb>
+                    </Breadcrumb> */}
                     <div className="float-right ml-auto flex gap-4 items-center">
                         {/* <GlobalSearch />
                         {/* <DefaultBranch /> */}
                         {/* <GlobalDefaults /> */}
-                        <Button onClick={() => theme == "light" ? setTheme("dark") : setTheme("light")}>
+                        {/* <Button onClick={() => theme == "light" ? setTheme("dark") : setTheme("light")}>
                             <Sun />
-                        </Button>
-                        <DropdownMenu>
+                        </Button> */}
+                        {/* <DropdownMenu>
                             <DropdownMenuTrigger>
                                 <Avatar className="cursor-pointer" >
                                     <AvatarImage src="htxtps://avatars.githubusercontent.com/u/14121234?v=4&size=64" />
                                     <AvatarFallback>VI</AvatarFallback>
                                 </Avatar>
+                            </DropdownMenuTrigger> 
+                            <DropdownMenuTrigger>
+                                <UserAccountMenu session={session} collapsed={false} />
                             </DropdownMenuTrigger>
+
+                            {/* <ThemeSwitch collapsed={false} />
                             <DropdownMenuContent>
                                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                                 <DropdownMenuItem>Profile</DropdownMenuItem>
                                 <Separator className="border border-secondary" />
                                 <DropdownMenuItem ><a href="/logout">Logout</a></DropdownMenuItem>
                             </DropdownMenuContent>
-                        </DropdownMenu>
+                        </DropdownMenu> */}
+
+                        <UserAccountMenu session={session} collapsed={false} />
                     </div>
                 </header>
                 {/* <Separator className=""/> */}

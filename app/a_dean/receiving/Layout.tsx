@@ -94,7 +94,7 @@ export default function Layout() {
                 {/* <h1 className='text-2xl font-bold'>Receiving</h1> */}
                 <Breadcrumb
                     FirstPreviewsPageName='Hatchery'
-                    CurrentPageName='Receiving'
+                    CurrentPageName='Receiving List'
                 />
                 <div className=''>
                     <Button
@@ -137,7 +137,7 @@ export default function Layout() {
                 <DynamicTable
                     initialFilters={[
                         {
-                            id: crypto.randomUUID(),
+                            id: "",
                             columnKey: 'status',
                             operator: 'equals',
                             value: 'Pending',
