@@ -38,11 +38,10 @@ export default function RootLayout({
       >
         <NextTopLoader color="#2563eb" showSpinner={false} />
         <GlobalProvider>
-
           <ThemeProvider
             attribute="class"
-            // defaultTheme="light"
-            enableSystem
+            defaultTheme="light"
+            enableSystem={false} // Prevents the OS from overriding your light default
             disableTransitionOnChange
           >
             <ConfirmProvider>
