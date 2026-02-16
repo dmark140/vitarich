@@ -46,11 +46,11 @@ export default function DeliveryReceiptLayout() {
                 {/* LEFT */}
                 <div className="space-y-3">
                   <Field label="Date">
-                    <Input value="01/01/2026" readOnly />
+                    <Input defaultValue="01/01/2026" readOnly />
                   </Field>
 
                   <Field label="Farm Name">
-                    <Input value="BROILER FARM 1" />
+                    <Input defaultValue="BROILER FARM 1" />
                   </Field>
 
                   <Field label="Hauler Plate Number">
@@ -72,7 +72,7 @@ export default function DeliveryReceiptLayout() {
                 {/* RIGHT */}
                 <div className="space-y-3">
                   <Field label="Delivery Receipt No.">
-                    <Input value="DR-11XXX11" readOnly />
+                    <Input defaultValue="DR-11XXX11" readOnly />
                   </Field>
 
                   <Field label="Hauler Name">
@@ -100,11 +100,11 @@ export default function DeliveryReceiptLayout() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t pt-6">
                 <div className="space-y-3">
                   <Field label="DOC Batch Code">
-                    <Input value="001FARM1B1P1-010126-B1%Sequence%" />
+                    <Input defaultValue="001FARM1B1P1-010126-B1%Sequence%" />
                   </Field>
 
                   <Field label="SKU Classification">
-                    <Input value="Saleable / By Product" />
+                    <Input defaultValue="Saleable / By Product" />
                   </Field>
                 </div>
 
@@ -114,7 +114,7 @@ export default function DeliveryReceiptLayout() {
                   </Field>
 
                   <Field label="SKU Name">
-                    <Input value="Class C" />
+                    <Input defaultValue="Class C" />
                   </Field>
 
                   <Button className="w-fit self-end mt-6">Add Item</Button>

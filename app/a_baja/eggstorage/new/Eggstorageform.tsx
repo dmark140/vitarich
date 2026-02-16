@@ -12,6 +12,18 @@ import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 
 import { createEggStorage, EggStorageInsert } from "./api"
+import { db } from "@/lib/Supabase/supabaseClient"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+type ViewForHatcheryClassi = {
+  dr_num: string | null;
+  doc_date: string | null;
+  temperature: string | null;
+  humidity: string | null;
+  brdr_ref_no: string | null;
+  sku: string | null;
+  UoM: string | null; // view column
+  actual_count: number | null;
+};
 
 function toDatetimeLocalValue(iso: string | null) {
   if (!iso) return ""
@@ -85,14 +97,28 @@ export default function Eggstorageform() {
     }
   }
 
+  const [breeders, setBreeders] = useState<ViewForHatcheryClassi[]>([]);
+
+  useEffect(() => {
+    const loadBreeders = async () => {
+      const { data, error } = await db
+        .from("viewforhatcheryclassi")
+        .select("dr_num,doc_date,temperature,humidity,brdr_ref_no,sku,UoM,actual_count")
+        .order("doc_date", { ascending: false });
+
+      if (!error && data) setBreeders(data as any);
+      if (error) console.error(error);
+    };
+    loadBreeders();
+  }, []);
   return (
     <Card className="max-w-6xl ml-0 p-6 space-y-4">
       <CardHeader>
         <CardTitle>Egg Storage Management</CardTitle>
-      </CardHeader> 
+      </CardHeader>
       <Separator />
 
-      <CardContent className="p-4 space-y-4"> 
+      <CardContent className="p-4 space-y-4">
         {/* TEMPS / HUMI */}
         <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
           <div className="grid grid-cols-1 gap-2">
@@ -112,11 +138,11 @@ export default function Eggstorageform() {
             />
           </div>
 
-          <div className="grid grid-cols-1 gap-2"> 
+          <div className="grid grid-cols-1 gap-2">
             <Label>Storage Humidity</Label>
             <Input
               value={stor_humi}
-              onChange={(e) => setStorHumi(e.target.value)} 
+              onChange={(e) => setStorHumi(e.target.value)}
             />
           </div>
         </div>
@@ -125,6 +151,8 @@ export default function Eggstorageform() {
 
         {/* SHELL TEMP TIMESTAMPS */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+        
+
           <div className="grid grid-cols-1 gap-2">
             <Label>Shell Temp DateTime Start</Label>
             <Input
@@ -134,7 +162,7 @@ export default function Eggstorageform() {
             />
           </div>
 
-          <div className="grid grid-cols-1 gap-2"> 
+          <div className="grid grid-cols-1 gap-2">
             <Label>Shell Temp DateTime End</Label>
             <Input
               type="datetime-local"
@@ -169,9 +197,9 @@ export default function Eggstorageform() {
 
         {/* ACTIONS */}
         <div className="flex gap-2 justify-end">
-        <Button type="button" onClick={onSave} disabled={saving}>
-        {saving ? "Saving..." : "Save"}
-        </Button>
+          <Button type="button" onClick={onSave} disabled={saving}>
+            {saving ? "Saving..." : "Save"}
+          </Button>
           <Button
             type="button"
             variant="secondary"
@@ -180,7 +208,7 @@ export default function Eggstorageform() {
           >
             Cancel
           </Button>
-          
+
         </div>
       </CardContent>
     </Card>

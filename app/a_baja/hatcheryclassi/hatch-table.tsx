@@ -27,6 +27,7 @@ import { Search, Plus } from "lucide-react"
 
 import { HatchClassification } from "@/lib/types"
 import { listHatchClassification } from "./new/api"
+import Breadcrumb from "@/lib/Breadcrumb"
 
 export default function HatchTable() {
   const [items, setItems] = useState<HatchClassification[]>([])
@@ -38,7 +39,7 @@ export default function HatchTable() {
   const router = useRouter()
 
   useEffect(() => {
-    ;(async () => {
+    ; (async () => {
       router.prefetch("/a_baja/hatcheryclassi/new")
       const data = await listHatchClassification()
 
@@ -54,7 +55,7 @@ export default function HatchTable() {
       }
     })()
   }, [])
- 
+
   const columns: ColumnDef<HatchClassification>[] = [
     {
       accessorKey: "id",
@@ -69,50 +70,50 @@ export default function HatchTable() {
       accessorKey: "br_no",
       header: "Breeder Ref. No.",
     },
-     {
+    {
       accessorKey: "trans_crack",
       header: "Transport Crack",
     },
-     {
+    {
       accessorKey: "good_egg",
       header: "Good Egg",
     },
-     {
+    {
       accessorKey: "hatc_crack",
       header: "Hatch Crack",
     },
-     {
+    {
       accessorKey: "trans_condemn",
       header: "Transport Condemn",
     },
-     {
+    {
       accessorKey: "hatc_condemn",
       header: "Hatch Condemn",
     },
-     {
+    {
       accessorKey: "thin_shell",
       header: "Thin Shell",
     },
     {
       accessorKey: "pee_wee",
       header: "Pee Wee",
-    }, 
+    },
     {
       accessorKey: "small",
       header: "Small",
-    }, 
+    },
     {
       accessorKey: "jumbo",
       header: "Jumbo",
-    }, 
+    },
     {
       accessorKey: "d_yolk",
       header: "Double Yolk",
-    }, 
+    },
     {
       accessorKey: "ttl_count",
       header: "Total Count",
-    }, 
+    },
   ]
 
   const table = useReactTable({
@@ -135,10 +136,14 @@ export default function HatchTable() {
   })
 
   return (
-    <div className="rounded-md border p-4">
+    <div className="rounded-md   p-4">
       {/* Top Controls */}
       <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-8">
+          <Breadcrumb
+            FirstPreviewsPageName="Hatchery"
+            CurrentPageName="Hatchery Classification" />
+
           <div className="relative w-72">
             <Input
               placeholder="Filter Breeder Ref. No."
@@ -167,21 +172,21 @@ export default function HatchTable() {
       </div>
 
       {/* Table */}
-      <div className="rounded-md border">
+      <div className="rounded-md border p-4 bg-white">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <TableHead 
-                  key={header.id}
-                  className="whitespace-normal wrap-break-word text-left align-middle">
+                  <TableHead
+                    key={header.id}
+                    className="whitespace-normal wrap-break-word text-left align-middle">
                     {header.isPlaceholder
                       ? null
                       : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
                   </TableHead>
                 ))}
               </TableRow>

@@ -47,7 +47,7 @@ export default function DisposalReleaseLayout() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-3">
                     <Field label="Date">
-                      <Input value="01/01/2026" readOnly />
+                      <Input defaultValue="01/01/2026" readOnly />
                     </Field>
 
                     <Field label="Customer Name">
@@ -61,7 +61,7 @@ export default function DisposalReleaseLayout() {
 
                   <div className="space-y-3">
                     <Field label="Delivery Receipt No.">
-                      <Input value="DR-11XXX11" readOnly />
+                      <Input defaultValue="DR-11XXX11" readOnly />
                     </Field>
 
                     <Field label="Customer Address">
@@ -86,21 +86,21 @@ export default function DisposalReleaseLayout() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t pt-6">
                   <div className="space-y-3">
                     <Field label="DOC Batch Code">
-                      <Input value="001FARM1B1P1-010126-B1%Sequence%" />
+                      <Input defaultValue="001FARM1B1P1-010126-B1%Sequence%" />
                     </Field>
 
                     <Field label="SKU Classification">
-                      <Input value="DISPOSAL" readOnly />
+                      <Input defaultValue="DISPOSAL" readOnly />
                     </Field>
                   </div>
 
                   <div className="space-y-3">
                     <Field label="Qty">
-                      <Input value="100" />
+                      <Input defaultValue="100" />
                     </Field>
 
                     <Field label="SKU Name">
-                      <Input value="CC / UH / DP / RT" />
+                      <Input defaultValue="CC / UH / DP / RT" />
                     </Field>
 
                     <Button className="w-fit mt-6">Add Item</Button>
@@ -147,13 +147,11 @@ export default function DisposalReleaseLayout() {
                   </Table>
                 </div>
 
-                {/* ===== REMARKS ===== */}
                 <div>
                   <Label>Remarks</Label>
                   <Textarea placeholder="Sample remarks" />
                 </div>
 
-                {/* ===== ACTION BUTTONS ===== */}
                 <div className="flex justify-between pt-6">
                   <Button className="w-40">Save</Button>
                   <Button variant="secondary" className="w-40">

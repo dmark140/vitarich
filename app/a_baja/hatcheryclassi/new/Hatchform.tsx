@@ -180,8 +180,8 @@ export default function Hatchform() {
                   <SelectValue placeholder="Select Breeder Ref No" />
                 </SelectTrigger>
                 <SelectContent>
-                  {breeders.map((b) => (
-                    <SelectItem key={b.brdr_ref_no ?? Math.random()} value={b.brdr_ref_no ?? ""}>
+                  {breeders.map((b,i) => (
+                    <SelectItem key={i} value={b.brdr_ref_no ?? ""}>
                       {b.brdr_ref_no}
                     </SelectItem>
                   ))}

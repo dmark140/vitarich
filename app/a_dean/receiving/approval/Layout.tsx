@@ -36,6 +36,7 @@ type DraftItem = {
   UoM: string
   expected_count: number
   actual_count?: number
+  remarks?: string
   isNew?: boolean
 }
 
@@ -127,7 +128,6 @@ export default function ApprovalDecisionForm() {
 
   const handleSkuChange = (id: number, displayValue: string) => {
     const code = displayValue.split(' — ')[0]
-
     const selected = ItemMaster.find(i => i.item_code === code)
 
     if (selected) {
@@ -137,7 +137,6 @@ export default function ApprovalDecisionForm() {
         UoM: selected.unit_measure || 'PCS',
       })
     } else {
-      // allow retyping / clearing
       updateItem(id, {
         sku: '',
         sku_display: displayValue,
@@ -156,6 +155,7 @@ export default function ApprovalDecisionForm() {
         UoM: 'PCS',
         expected_count: 0,
         actual_count: undefined,
+        remarks: '',
         isNew: true,
       },
     ])
@@ -177,6 +177,7 @@ export default function ApprovalDecisionForm() {
       items: items.map(i => ({
         sku: i.sku,
         actual_count: Number(i.actual_count),
+        remarks: i.remarks || '',
       })),
     })
 
@@ -216,10 +217,6 @@ export default function ApprovalDecisionForm() {
             <Button variant="destructive" onClick={rejectDocument}>
               Reject
             </Button>
-
-            {/* <Button onClick={getItemMaster}>
-              Load Item Master
-            </Button> */}
 
             <Button onClick={approveDocument} disabled={!isFormValid}>
               Receive
@@ -291,7 +288,8 @@ export default function ApprovalDecisionForm() {
                   <TableHead>UoM</TableHead>
                   <TableHead className="text-center">Expected</TableHead>
                   <TableHead className="text-center">Actual *</TableHead>
-                  <TableHead />
+                  <TableHead>Remarks</TableHead>
+                  <TableHead className="text-right w-25">Actions</TableHead>
                 </TableRow>
               </TableHeader>
 
@@ -322,7 +320,6 @@ export default function ApprovalDecisionForm() {
                             onChange={e =>
                               handleSkuChange(item.id, e.target.value)
                             }
-                            placeholder="Search SKU..."
                             className="h-8"
                           />
 
@@ -364,7 +361,16 @@ export default function ApprovalDecisionForm() {
                       />
                     </TableCell>
 
-                    {/* REMOVE BUTTON */}
+                    <TableCell>
+                      <Input
+                        value={item.remarks || ''}
+                        onChange={e =>
+                          updateItem(item.id, { remarks: e.target.value })
+                        }
+                        className="h-8"
+                      />
+                    </TableCell>
+
                     <TableCell className="text-right">
                       {item.isNew && (
                         <Button
