@@ -6,10 +6,9 @@ import PrewarmTable from "./prewarm-table"
 
 export default function Page() {
   return (
-    <NavigationBar 
-    currentLabel="Egg Pre-Warming" 
-    fatherLink="/a_dean/hatchery" 
-    fatherLabel="Hatchery">
+    <NavigationBar
+      currentLabel=""
+    >
       <PrewarmTable />
     </NavigationBar>
   )

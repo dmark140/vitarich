@@ -26,7 +26,8 @@ import { Input } from "@/components/ui/input"
 import { Search, Plus, RefreshCw } from "lucide-react"
 
 import { EggPreWarmingRow, listPreWarmings } from "./new/api"
-import { Breadcrumb } from "@/components/ui/breadcrumb"
+import Breadcrumb from "@/lib/Breadcrumb"
+
 
 export default function PrewarmTable() {
   const [items, setItems] = useState<EggPreWarmingRow[]>([])
@@ -51,7 +52,7 @@ export default function PrewarmTable() {
   }
 
   useEffect(() => {
-    ;(async () => {
+    ; (async () => {
       router.prefetch("/a_baja/prewarming/new")
       await fetchData()
     })()
@@ -115,15 +116,15 @@ export default function PrewarmTable() {
 
   return (
     <div className="rounded-md border p-4">
-        {/* <Breadcrumb
-          FirstPreviewsPageName="Inventory"
-          FirstPreviewsPageLink="/a_dean/inventory"
-          CurrentPageName="Warehouse Master"
-        /> */}
-        
+
+
       {/* Top Controls */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
+          <Breadcrumb
+            FirstPreviewsPageName="Hatchery"
+            CurrentPageName="Egg Pre-Warming"
+          />
           <div className="relative w-72">
             <Input
               placeholder="Filter Egg Reference No."
@@ -161,7 +162,7 @@ export default function PrewarmTable() {
       </div>
 
       {/* Table */}
-      <div className="rounded-md border">
+      <div className="rounded-2xl bg-white p-4">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -169,14 +170,14 @@ export default function PrewarmTable() {
                 {headerGroup.headers.map((header) => (
                   <TableHead
                     key={header.id}
-                    className="whitespace-normal wrap-break-word text-left align-middle"
+                    className="whitespace-nowrap wrap-break-word text-left align-middle"
                   >
                     {header.isPlaceholder
                       ? null
                       : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
                   </TableHead>
                 ))}
               </TableRow>

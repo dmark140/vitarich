@@ -26,6 +26,7 @@ import { Input } from "@/components/ui/input"
 import { Pencil, Plus, RefreshCw, Trash2, Search } from "lucide-react"
 
 import { ChickPulloutProcess, listChickPulloutProcess, deleteChickPulloutProcess } from "./new/api"
+import Breadcrumb from "@/lib/Breadcrumb"
 
 export default function ChickPulloutTable() {
   const router = useRouter()
@@ -146,18 +147,27 @@ export default function ChickPulloutTable() {
   return (
     <div className="rounded-md border p-4">
       <div className="flex items-center justify-between mb-4">
-        <div className="relative w-72">
-        <Input
-            placeholder="Filter Egg Ref. No."
-            className="pl-10"
-            value={
-            (table.getColumn("egg_ref_no")?.getFilterValue() as string) ?? ""
-            }
-            onChange={(e) =>
-            table.getColumn("egg_ref_no")?.setFilterValue(e.target.value)
-            }
-        />
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+
+
+        <div className="relative flex gap-4  items-center  ">
+          <Breadcrumb
+            SecondPreviewPageName="Hatchery"
+            // FirstPreviewsPageName="Egg Transfer"
+            CurrentPageName="Chick Pullout "
+          />
+          <div>
+            <Input
+              placeholder="Filter Egg Ref. No."
+              className="pl-10"
+              value={
+                (table.getColumn("egg_ref_no")?.getFilterValue() as string) ?? ""
+              }
+              onChange={(e) =>
+                table.getColumn("egg_ref_no")?.setFilterValue(e.target.value)
+              }
+            />
+
+          </div>
         </div>
 
 
@@ -173,7 +183,7 @@ export default function ChickPulloutTable() {
         </div>
       </div>
 
-      <div className="rounded-md border">
+      <div className="rounded-2xl p-4 bg-white shadow">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((hg) => (
@@ -186,27 +196,27 @@ export default function ChickPulloutTable() {
               </TableRow>
             ))}
           </TableHeader>
-                <TableBody>
-                {table.getRowModel().rows.length ? (
-                    table.getRowModel().rows.map((r) => (
-                    <TableRow key={r.id}>
-                        {r.getVisibleCells().map((c) => (
-                        <TableCell key={c.id}>
-                            {c.column.columnDef.cell
-                            ? flexRender(c.column.columnDef.cell, c.getContext())
-                            : String(c.getValue() ?? "")}
-                        </TableCell>
-                        ))}
-                    </TableRow>
-                    ))
-                ) : (
-                    <TableRow>
-                    <TableCell colSpan={columns.length} className="h-24 text-center">
-                        No results.
+          <TableBody>
+            {table.getRowModel().rows.length ? (
+              table.getRowModel().rows.map((r) => (
+                <TableRow key={r.id}>
+                  {r.getVisibleCells().map((c) => (
+                    <TableCell key={c.id}>
+                      {c.column.columnDef.cell
+                        ? flexRender(c.column.columnDef.cell, c.getContext())
+                        : String(c.getValue() ?? "")}
                     </TableCell>
-                    </TableRow>
-                )}
-                </TableBody>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="h-24 text-center">
+                  No results.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
 
         </Table>
       </div>

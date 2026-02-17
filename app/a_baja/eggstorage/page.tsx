@@ -7,9 +7,7 @@ export default function Page() {
   return (
     <div>
       <NavigationBar
-        currentLabel="Egg Storage Management"
-        fatherLink="/a_dean/hatchery"
-        fatherLabel="Hatchery"
+       currentLabel=""
       >
         <EggTable />
       </NavigationBar>

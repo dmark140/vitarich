@@ -91,7 +91,6 @@ export default function Layout() {
                 />
             )}
             <div className='mx-4 flex justify-between items-center mb-4 mt-4'>
-                {/* <h1 className='text-2xl font-bold'>Receiving</h1> */}
                 <Breadcrumb
                     FirstPreviewsPageName='Hatchery'
                     CurrentPageName='Receiving List'
@@ -102,32 +101,6 @@ export default function Layout() {
                     >Scan Search</Button>
                 </div>
             </div>
-            {/* 
-            <div className='px-4'>
-                List of Delivery for Receiving from Breeder
-                {loading && <div className='max-w-xl'><TableSkeleton /></div>}
-                {!loading &&
-                    <DataTable
-                        widthFull={true}
-                        rows={initialRows}
-                        columns={tableColumnsx}
-                        onChange={() => console.log("trigger on change")}
-                        rowOnClick={(e) => {
-                            // console.log({ e })
-                            if (e.row.status === "Approved") {
-                                toast.warning("Only pending documents are allowed to be edited on this module")
-                                return
-                            }
-                            console.log({ e })
-                            setValue("forApproval", e)
-                            route.push("/a_dean/receiving/approval")
-                        }}
-                        DisableAddLine
-                    />
-
-                }
-
-            </div> */}
             <div className='my-4'></div>
 
             {loading && (
@@ -163,7 +136,7 @@ export default function Layout() {
                                                     )
                                                     return
                                                 }
-
+                                                // console.log({})
                                                 setValue("forApproval", { row })
                                                 route.push("/a_dean/receiving/approval")
                                             }}

@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { createPreWarming } from "./api"
+import Breadcrumb from "@/lib/Breadcrumb"
 
 type FormState = {
   egg_ref_no: string
@@ -81,99 +82,101 @@ export default function Prewarmingform() {
   }
 
   return (
-    <Card className="max-w-4xl ml-0 p-6 space-y-4">
-      <CardHeader className="pb-3">
-        <CardTitle>Egg Pre-Warming Record</CardTitle>
-      </CardHeader>
+    <div className="space-y-4 mt-4">
+      <Breadcrumb
+        SecondPreviewPageName="Hatchery"
+        FirstPreviewsPageName="Egg Pre-Warming"
+        CurrentPageName="New Entry"
+      />
+      <Card className="max-w-4xl ml-0 p-6 space-y-4">
 
-      <Separator />
+        <CardContent className="pt-4 space-y-4">
+          {/* Row 1 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Egg Reference No.</Label>
+              <Input
+                value={form.egg_ref_no}
+                onChange={(e) => setForm((p) => ({ ...p, egg_ref_no: e.target.value }))}
+                placeholder=""
+              />
+            </div>
 
-      <CardContent className="pt-4 space-y-4">
-        {/* Row 1 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Pre-Warming Temp</Label>
+              <Input
+                value={form.pre_temp}
+                onChange={(e) => setForm((p) => ({ ...p, pre_temp: e.target.value }))}
+                placeholder=""
+              />
+            </div>
+          </div>
+
+          {/* Row 2 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Egg Shell Temp</Label>
+              <Input
+                value={form.egg_temp}
+                onChange={(e) => setForm((p) => ({ ...p, egg_temp: e.target.value }))}
+                placeholder=""
+              />
+            </div>
+            <div />
+          </div>
+
+          {/* Row 3 */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label>Start Time</Label>
+              <Input
+                type="datetime-local"
+                value={form.egg_temp_time_start}
+                onChange={(e) => setForm((p) => ({ ...p, egg_temp_time_start: e.target.value }))}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>End Time</Label>
+              <Input
+                type="datetime-local"
+                value={form.egg_temp_time_end}
+                onChange={(e) => setForm((p) => ({ ...p, egg_temp_time_end: e.target.value }))}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Duration (minutes)</Label>
+              <Input value={durationMinutes ?? ""} disabled placeholder="" />
+            </div>
+          </div>
+
+          {/* Row 4 */}
           <div className="space-y-2">
-            <Label>Egg Reference No.</Label>
-            <Input
-              value={form.egg_ref_no}
-              onChange={(e) => setForm((p) => ({ ...p, egg_ref_no: e.target.value }))}
-              placeholder=""
+            <Label>Remarks</Label>
+            <Textarea
+              value={form.remarks}
+              onChange={(e) => setForm((p) => ({ ...p, remarks: e.target.value }))}
+              className="min-h-27.5"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label>Pre-Warming Temp</Label>
-            <Input
-              value={form.pre_temp}
-              onChange={(e) => setForm((p) => ({ ...p, pre_temp: e.target.value }))}
-              placeholder=""
-            />
-          </div>
-        </div>
-
-        {/* Row 2 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label>Egg Shell Temp</Label>
-            <Input
-              value={form.egg_temp}
-              onChange={(e) => setForm((p) => ({ ...p, egg_temp: e.target.value }))}
-              placeholder=""
-            />
-          </div>
-          <div />
-        </div>
-
-        {/* Row 3 */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="space-y-2">
-            <Label>Start Time</Label>
-            <Input
-              type="datetime-local"
-              value={form.egg_temp_time_start}
-              onChange={(e) => setForm((p) => ({ ...p, egg_temp_time_start: e.target.value }))}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>End Time</Label>
-            <Input
-              type="datetime-local"
-              value={form.egg_temp_time_end}
-              onChange={(e) => setForm((p) => ({ ...p, egg_temp_time_end: e.target.value }))}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Duration (minutes)</Label>
-            <Input value={durationMinutes ?? ""} disabled placeholder="" />
-          </div>
-        </div>
-
-        {/* Row 4 */}
-        <div className="space-y-2">
-          <Label>Remarks</Label>
-          <Textarea
-            value={form.remarks}
-            onChange={(e) => setForm((p) => ({ ...p, remarks: e.target.value }))}
-            className="min-h-27.5"
-          />
-        </div>
-
-        {/* Actions */}
-        <div className="flex items-center justify-end gap-2 pt-2"> 
+          {/* Actions */}
+          <div className="flex items-center justify-end gap-2 pt-2">
             <Button type="button" onClick={onSave} disabled={saving}>
-            {saving ? "Saving..." : "Save"}
+              {saving ? "Saving..." : "Save"}
             </Button>
             <Button
-            type="button"
-            variant="outline"
-            onClick={() => router.push("/a_baja/prewarming")}
-            disabled={saving}
+              type="button"
+              variant="outline"
+              onClick={() => router.push("/a_baja/prewarming")}
+              disabled={saving}
             >
-            Cancel
+              Cancel
             </Button>
-        </div>
-      </CardContent>
-    </Card>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   )
 }

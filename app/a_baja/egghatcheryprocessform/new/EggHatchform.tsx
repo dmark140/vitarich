@@ -15,6 +15,7 @@ import {
   updateEggHatcheryProcess,
   type EggHatcheryProcess,
 } from "./api"
+import Breadcrumb from "@/lib/Breadcrumb"
 
 function toDatetimeLocalValue(v: string | null | undefined) {
   if (!v) return ""
@@ -69,31 +70,31 @@ export default function EggHatchform() {
   useEffect(() => {
     if (!editId) return
     setLoading(true)
-    ;(async () => {
-      try {
-        const data = await getEggHatcheryProcessById(editId)
-        setForm({
-          egg_ref: data.egg_ref ?? "",
-          farm_source: data.farm_source ?? "",
-          daterec: data.daterec ?? "",
+      ; (async () => {
+        try {
+          const data = await getEggHatcheryProcessById(editId)
+          setForm({
+            egg_ref: data.egg_ref ?? "",
+            farm_source: data.farm_source ?? "",
+            daterec: data.daterec ?? "",
 
-          machine_no: data.machine_no ?? "",
-          hatch_temp: data.hatch_temp ?? "",
-          hatch_humidity: data.hatch_humidity ?? "",
+            machine_no: data.machine_no ?? "",
+            hatch_temp: data.hatch_temp ?? "",
+            hatch_humidity: data.hatch_humidity ?? "",
 
-          hatch_time_start: toDatetimeLocalValue(data.hatch_time_start),
-          hatch_time_end: toDatetimeLocalValue(data.hatch_time_end),
-          duration: data.duration != null ? String(data.duration) : "",
+            hatch_time_start: toDatetimeLocalValue(data.hatch_time_start),
+            hatch_time_end: toDatetimeLocalValue(data.hatch_time_end),
+            duration: data.duration != null ? String(data.duration) : "",
 
-          hatch_window: data.hatch_window != null ? String(data.hatch_window) : "",
-          total_egg: data.total_egg != null ? String(data.total_egg) : "",
-        })
-      } catch (e: any) {
-        alert(e?.message ?? "Failed to load record.")
-      } finally {
-        setLoading(false)
-      }
-    })()
+            hatch_window: data.hatch_window != null ? String(data.hatch_window) : "",
+            total_egg: data.total_egg != null ? String(data.total_egg) : "",
+          })
+        } catch (e: any) {
+          alert(e?.message ?? "Failed to load record.")
+        } finally {
+          setLoading(false)
+        }
+      })()
   }, [editId])
 
   // Auto compute duration (minutes)
@@ -162,151 +163,157 @@ export default function EggHatchform() {
   }
 
   return (
-<Card className="max-w-3xl ml-0 p-6">
-  <CardHeader>
+    <div className="space-y-4 mt-4">
+
+      <Breadcrumb
+        SecondPreviewPageName="Hatchery"
+        FirstPreviewsPageName="Egg  Hatchery Process"
+        CurrentPageName={isEdit ? "Edit Record" : "New Entry"}
+      />
+      <Card className="max-w-3xl ml-0 p-6">
+        {/* <CardHeader>
     <CardTitle>{isEdit ? "Edit Egg Hatchery Process" : "Egg Hatchery Process"}</CardTitle>
-  </CardHeader>
+  </CardHeader> */}
 
-  <Separator className="my-1" />
 
-  <CardContent className="pt-4">
-    {loading ? (
-      <div className="text-sm text-muted-foreground">Loading...</div>
-    ) : (
-      <div className="space-y-4">
-        <div className="space-y-4">
-          <div className="space-y-1">
-            <Label>Egg Reference</Label>
-            <Input
-              value={form.egg_ref}
-              onChange={(e) => setField("egg_ref", e.target.value)}
-              placeholder="01FARM1-B1-P1-01012026"
-            />
-          </div>
+        <CardContent className="pt-4">
+          {loading ? (
+            <div className="text-sm text-muted-foreground">Loading...</div>
+          ) : (
+            <div className="space-y-4">
+              <div className="space-y-4">
+                <div className="space-y-1">
+                  <Label>Egg Reference</Label>
+                  <Input
+                    value={form.egg_ref}
+                    onChange={(e) => setField("egg_ref", e.target.value)}
+                    placeholder="01FARM1-B1-P1-01012026"
+                  />
+                </div>
 
-          <div className="space-y-1">
-            <Label>Farm Source</Label>
-            <Input
-              value={form.farm_source}
-              onChange={(e) => setField("farm_source", e.target.value)}
-              placeholder="PETRI"
-            />
-          </div>
+                <div className="space-y-1">
+                  <Label>Farm Source</Label>
+                  <Input
+                    value={form.farm_source}
+                    onChange={(e) => setField("farm_source", e.target.value)}
+                    placeholder="PETRI"
+                  />
+                </div>
 
-          <div className="space-y-1">
-            <Label>Date Received</Label>
-            <Input
-              type="date"
-              value={form.daterec}
-              onChange={(e) => setField("daterec", e.target.value)}
-            />
-          </div>
+                <div className="space-y-1">
+                  <Label>Date Received</Label>
+                  <Input
+                    type="date"
+                    value={form.daterec}
+                    onChange={(e) => setField("daterec", e.target.value)}
+                  />
+                </div>
 
-          <div className="space-y-1">
-            <Label>Machine No.</Label>
-            <Input
-              value={form.machine_no}
-              onChange={(e) => setField("machine_no", e.target.value)}
-              placeholder="HATCHER 001"
-            />
-          </div>
-        </div>
+                <div className="space-y-1">
+                  <Label>Machine No.</Label>
+                  <Input
+                    value={form.machine_no}
+                    onChange={(e) => setField("machine_no", e.target.value)}
+                    placeholder="HATCHER 001"
+                  />
+                </div>
+              </div>
 
-        {/* Hatch Temp + Humidity (2 cols) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <Label>Hatch Temperature</Label>
-            <Input
-              value={form.hatch_temp}
-              onChange={(e) => setField("hatch_temp", e.target.value)}
-              placeholder='35 °C'
-            />
-          </div>
+              {/* Hatch Temp + Humidity (2 cols) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <Label>Hatch Temperature</Label>
+                  <Input
+                    value={form.hatch_temp}
+                    onChange={(e) => setField("hatch_temp", e.target.value)}
+                    placeholder='35 °C'
+                  />
+                </div>
 
-          <div className="space-y-1">
-            <Label>Hatch Humidity</Label>
-            <Input
-              value={form.hatch_humidity}
-              onChange={(e) => setField("hatch_humidity", e.target.value)}
-              placeholder="85%"
-            />
-          </div>
-        </div>
+                <div className="space-y-1">
+                  <Label>Hatch Humidity</Label>
+                  <Input
+                    value={form.hatch_humidity}
+                    onChange={(e) => setField("hatch_humidity", e.target.value)}
+                    placeholder="85%"
+                  />
+                </div>
+              </div>
 
-        {/* Time Start + End (2 cols) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <Label>Hatch Time Start</Label>
-            <Input
-              type="datetime-local"
-              value={form.hatch_time_start}
-              onChange={(e) => setField("hatch_time_start", e.target.value)}
-            />
-          </div>
+              {/* Time Start + End (2 cols) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <Label>Hatch Time Start</Label>
+                  <Input
+                    type="datetime-local"
+                    value={form.hatch_time_start}
+                    onChange={(e) => setField("hatch_time_start", e.target.value)}
+                  />
+                </div>
 
-          <div className="space-y-1">
-            <Label>Hatch Time End</Label>
-            <Input
-              type="datetime-local"
-              value={form.hatch_time_end}
-              onChange={(e) => setField("hatch_time_end", e.target.value)}
-            />
-          </div>
-        </div>
+                <div className="space-y-1">
+                  <Label>Hatch Time End</Label>
+                  <Input
+                    type="datetime-local"
+                    value={form.hatch_time_end}
+                    onChange={(e) => setField("hatch_time_end", e.target.value)}
+                  />
+                </div>
+              </div>
 
-        {/* Duration + Hatch Window (2 cols) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <Label>Duration (minutes)</Label>
-            <Input value={form.duration} disabled placeholder="AUTO" />
-          </div>
+              {/* Duration + Hatch Window (2 cols) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <Label>Duration (minutes)</Label>
+                  <Input value={form.duration} disabled placeholder="AUTO" />
+                </div>
 
-          <div className="space-y-1">
-            <Label>Hatch Window (minutes)</Label>
-            <Input
-              inputMode="numeric"
-              value={form.hatch_window}
-              onChange={(e) => setField("hatch_window", e.target.value)}
-              placeholder="120"
-            />
-          </div>
-        </div>
+                <div className="space-y-1">
+                  <Label>Hatch Window (minutes)</Label>
+                  <Input
+                    inputMode="numeric"
+                    value={form.hatch_window}
+                    onChange={(e) => setField("hatch_window", e.target.value)}
+                    placeholder="120"
+                  />
+                </div>
+              </div>
 
-        {/* Total Egg (1 col) */}
-        <div className="space-y-1">
-          <Label>Total Egg</Label>
-          <Input
-            inputMode="numeric"
-            value={form.total_egg}
-            onChange={(e) => setField("total_egg", e.target.value)}
-            placeholder="10000"
-          />
-        </div>
+              {/* Total Egg (1 col) */}
+              <div className="space-y-1">
+                <Label>Total Egg</Label>
+                <Input
+                  inputMode="numeric"
+                  value={form.total_egg}
+                  onChange={(e) => setField("total_egg", e.target.value)}
+                  placeholder="10000"
+                />
+              </div>
 
-        {/* Buttons */}
-        <div className="flex gap-2 pt-2">
-          <Button type="button" onClick={onSave} disabled={saving}>
-            {saving ? "Saving..." : isEdit ? "Update" : "Save"}
-          </Button>
+              {/* Buttons */}
+              <div className="flex gap-2 pt-2">
+                <Button type="button" onClick={onSave} disabled={saving}>
+                  {saving ? "Saving..." : isEdit ? "Update" : "Save"}
+                </Button>
 
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => router.push("/a_baja/egghatcheryprocessform")}
-            disabled={saving}
-          >
-            Cancel
-          </Button>
-        </div>
-      </div>
-    )}
-  </CardContent>
-</Card>
-
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => router.push("/a_baja/egghatcheryprocessform")}
+                  disabled={saving}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   )
 }
 
-              {/* {isEdit ? (
+{/* {isEdit ? (
                 <Button type="button" variant="destructive" onClick={onDelete} disabled={saving}>
                   Delete
                 </Button>

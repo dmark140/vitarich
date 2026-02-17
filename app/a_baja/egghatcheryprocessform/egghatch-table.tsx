@@ -27,6 +27,7 @@ import { Input } from "@/components/ui/input"
 import { Pencil, Plus, RefreshCw, Search } from "lucide-react"
 
 import { listEggHatcheryProcess, type EggHatcheryProcess } from "./new/api"
+import Breadcrumb from "@/lib/Breadcrumb"
 
 function fmtDateTime(v: string | null | undefined) {
   if (!v) return ""
@@ -160,9 +161,15 @@ export default function EggHatchTable() {
   })
 
   return (
-    <div className="rounded-md border p-4">
+    <div className="rounded-md p-2">
       <div className="flex flex-col md:flex-row md:items-center gap-2 justify-between">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4 py-4">
+          <Breadcrumb
+            SecondPreviewPageName="Hatchery"
+            // FirstPreviewsPageName="Egg Transfer"
+            CurrentPageName="Egg Hatchery"
+          />
+
           <div className="relative">
             <Search className="h-4 w-4 absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -185,7 +192,7 @@ export default function EggHatchTable() {
         </Button>
       </div>
 
-      <div className="rounded-md border">
+      <div className="  border bg-white p-4 rounded-2xl">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((hg) => (

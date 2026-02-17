@@ -26,6 +26,7 @@ import { Input } from "@/components/ui/input"
 import { Plus, RefreshCw, Search } from "lucide-react"
 
 import { EggTransferProcess, listEggTransfers } from "./new/api"
+import Breadcrumb from "@/lib/Breadcrumb"
 
 function formatDateTime(v?: string | null) {
   if (!v) return ""
@@ -72,7 +73,7 @@ export default function EggTransferTable() {
   }
 
   useEffect(() => {
-    ;(async () => {
+    ; (async () => {
       router.prefetch("/a_baja/eggtransfer/new")
       await load()
     })()
@@ -140,10 +141,15 @@ export default function EggTransferTable() {
   })
 
   return (
-    <div className="rounded-md border p-4">
+    <div className="rounded-md   p-4 mt-5">
       {/* Top Controls */}
       <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4">
+          <Breadcrumb
+            SecondPreviewPageName="Hatchery"
+            CurrentPageName="Egg Transfer"
+            // CurrentPageName="New Entry"
+          />
           <div className="relative w-72">
             <Input
               placeholder="Filter Reference No."
@@ -180,7 +186,7 @@ export default function EggTransferTable() {
       </div>
 
       {/* Table */}
-      <div className="rounded-md border">
+      <div className="rounded-2xl  bg-white p-4">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -188,14 +194,14 @@ export default function EggTransferTable() {
                 {headerGroup.headers.map((header) => (
                   <TableHead
                     key={header.id}
-                    className="whitespace-normal wrap-break-word text-left align-middle"
+                    className="whitespace-nowrap wrap-break-word text-left align-middle"
                   >
                     {header.isPlaceholder
                       ? null
                       : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
                   </TableHead>
                 ))}
               </TableRow>

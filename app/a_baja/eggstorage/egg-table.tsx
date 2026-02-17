@@ -26,6 +26,7 @@ import { Input } from "@/components/ui/input"
 import { Search, Plus } from "lucide-react"
 
 import { EggStorageMngt, listEggStorage } from "./new/api"
+import Breadcrumb from "@/lib/Breadcrumb"
 
 export default function EggTable() {
   const [items, setItems] = useState<EggStorageMngt[]>([])
@@ -37,7 +38,7 @@ export default function EggTable() {
   const router = useRouter()
 
   useEffect(() => {
-    ;(async () => {
+    ; (async () => {
       router.prefetch("/a_baja/eggstorage/new")
 
       try {
@@ -125,7 +126,12 @@ export default function EggTable() {
     <div className="rounded-md border p-4">
       {/* Top Controls */}
       <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4">
+          <Breadcrumb
+            CurrentPageName="Egg Storage Management"
+            FirstPreviewsPageName="Hatchery "
+          />
+
           <div className="relative w-72">
             <Input
               placeholder="Filter Remarks"
@@ -151,7 +157,7 @@ export default function EggTable() {
       </div>
 
       {/* Table */}
-      <div className="rounded-md border">
+      <div className="rounded-md border bg-white p-4 rounded-2xl">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -164,9 +170,9 @@ export default function EggTable() {
                     {header.isPlaceholder
                       ? null
                       : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
                   </TableHead>
                 ))}
               </TableRow>

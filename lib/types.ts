@@ -125,9 +125,20 @@ export interface DataRecordApproval {
   id: string;
   posting_date: string;
   email: string;
+  soldTo: string;
+  doc_date : string;
+  address : string;
+  tin : string;
+  shipped_via : string;
+  shipped_to  : string;
+  dr_num  : string;
+  po_no  : string;
+  Attention  : string;
+  voyage_no  : string;
   status: DraftStatus
   checked: boolean;
   docentry: number;
+  
 
 }
 
@@ -200,4 +211,40 @@ export type DataTableAction<T> = {
   label: string
   variant?: 'default' | 'destructive'
   onClick: (row: T) => void
+}
+
+
+
+export type ApproveHatcheryDraftPayload = {
+  docentry: number
+  posting_date: string
+  temperature: string
+  humidity: string
+
+  soldTo: string
+  Attention: string
+  po_no: string
+  voyage_no: string
+  shipped_via: string
+  dr_num: string
+
+  no_of_crates: string
+  no_of_tray: string
+  plate_no: string
+  driver: string
+  serial_no: string
+
+  items: {
+    brdr_ref_no: string
+    sku: string
+    UoM: string
+    lot_no: string
+    prod_date: string
+    age: string
+    house_no: string
+    jr: number | string
+    he: number | string
+    expected_count: number
+    actual_count: number
+  }[]
 }

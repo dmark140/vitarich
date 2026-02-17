@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/select"
 
 import { createSetterIncubation } from "./api"
+import Breadcrumb from "@/lib/Breadcrumb"
 
 type FormState = {
   ref_no: string
@@ -120,185 +121,192 @@ export default function Eggsetterform() {
   }
 
   return (
-    <Card className="max-w-6xl ml-0 p-6 space-y-4">
-      <CardHeader className="pb-3">
-        <CardTitle>Egg Setting Record</CardTitle>
-      </CardHeader>
+    <div className="space-y-4 mt-4">
+      <Breadcrumb
+        SecondPreviewPageName="Hatchery"
+        FirstPreviewsPageName="Egg Setter List"
+        CurrentPageName="New Entry"
+      />
+      <Card className="max-w-6xl ml-0 p-6 space-y-4">
+        {/* <CardHeader className="pb-3">
+          <CardTitle>Egg Setting Record</CardTitle>
+        </CardHeader> */}
 
-      <Separator />
+        {/* <Separator /> */}
 
-      <CardContent className="pt-4 space-y-4">
-        {/* Row 1 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label>Reference Number</Label>
-            <Input
-              value={form.ref_no}
-              onChange={(e) => setForm((p) => ({ ...p, ref_no: e.target.value }))}
-              placeholder="AUTO"
-            />
+        <CardContent className="pt-4 space-y-4">
+          {/* Row 1 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Reference Number</Label>
+              <Input
+                value={form.ref_no}
+                onChange={(e) => setForm((p) => ({ ...p, ref_no: e.target.value }))}
+                placeholder="AUTO"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Setting Date</Label>
+              <Input
+                type="datetime-local"
+                value={form.setting_date}
+                onChange={(e) => setForm((p) => ({ ...p, setting_date: e.target.value }))}
+              />
+            </div>
           </div>
 
-          <div className="space-y-2">
-            <Label>Setting Date</Label>
-            <Input
-              type="datetime-local"
-              value={form.setting_date}
-              onChange={(e) => setForm((p) => ({ ...p, setting_date: e.target.value }))}
-            />
-          </div>
-        </div>
+          {/* Row 2 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Farm Source</Label>
+              <Input
+                value={form.farm_source}
+                onChange={(e) => setForm((p) => ({ ...p, farm_source: e.target.value }))}
+                placeholder=""
+              />
+            </div>
 
-        {/* Row 2 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label>Farm Source</Label>
-            <Input
-              value={form.farm_source}
-              onChange={(e) => setForm((p) => ({ ...p, farm_source: e.target.value }))}
-              placeholder=""
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Setter Machine ID</Label>
-            <Input
-              value={form.machine_id}
-              onChange={(e) => setForm((p) => ({ ...p, machine_id: e.target.value }))}
-              placeholder=""
-            />
-          </div>
-        </div>
-
-        {/* Row 3 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label>Total Number of Egg Set</Label>
-            <Input
-              type="number"
-              value={form.total_eggs}
-              onChange={(e) => setForm((p) => ({ ...p, total_eggs: e.target.value }))}
-              placeholder=""
-            />
+            <div className="space-y-2">
+              <Label>Setter Machine ID</Label>
+              <Input
+                value={form.machine_id}
+                onChange={(e) => setForm((p) => ({ ...p, machine_id: e.target.value }))}
+                placeholder=""
+              />
+            </div>
           </div>
 
-          <div className="space-y-2">
-            <Label>Incubation Duration (days)</Label>
-            <Input
-              type="number"
-              value={form.incubation_duration}
-              onChange={(e) => setForm((p) => ({ ...p, incubation_duration: e.target.value }))}
-              placeholder=""
-            />
-          </div>
-        </div>
+          {/* Row 3 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Total Number of Egg Set</Label>
+              <Input
+                type="number"
+                value={form.total_eggs}
+                onChange={(e) => setForm((p) => ({ ...p, total_eggs: e.target.value }))}
+                placeholder=""
+              />
+            </div>
 
-        {/* Row 4 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Incubation Duration (days)</Label>
+              <Input
+                type="number"
+                value={form.incubation_duration}
+                onChange={(e) => setForm((p) => ({ ...p, incubation_duration: e.target.value }))}
+                placeholder=""
+              />
+            </div>
+          </div>
+
+          {/* Row 4 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Setter Temperature (°C)</Label>
+              <Input
+                type="number"
+                step="0.01"
+                value={form.setter_temp}
+                onChange={(e) => setForm((p) => ({ ...p, setter_temp: e.target.value }))}
+                placeholder=""
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Egg Shell Temperature (°C)</Label>
+              <Input
+                type="number"
+                step="0.01"
+                value={form.egg_shell_temp}
+                onChange={(e) => setForm((p) => ({ ...p, egg_shell_temp: e.target.value }))}
+                placeholder=""
+              />
+            </div>
+          </div>
+
+          {/* Row 5 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Setter Humidity (%)</Label>
+              <Input
+                type="number"
+                step="0.01"
+                value={form.setter_humidity}
+                onChange={(e) => setForm((p) => ({ ...p, setter_humidity: e.target.value }))}
+                placeholder=""
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Egg Shell Temp Date &amp; Time</Label>
+              <Input
+                type="datetime-local"
+                value={form.egg_shell_temp_dt}
+                onChange={(e) => setForm((p) => ({ ...p, egg_shell_temp_dt: e.target.value }))}
+              />
+            </div>
+          </div>
+
+          {/* Row 6 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Turning Interval (mins)</Label>
+              <Input
+                type="number"
+                value={form.turning_interval}
+                onChange={(e) => setForm((p) => ({ ...p, turning_interval: e.target.value }))}
+                placeholder=""
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Egg Shell Orientation</Label>
+              <Select
+                value={form.egg_shell_orientation}
+                onValueChange={(v: any) => setForm((p) => ({ ...p, egg_shell_orientation: v }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select orientation" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Pointed Up">Pointed Up</SelectItem>
+                  <SelectItem value="Pointed Down">Pointed Down</SelectItem>
+                  <SelectItem value="Pointed Middle">Pointed Middle</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Row 7 */}
           <div className="space-y-2">
-            <Label>Setter Temperature (°C)</Label>
+            <Label>Turning Angle (°)</Label>
             <Input
               type="number"
               step="0.01"
-              value={form.setter_temp}
-              onChange={(e) => setForm((p) => ({ ...p, setter_temp: e.target.value }))}
+              value={form.turning_angle}
+              onChange={(e) => setForm((p) => ({ ...p, turning_angle: e.target.value }))}
               placeholder=""
             />
           </div>
 
-          <div className="space-y-2">
-            <Label>Egg Shell Temperature (°C)</Label>
-            <Input
-              type="number"
-              step="0.01"
-              value={form.egg_shell_temp}
-              onChange={(e) => setForm((p) => ({ ...p, egg_shell_temp: e.target.value }))}
-              placeholder=""
-            />
-          </div>
-        </div>
+          {/* Actions */}
+          <div className="flex items-center justify-end gap-2 pt-2">
+            <Button type="button" onClick={onSave} disabled={saving}>
+              {saving ? "Saving..." : "Save"}
+            </Button>
 
-        {/* Row 5 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label>Setter Humidity (%)</Label>
-            <Input
-              type="number"
-              step="0.01"
-              value={form.setter_humidity}
-              onChange={(e) => setForm((p) => ({ ...p, setter_humidity: e.target.value }))}
-              placeholder=""
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Egg Shell Temp Date &amp; Time</Label>
-            <Input
-              type="datetime-local"
-              value={form.egg_shell_temp_dt}
-              onChange={(e) => setForm((p) => ({ ...p, egg_shell_temp_dt: e.target.value }))}
-            />
-          </div>
-        </div>
-
-        {/* Row 6 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label>Turning Interval (mins)</Label>
-            <Input
-              type="number"
-              value={form.turning_interval}
-              onChange={(e) => setForm((p) => ({ ...p, turning_interval: e.target.value }))}
-              placeholder=""
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Egg Shell Orientation</Label>
-            <Select
-              value={form.egg_shell_orientation}
-              onValueChange={(v: any) => setForm((p) => ({ ...p, egg_shell_orientation: v }))}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => router.push("/a_baja/eggsetter")}
+              disabled={saving}
             >
-              <SelectTrigger>
-                <SelectValue placeholder="Select orientation" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Pointed Up">Pointed Up</SelectItem>
-                <SelectItem value="Pointed Down">Pointed Down</SelectItem>
-                <SelectItem value="Pointed Middle">Pointed Middle</SelectItem>
-              </SelectContent>
-            </Select>
+              Cancel
+            </Button>
           </div>
-        </div>
-
-        {/* Row 7 */}
-        <div className="space-y-2">
-          <Label>Turning Angle (°)</Label>
-          <Input
-            type="number"
-            step="0.01"
-            value={form.turning_angle}
-            onChange={(e) => setForm((p) => ({ ...p, turning_angle: e.target.value }))}
-            placeholder=""
-          />
-        </div>
-
-        {/* Actions */}
-        <div className="flex items-center justify-end gap-2 pt-2">
-          <Button type="button" onClick={onSave} disabled={saving}>
-            {saving ? "Saving..." : "Save"}
-          </Button>
-
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => router.push("/a_baja/eggsetter")}
-            disabled={saving}
-          >
-            Cancel
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   )
 }

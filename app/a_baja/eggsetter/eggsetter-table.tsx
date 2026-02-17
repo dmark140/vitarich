@@ -26,6 +26,7 @@ import { Input } from "@/components/ui/input"
 import { Search, Plus, RefreshCw } from "lucide-react"
 
 import { SetterIncubation, listSetterIncubations } from "./new/api"
+import Breadcrumb from "@/lib/Breadcrumb"
 
 export default function EggsetterTable() {
   const [items, setItems] = useState<SetterIncubation[]>([])
@@ -50,7 +51,7 @@ export default function EggsetterTable() {
   }
 
   useEffect(() => {
-    ;(async () => {
+    ; (async () => {
       router.prefetch("/a_baja/eggsetter/new")
       await fetchData()
     })()
@@ -58,13 +59,13 @@ export default function EggsetterTable() {
   }, [])
 
   const formatDateTime = (value?: string | null) => {
-  if (!value) return ""
+    if (!value) return ""
 
-  const d = new Date(value)
-  const pad = (n: number) => String(n).padStart(2, "0")
+    const d = new Date(value)
+    const pad = (n: number) => String(n).padStart(2, "0")
 
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
-}
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
+  }
 
   const columns: ColumnDef<SetterIncubation>[] = [
     {
@@ -77,9 +78,9 @@ export default function EggsetterTable() {
       header: "Reference Number",
     },
     {
-    accessorKey: "setting_date",
-    header: "Setting Date",
-    cell: ({ row }) => formatDateTime(row.original.setting_date)
+      accessorKey: "setting_date",
+      header: "Setting Date",
+      cell: ({ row }) => formatDateTime(row.original.setting_date)
     },
     {
       accessorKey: "farm_source",
@@ -90,9 +91,9 @@ export default function EggsetterTable() {
       header: "Setter Machine ID",
     },
     {
-        accessorKey: "total_eggs",
-        header: "Total Eggs",
-        cell: ({ getValue }) =>
+      accessorKey: "total_eggs",
+      header: "Total Eggs",
+      cell: ({ getValue }) =>
         getValue<number>()?.toLocaleString() ?? "",
     },
     {
@@ -122,7 +123,7 @@ export default function EggsetterTable() {
     {
       accessorKey: "egg_shell_temp_dt",
       header: "Egg Shell Temp Date & Time",
-        cell: ({ row }) => formatDateTime(row.original.egg_shell_temp_dt)
+      cell: ({ row }) => formatDateTime(row.original.egg_shell_temp_dt)
     },
     {
       accessorKey: "egg_shell_orientation",
@@ -153,7 +154,11 @@ export default function EggsetterTable() {
     <div className="rounded-md border p-4">
       {/* Top Controls */}
       <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4">
+          <Breadcrumb
+            SecondPreviewPageName="Hatchery" 
+            CurrentPageName="Egg Setter List"
+          />
           <div className="relative w-72">
             <Input
               placeholder="Filter Reference Number"
@@ -189,7 +194,7 @@ export default function EggsetterTable() {
       </div>
 
       {/* Table */}
-      <div className="rounded-md border">
+      <div className="rounded-2xl p-4 bg-white">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -202,9 +207,9 @@ export default function EggsetterTable() {
                     {header.isPlaceholder
                       ? null
                       : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
                   </TableHead>
                 ))}
               </TableRow>

@@ -55,7 +55,7 @@ const Breadcrumb = ({
       </span> */}
 
 
-      <div className='text-sm'>
+      <div className='text-sm space-x-2 whitespace-nowrap'>
         <div className='text-2xl pb-2'>{CurrentPageName}</div>
         {SecondPreviewPageName && (
           <>

@@ -14,6 +14,8 @@ import { Separator } from "@/components/ui/separator"
 import { createEggStorage, EggStorageInsert } from "./api"
 import { db } from "@/lib/Supabase/supabaseClient"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import BreederRef from "@/components/BreederRef"
+import Breadcrumb from "@/lib/Breadcrumb"
 type ViewForHatcheryClassi = {
   dr_num: string | null;
   doc_date: string | null;
@@ -111,14 +113,23 @@ export default function Eggstorageform() {
     };
     loadBreeders();
   }, []);
+
+
   return (
     <Card className="max-w-6xl ml-0 p-6 space-y-4">
-      <CardHeader>
+      {/* <CardHeader>
         <CardTitle>Egg Storage Management</CardTitle>
-      </CardHeader>
+      </CardHeader> */}
+      <Breadcrumb
+        FirstPreviewsPageName="Egg Storage Management"
+         SecondPreviewPageName="Hatchery "
+        CurrentPageName="New Record"
+      />
       <Separator />
 
       <CardContent className="p-4 space-y-4">
+
+        <BreederRef />
         {/* TEMPS / HUMI */}
         <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
           <div className="grid grid-cols-1 gap-2">
@@ -151,7 +162,7 @@ export default function Eggstorageform() {
 
         {/* SHELL TEMP TIMESTAMPS */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
-        
+
 
           <div className="grid grid-cols-1 gap-2">
             <Label>Shell Temp DateTime Start</Label>
