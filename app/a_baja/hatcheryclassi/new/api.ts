@@ -13,10 +13,10 @@ export type HatchClassificationInsert = {
   pee_wee: number | null;
   small: number | null;
   jumbo: number | null;
-  d_yolk: number | null;
-
+  d_yolk: number | null; 
   ttl_count: number | null;
   is_active: boolean | null;
+  classi_ref_no: string | null;
 };
 
 export type HatchClassificationRow = HatchClassificationInsert & {
