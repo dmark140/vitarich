@@ -2,7 +2,6 @@ import { db } from "@/lib/Supabase/supabaseClient";
 
 export type HatchClassificationInsert = {
   created_at?: string; // ✅ add
-  daterec: string | null;
   br_no: string | null; 
   good_egg: number | null;
   trans_crack: number | null;
@@ -17,6 +16,7 @@ export type HatchClassificationInsert = {
   ttl_count: number | null;
   is_active: boolean | null;
   classi_ref_no: string | null;
+  date_classify: string | null; 
 };
 
 export type HatchClassificationRow = HatchClassificationInsert & {

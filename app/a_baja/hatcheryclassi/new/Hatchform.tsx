@@ -18,6 +18,7 @@ import { useRouter } from "next/navigation"
 import { createHatchClassification, HatchClassificationInsert } from "./api"
 
 type ViewForHatcheryClassi = {
+  id: string | null
   dr_num: string | null
   doc_date: string | null
   temperature: string | null
@@ -26,6 +27,7 @@ type ViewForHatcheryClassi = {
   sku: string | null
   UoM: string | null
   actual_count: number | null
+  classfi_ref_no: string | null
 }
 
 function pad3(n: number) {
@@ -47,34 +49,36 @@ export default function Hatchform() {
   const [refLoading, setRefLoading] = useState(false)
 
   const [form, setForm] = useState({
-    // view-selected
-    br_no: "",
-    dr_no: "",
-    dr_date: "",
-    temperature: "",
-    sku: "",
-    uom: "",
-    total_count_view: 0,
+  br_no: "",
+  dr_no: "",
+  dr_date: "",
+  temperature: "",
+  sku: "",
+  uom: "",
+  total_count_view: 0,
 
-    // NEW: classification header fields
-    classi_ref_no: "",
-    date_classify: "",
+  // base ref from view
+  classfi_ref_no: "",  // ✅ ADD THIS
 
-    // table numeric fields
-    good_egg: null as number | null,
-    trans_crack: null as number | null,
-    trans_condemn: null as number | null,
-    hatc_crack: null as number | null,
-    thin_shell: null as number | null,
-    hatc_condemn: null as number | null,
-    small: null as number | null,
-    pee_wee: null as number | null,
-    d_yolk: null as number | null,
-    jumbo: null as number | null,
+  // final generated ref
+  classi_ref_no: "",
+  date_classify: "",
 
-    ttl_count: 0,
-    discrepancy: 0, // NOT stored in table
-  })
+  // numeric...
+  good_egg: null as number | null,
+  trans_crack: null as number | null,
+  trans_condemn: null as number | null,
+  hatc_crack: null as number | null,
+  thin_shell: null as number | null,
+  hatc_condemn: null as number | null,
+  small: null as number | null,
+  pee_wee: null as number | null,
+  d_yolk: null as number | null,
+  jumbo: null as number | null,
+
+  ttl_count: 0,
+  discrepancy: 0,
+})
 
   const numericFields = useMemo(
     () => [
@@ -100,9 +104,7 @@ export default function Hatchform() {
     const loadBreeders = async () => {
       const { data, error } = await db
         .from("viewforhatcheryclassi")
-        .select(
-          "dr_num,doc_date,temperature,humidity,brdr_ref_no,sku,UoM,actual_count"
-        )
+        .select("dr_num,doc_date,temperature,humidity,brdr_ref_no,sku,UoM,actual_count,classfi_ref_no")
         .order("doc_date", { ascending: false })
 
       if (!error && data) setBreeders(data as any)
@@ -110,25 +112,123 @@ export default function Hatchform() {
     }
     loadBreeders()
   }, [])
+useEffect(() => {
+  const run = async () => {
+    if (!form.date_classify) return
+    if (!form.classfi_ref_no) return // ✅ base ref must exist
 
-  // breeder selected -> auto populate
-  const handleBreederChange = (value: string) => {
-    const selected = breeders.find((b) => b.brdr_ref_no === value)
-    if (!selected) return
-
-    setForm((prev) => ({
-      ...prev,
-      br_no: selected.brdr_ref_no ?? "",
-      dr_no: selected.dr_num ?? "",
-      dr_date: selected.doc_date ?? "",
-      temperature: selected.temperature ?? "",
-      sku: selected.sku ?? "",
-      uom: selected.UoM ?? "",
-      total_count_view: Number(selected.actual_count ?? 0),
-    }))
+    try {
+      setRefLoading(true)
+      const finalRef = await generateRef(form.date_classify, form.classfi_ref_no) // ✅ FIX
+      setForm((p) => ({ ...p, classi_ref_no: finalRef }))
+    } catch (e: any) {
+      // ✅ show real error details
+      console.error("RPC generate_hatch_classi_ref failed:", e?.message ?? e, e)
+      setForm((p) => ({ ...p, classi_ref_no: "" }))
+      alert(e?.message ?? "Failed to generate Classification Ref No.")
+    } finally {
+      setRefLoading(false)
+    }
   }
 
-  // handle inputs (numbers + date_classify)
+  run()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [form.date_classify, form.classfi_ref_no])
+
+  // breeder selected -> auto populate
+const generateRef = async (dateClassify: string, baseRef: string) => {
+  const { data, error } = await db.rpc("generate_hatch_classi_ref", {
+    p_date_classify: dateClassify,     // expects YYYY-MM-DD
+    p_classfi_ref_no: baseRef,
+  })
+
+  if (error) throw error
+  // data is array with 1 row: [{ seq, classi_ref_no }]
+  return data?.[0]?.classi_ref_no as string
+}
+
+// const handleBreederChange = async (value: string) => {
+//       const selected = breeders.find((b) => b.brdr_ref_no === value)
+//       if (!selected) return
+
+//       // populate view fields + base ref
+//       setForm((prev) => ({
+//         ...prev,
+//         br_no: selected.brdr_ref_no ?? "",
+//         dr_no: selected.dr_num ?? "",
+//         dr_date: selected.doc_date ?? "",
+//         temperature: selected.temperature ?? "",
+//         sku: selected.sku ?? "",
+//         uom: selected.UoM ?? "",
+//         total_count_view: Number(selected.actual_count ?? 0),
+
+//         classfi_ref_no: selected.classfi_ref_no ?? "", // ✅ base ref from view
+//         classi_ref_no: "", // will fill after RPC
+//       }))
+
+//       // Trigger generation when selecting breeder:
+//       // Needs Date Classify + base ref to generate
+//       const baseRef = selected.classfi_ref_no ?? ""
+//       if (!form.date_classify) {
+//         // if you prefer strict behavior, stop here and let them pick date first
+//         // (still "triggered" on breeder selection, but blocked by missing date)
+//         return
+//       }
+//       if (!baseRef) return
+
+//       try {
+//         setRefLoading(true)
+//         const finalRef = await generateRef(form.date_classify, baseRef)
+//         setForm((prev) => ({ ...prev, classi_ref_no: finalRef }))
+//       } catch (e) {
+//         console.error(e)
+//         setForm((prev) => ({ ...prev, classi_ref_no: "" }))
+//       } finally {
+//         setRefLoading(false)
+//       }
+//     }
+
+
+const handleBreederChange = async (value: string) => {
+  const selected = breeders.find((b) => b.brdr_ref_no === value)
+  if (!selected) return
+
+  const baseRef = selected.classfi_ref_no ?? ""
+  const dateClassify = form.date_classify // current state
+
+  // populate view fields + base ref
+  setForm((prev) => ({
+    ...prev,
+    br_no: selected.brdr_ref_no ?? "",
+    dr_no: selected.dr_num ?? "",
+    dr_date: selected.doc_date ?? "",
+    temperature: selected.temperature ?? "",
+    sku: selected.sku ?? "",
+    uom: selected.UoM ?? "",
+    total_count_view: Number(selected.actual_count ?? 0),
+
+    classfi_ref_no: baseRef, // ✅ store base
+    classi_ref_no: "",       // reset generated
+  }))
+
+  // trigger when selecting breeder ref no (ONLY if date already chosen)
+  if (!dateClassify || !baseRef) return
+
+  try {
+    setRefLoading(true)
+    const finalRef = await generateRef(dateClassify, baseRef)
+    setForm((prev) => ({ ...prev, classi_ref_no: finalRef }))
+  } catch (e: any) {
+    console.error("RPC generate_hatch_classi_ref failed:", e?.message ?? e, e)
+    setForm((prev) => ({ ...prev, classi_ref_no: "" }))
+    alert(e?.message ?? "Failed to generate Classification Ref No.")
+  } finally {
+    setRefLoading(false)
+  }
+}
+  
+
+// handle inputs (numbers + date_classify)
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value, type } = e.target
 
@@ -149,42 +249,63 @@ export default function Hatchform() {
     })
   }
 
-  // generate Classification Ref No when br_no + date_classify are ready
   useEffect(() => {
-    const generate = async () => {
-      if (!form.br_no || !form.date_classify) {
-        setForm((p) => ({ ...p, classi_ref_no: "" }))
-        return
-      }
+  const run = async () => {
+    if (!form.date_classify) return
+    if (!form.classi_ref_no) return
 
+    try {
       setRefLoading(true)
-      try {
-        // count how many classifications exist for that date
-        // (auto-increment "per day")
-        const { count, error } = await db
-          .from("hatch_classification")
-          .select("id", { count: "exact", head: true })
-          .eq("date_classify", form.date_classify)
-
-        if (error) throw error
-
-        const seq = Number(count || 0) + 1
-        const datePart = ddmmyyFromYYYYMMDD(form.date_classify)
-        const ref = `${form.br_no}-${datePart}-CL${pad3(seq)}`
-
-        setForm((p) => ({ ...p, classi_ref_no: ref }))
-      } catch (err) {
-        console.error("Failed to generate ref no:", err)
-        // keep UI usable even if ref generation fails
-        setForm((p) => ({ ...p, classi_ref_no: "" }))
-      } finally {
-        setRefLoading(false)
-      }
+      const finalRef = await generateRef(form.date_classify, form.classi_ref_no)
+      setForm((p) => ({ ...p, classi_ref_no: finalRef }))
+    } catch (e) {
+      console.error(e)
+      setForm((p) => ({ ...p, classi_ref_no: "" }))
+    } finally {
+      setRefLoading(false)
     }
+  }
 
-    generate()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form.br_no, form.date_classify])
+  run()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [form.date_classify])
+
+  // // generate Classification Ref No when br_no + date_classify are ready
+  // useEffect(() => {
+  //   const generate = async () => {
+  //     if (!form.br_no || !form.date_classify) {
+  //       setForm((p) => ({ ...p, classi_ref_no: "" }))
+  //       return
+  //     }
+
+  //     setRefLoading(true)
+  //     try {
+  //       // count how many classifications exist for that date
+  //       // (auto-increment "per day")
+  //       const { count, error } = await db
+  //         .from("hatch_classification")
+  //         .select("id", { count: "exact", head: true })
+  //         .eq("date_classify", form.date_classify)
+
+  //       if (error) throw error
+
+  //       const seq = Number(count || 0) + 1
+  //       const datePart = ddmmyyFromYYYYMMDD(form.date_classify)
+  //       const ref = `${form.br_no}-${datePart}-CL${pad3(seq)}`
+
+  //       setForm((p) => ({ ...p, classi_ref_no: ref }))
+  //     } catch (err) {
+  //       console.error("Failed to generate ref no:", err)
+  //       // keep UI usable even if ref generation fails
+  //       setForm((p) => ({ ...p, classi_ref_no: "" }))
+  //     } finally {
+  //       setRefLoading(false)
+  //     }
+  //   }
+
+  //   generate()
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [form.br_no, form.date_classify])
 
   const handleSave = async () => {
     // required checks
@@ -196,6 +317,10 @@ export default function Hatchform() {
       alert("Please fill Date Classify.")
       return
     }
+    if (!form.classi_ref_no) {
+    alert("Classification Ref. No. not generated yet.")
+    return
+    }
     if (Number(form.ttl_count) !== Number(form.total_count_view)) {
       alert("Total Classify must be equal to Total Count.")
       return
@@ -205,14 +330,10 @@ export default function Hatchform() {
       setSaving(true)
 
       const payload: HatchClassificationInsert = {
-        created_at: new Date().toISOString(),
-
-        // NEW fields (make sure these columns exist in Supabase)
+        created_at: new Date().toISOString(), 
+        date_classify: form.date_classify,
         classi_ref_no: form.classi_ref_no || null,
-        daterec: form.date_classify || null,
-
         br_no: form.br_no,
-
         good_egg: form.good_egg,
         trans_crack: form.trans_crack,
         trans_condemn: form.trans_condemn,
@@ -254,7 +375,7 @@ export default function Hatchform() {
               <SelectContent>
                 {breeders.map((b, i) => (
                   <SelectItem key={i} value={b.brdr_ref_no ?? ""}>
-                    {b.brdr_ref_no}
+                    {b.brdr_ref_no} 
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -279,17 +400,7 @@ export default function Hatchform() {
         <CardContent className="pt-2 space-y-2">
           {/* header row */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
-            <div className="space-y-1">
-              <Label>Classification Ref. No.</Label>
-              <Input
-                value={
-                  refLoading ? "Generating..." : form.classi_ref_no ?? ""
-                }
-                disabled
-              />
-            </div>
-
-            <div className="space-y-1 md:justify-self-end md:w-72">
+            <div className="space-y-3 md:col-span-1">
               <Label>Date Classify</Label>
               <Input
                 type="date"
@@ -298,6 +409,15 @@ export default function Hatchform() {
                 onChange={handleChange}
               />
             </div>
+            <div className="space-y-1">
+              <Label>Classification Ref. No.</Label>
+              <Input
+                value={
+                  refLoading ? "Generating..." : form.classi_ref_no ?? ""
+                }
+                disabled
+              />
+            </div> 
           </div>
 
           {/* fields layout like image */}
