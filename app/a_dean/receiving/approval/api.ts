@@ -133,7 +133,7 @@ export async function approveHatcheryDraft(
 
     return { success: true }
   } catch (error: any) {
-    console.error('Approve Error:', error)
+    // console.error('Approve Error:', error)
     return {
       success: false,
       error: error.message ?? 'Failed to approve document.',
