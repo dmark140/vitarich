@@ -166,7 +166,7 @@ export default function Layout() {
                             operator: 'equals',
                             value: 'Pending',
                             joiner: 'and',
-                        },
+                        }, 
                     ]}
                     columns={tableColumnsx.map((col) => ({
                         key: col.key,
