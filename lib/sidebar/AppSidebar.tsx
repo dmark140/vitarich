@@ -860,10 +860,10 @@ export function AppSidebar() {
 
   return (
     <aside
-      className={`flex flex-col h-screen    bg-sidebar transition-all ${collapsed ? "w-16" : "w-72"
+      className={`flex flex-col h-screen    bg-background transition-all ${collapsed ? "w-16" : "w-72"
         } duration-300`}
     >
-      <div className="px-3   h-13.5 shadow ">
+      <div className="px-3   h-13.5 shadow  bg-white">
         <div className="flex items-center justify-between">
           {/* <VersionSwitcher versions={versions} defaultVersion={versions[0]} /> */}
           <Button className="m-3 text-foreground" variant="ghost" size="icon" onClick={toggle} >
@@ -880,7 +880,7 @@ export function AppSidebar() {
 
       <nav className="flex-1 overflow-y-auto   mt-9 space-y-2  ">
 
-        <div className="bg-white shadow rounded-2xl h-[calc(100vh-6rem)] ">
+        <div className="bg-white shadow rounded-r-2xl h-[calc(100vh-6rem)] ">
           <div className="text-sm px-3 text-muted-foreground py-4">{!collapsed && "Main"} </div>
           {filteredNavFolders.map(folder => (
             <div key={folder.id} className="text-foreground/60">

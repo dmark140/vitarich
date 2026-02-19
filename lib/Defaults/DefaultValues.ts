@@ -26,7 +26,7 @@ export const NavFolders = [
         children: [
 
           { type: "Module", title: "Receiving", url: "/a_dean/receiving" },
-        
+
           { type: "Module", title: "Hatchery Classification", url: "/a_baja/hatcheryclassi" },
           { type: "Module", title: "Egg Storage", url: "/a_baja/eggstorage" },
           { type: "Module", title: "Egg Pre-Warming Process", url: "/a_baja/prewarming" },
@@ -90,9 +90,9 @@ export const NavFolders = [
         ],
       },
     ],
-    
+
   },
-    {
+  {
     id: 99,
     title: "Settings",
     url: "/admin",
@@ -102,7 +102,7 @@ export const NavFolders = [
         group: "Modules",
         children: [
           { type: "Module", title: "User Management", url: "/admin/user" },
-          { type: "Module", title: "Company Details", url: "#" },
+          { type: "Module", title: "Farm Settings", url: "/a_dean/farm" },
           { type: "Module", title: "General Settings", url: "#" },
           { type: "Module", title: "Document Settings", url: "#" },
           // { type: "Module", title: "User Details / Roles & Permissions", url: "/admin/user/new/" },
@@ -124,4 +124,4 @@ export const ListOfYear: CodeNameBase[] = Array.from(
 
 export const DefaultGenders = [{ code: "Male" }, { code: "Female" }];
 
-export  const today = new Date().toISOString().slice(0, 10)
+export const today = new Date().toISOString().slice(0, 10)

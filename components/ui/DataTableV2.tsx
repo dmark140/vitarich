@@ -185,7 +185,7 @@ export default function DynamicTable<T extends Record<string, any>>({
           </button>
 
           {/* SEARCH */}
-          <div className="border rounded flex items-center">
+          <div className="border rounded flex items-center mr-4">
             <Search className="text-foreground/80 size-4 ml-2" />
             <input
               type="search"
@@ -360,7 +360,7 @@ export default function DynamicTable<T extends Record<string, any>>({
                       {col.label}
                       {isSorted
                         ? sort.direction === 'asc'
-                          ?  <div className="flex">
+                          ? <div className="flex">
                             <MoveUp className="size-4 text-" />
                             <MoveDown className="size-4 -ml-2 text-foreground/30" />  </div>
                           : <div className="flex">
@@ -396,33 +396,36 @@ export default function DynamicTable<T extends Record<string, any>>({
       </div>
 
       {/* FOOTER */}
-      <div className="flex justify-between items-center text-sm">
-        <div className='mx-4'>
-          Showing {(page - 1) * pageSize + 1} to{' '}
-          {Math.min(page * pageSize, sortedData.length)} of{' '}
-          {sortedData.length} entries
-        </div>
+      {data.length > 0 &&
+        <div className="flex justify-between items-center text-sm">
+          <div className='mx-4'>
+            Showing {(page - 1) * pageSize + 1} to{' '}
+            {Math.min(page * pageSize, sortedData.length)} of{' '}
+            {sortedData.length} entries
+          </div>
 
-        <div className="flex gap-2">
-          <button
-            disabled={page === 1}
-            onClick={() => setPage(p => p - 1)}
-            className="border px-3 py-1 rounded disabled:opacity-50"
-          >
-            Previous
-          </button>
+          <div className="flex gap-2">
+            <button
+              disabled={page === 1}
+              onClick={() => setPage(p => p - 1)}
+              className="border px-3 py-1 rounded disabled:opacity-50"
+            >
+              Previous
+            </button>
 
-          <span>Page {page} / {totalPages || 1}</span>
+            <span>Page {page} / {totalPages || 1}</span>
 
-          <button
-            disabled={page >= totalPages}
-            onClick={() => setPage(p => p + 1)}
-            className="border px-3 py-1 rounded disabled:opacity-50"
-          >
-            Next
-          </button>
-        </div>
-      </div>
+            <button
+              disabled={page >= totalPages}
+              onClick={() => setPage(p => p + 1)}
+              className="border px-3 py-1 rounded disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
+        </div>}
+
+      <div className='mx-auto w-fit py-2'> {data.length === 0 && " No data available"}</div>
     </div>
   )
 }
