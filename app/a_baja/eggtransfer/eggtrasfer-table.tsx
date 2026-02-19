@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import {
   ColumnDef,
@@ -41,6 +41,7 @@ function formatDateTime(v?: string | null) {
     hour12: false,
   })
 }
+ 
 
 export default function EggTransferTable() {
   const [items, setItems] = useState<EggTransferProcess[]>([])
@@ -51,6 +52,24 @@ export default function EggTransferTable() {
   const [loading, setLoading] = useState(false)
 
   const router = useRouter()
+ 
+function fmtDurationHHMM(mins: number | string | null | undefined) {
+  if (mins == null || mins === "") return ""
+
+  const n = typeof mins === "string" ? Number(mins) : mins
+  if (!Number.isFinite(n) || n < 0) return ""
+
+  const totalMins = Math.round(n)
+  const h = Math.floor(totalMins / 60)
+  const m = totalMins % 60
+
+  // HH:MM (pads minutes to 2 digits; hours can be 1+ digits)
+  // return `${h}:${String(m).padStart(2, "0")}`
+  if (h <= 0) return `${m}m`
+  return `${h}h ${m}m`
+
+}
+
 
   async function load() {
     setLoading(true)
@@ -106,8 +125,8 @@ export default function EggTransferTable() {
     },
     {
       accessorKey: "duration",
-      header: "Duration (min)",
-      cell: ({ row }) => row.original.duration ?? "",
+      header: "Duration",
+      cell: ({ row }) => fmtDurationHHMM(row.original.duration),
     },
     {
       accessorKey: "num_bangers",

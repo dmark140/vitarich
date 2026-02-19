@@ -31,13 +31,22 @@ function toDatetimeLocalValue(v: string | null | undefined) {
   return `${yyyy}-${mm}-${dd}T${hh}:${mi}`
 }
 
-function diffMinutes(start: string, end: string) {
+function minutesBetween(start: string, end: string) {
   const a = new Date(start).getTime()
   const b = new Date(end).getTime()
-  if (Number.isNaN(a) || Number.isNaN(b)) return null
-  const mins = Math.round((b - a) / 60000)
-  return mins >= 0 ? mins : null
+  if (isNaN(a) || isNaN(b)) return null
+  if (b < a) return null
+  return Math.floor((b - a) / 60000)
 }
+
+function fmtDuration(mins: number | null) {
+  if (mins == null) return ""
+  const h = Math.floor(mins / 60)
+  const m = mins % 60
+  if (h <= 0) return `${m}m`
+  return `${h}h ${m}m`
+}
+
 
 export default function EggHatchform() {
   const router = useRouter()
@@ -65,6 +74,19 @@ export default function EggHatchform() {
     total_egg: "",
   })
 
+    const durationMinutes = useMemo(() => {
+      if (!form.hatch_time_start) return null
+      if (!form.hatch_time_end) return null
+      return minutesBetween(form.hatch_time_start, form.hatch_time_end)
+    }, [form.hatch_time_start, form.hatch_time_end])
+  
+    const isValidDates = useMemo(() => {
+      if (!form.hatch_time_start) return true
+      if (!form.hatch_time_end) return true
+      return durationMinutes !== null
+    }, [form.hatch_time_start, form.hatch_time_end, durationMinutes])
+  
+    
   const isEdit = !!editId
 
   useEffect(() => {
@@ -93,7 +115,7 @@ export default function EggHatchform() {
           alert(e?.message ?? "Failed to load record.")
         } finally {
           setLoading(false)
-        }
+        } 
       })()
   }, [editId])
 
@@ -103,7 +125,7 @@ export default function EggHatchform() {
       setForm((p) => ({ ...p, duration: "" }))
       return
     }
-    const mins = diffMinutes(form.hatch_time_start, form.hatch_time_end)
+    const mins = minutesBetween(form.hatch_time_start, form.hatch_time_end)
     setForm((p) => ({ ...p, duration: mins == null ? "" : String(mins) }))
   }, [form.hatch_time_start, form.hatch_time_end])
 
@@ -264,8 +286,14 @@ export default function EggHatchform() {
               {/* Duration + Hatch Window (2 cols) */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <Label>Duration (minutes)</Label>
-                  <Input value={form.duration} disabled placeholder="AUTO" />
+                  <Label>Duration</Label>
+                  <Input
+                                  disabled
+                                  value={fmtDuration(durationMinutes)}
+                                  placeholder=""
+                                />
+
+                  <Input value={form.duration} disabled placeholder="" />
                 </div>
 
                 <div className="space-y-1">

@@ -54,6 +54,23 @@ export default function EggHatchTable() {
   const [columnVisibility, setColumnVisibility] = useState<any>({})
   const [rowSelection, setRowSelection] = useState({})
 
+function fmtDurationHHMM(mins: number | string | null | undefined) {
+      if (mins == null || mins === "") return ""
+
+      const n = typeof mins === "string" ? Number(mins) : mins
+      if (!Number.isFinite(n) || n < 0) return ""
+
+      const totalMins = Math.round(n)
+      const h = Math.floor(totalMins / 60)
+      const m = totalMins % 60
+
+      // HH:MM (pads minutes to 2 digits; hours can be 1+ digits)
+      // return `${h}:${String(m).padStart(2, "0")}`
+      if (h <= 0) return `${m}m`
+      return `${h}h ${m}m`
+
+    }
+
   async function load() {
     setLoading(true)
     try {
@@ -109,8 +126,8 @@ export default function EggHatchTable() {
       },
       {
         accessorKey: "duration",
-        header: "Duration (min)",
-        cell: ({ row }) => fmtNumber(row.original.duration),
+        header: "Duration",
+        cell: ({ row }) => fmtDurationHHMM(row.original.duration),
       },
       {
         accessorKey: "hatch_window",

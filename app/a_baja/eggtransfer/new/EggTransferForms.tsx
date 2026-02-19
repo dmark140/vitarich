@@ -33,7 +33,10 @@ function minutesBetween(start: string, end: string) {
 
 function fmtDuration(mins: number | null) {
   if (mins == null) return ""
-  return `${mins} min`
+  const h = Math.floor(mins / 60)
+  const m = mins % 60
+  if (h <= 0) return `${m}m`
+  return `${h}h ${m}m`
 }
 
 export default function EggTransferForm() {
@@ -127,7 +130,7 @@ export default function EggTransferForm() {
               <Input
                 value={form.ref_no}
                 onChange={(e) => setForm((p) => ({ ...p, ref_no: e.target.value }))}
-                placeholder="AUTO"
+                placeholder=""
               />
             </div>
 
@@ -180,7 +183,7 @@ export default function EggTransferForm() {
               <Input
                 disabled
                 value={fmtDuration(durationMinutes)}
-                placeholder="AUTO"
+                placeholder=""
               />
             </div>
 
