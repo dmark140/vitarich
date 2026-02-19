@@ -80,14 +80,33 @@ export default function PrewarmTable() {
     {
       accessorKey: "egg_temp_time_start",
       header: "Start Time",
+       cell: ({ row }) => {
+        const v = row.original.egg_temp_time_start
+        return v ? new Date(v).toLocaleString() : ""
+      },
     },
     {
       accessorKey: "egg_temp_time_end",
       header: "End Time",
+      cell: ({ row }) => {
+        const v = row.original.egg_temp_time_end
+        return v ? new Date(v).toLocaleString() : ""
+      },
     },
     {
       accessorKey: "duration",
-      header: "Duration (minutes)",
+      header: "Duration",
+      cell: ({ row }) => {
+        const mins = row.original.duration
+
+        if (mins == null) return ""
+
+        const h = Math.floor(mins / 60)
+        const m = mins % 60
+
+        if (h <= 0) return `${m} min`
+        return `${h} hr ${m} min`
+      },
     },
     {
       accessorKey: "remarks",

@@ -55,12 +55,8 @@ export default function Hatchform() {
   temperature: "",
   sku: "",
   uom: "",
-  total_count_view: 0,
-
-  // base ref from view
-  classfi_ref_no: "",  // ✅ ADD THIS
-
-  // final generated ref
+  total_count_view: 0, 
+  classfi_ref_no: "",   
   classi_ref_no: "",
   date_classify: "",
 
@@ -74,8 +70,7 @@ export default function Hatchform() {
   small: null as number | null,
   pee_wee: null as number | null,
   d_yolk: null as number | null,
-  jumbo: null as number | null,
-
+  jumbo: null as number | null, 
   ttl_count: 0,
   discrepancy: 0,
 })
@@ -84,16 +79,13 @@ export default function Hatchform() {
     () => [
       { label: "Good Egg", name: "good_egg", placeholder: "0" },
       { label: "Transport Crack", name: "trans_crack", placeholder: "0" },
-      { label: "Transport Condemn", name: "trans_condemn", placeholder: "0" },
-
+      { label: "Transport Condemn", name: "trans_condemn", placeholder: "0" }, 
       { label: "Hatch Crack", name: "hatc_crack", placeholder: "0" },
       { label: "Thin Shell", name: "thin_shell", placeholder: "0" },
-      { label: "Hatch Condemn", name: "hatc_condemn", placeholder: "0" },
-
+      { label: "Hatch Condemn", name: "hatc_condemn", placeholder: "0" }, 
       { label: "Small", name: "small", placeholder: "0" },
       { label: "Pee Wee", name: "pee_wee", placeholder: "0" },
-      { label: "Double Yolk", name: "d_yolk", placeholder: "0" },
-
+      { label: "Double Yolk", name: "d_yolk", placeholder: "0" }, 
       { label: "Jumbo", name: "jumbo", placeholder: "0" },
     ],
     []
@@ -105,21 +97,21 @@ export default function Hatchform() {
       const { data, error } = await db
         .from("viewforhatcheryclassi")
         .select("dr_num,doc_date,temperature,humidity,brdr_ref_no,sku,UoM,actual_count,classfi_ref_no")
-        .order("doc_date", { ascending: false })
-
+        .order("doc_date", { ascending: false }) 
       if (!error && data) setBreeders(data as any)
       if (error) console.error(error)
     }
     loadBreeders()
   }, [])
+
 useEffect(() => {
   const run = async () => {
     if (!form.date_classify) return
-    if (!form.classfi_ref_no) return // ✅ base ref must exist
+    if (!form.classfi_ref_no) return
 
     try {
       setRefLoading(true)
-      const finalRef = await generateRef(form.date_classify, form.classfi_ref_no) // ✅ FIX
+      const finalRef = await generateRef(form.date_classify, form.classfi_ref_no)
       setForm((p) => ({ ...p, classi_ref_no: finalRef }))
     } catch (e: any) {
       // ✅ show real error details
@@ -147,48 +139,6 @@ const generateRef = async (dateClassify: string, baseRef: string) => {
   return data?.[0]?.classi_ref_no as string
 }
 
-// const handleBreederChange = async (value: string) => {
-//       const selected = breeders.find((b) => b.brdr_ref_no === value)
-//       if (!selected) return
-
-//       // populate view fields + base ref
-//       setForm((prev) => ({
-//         ...prev,
-//         br_no: selected.brdr_ref_no ?? "",
-//         dr_no: selected.dr_num ?? "",
-//         dr_date: selected.doc_date ?? "",
-//         temperature: selected.temperature ?? "",
-//         sku: selected.sku ?? "",
-//         uom: selected.UoM ?? "",
-//         total_count_view: Number(selected.actual_count ?? 0),
-
-//         classfi_ref_no: selected.classfi_ref_no ?? "", // ✅ base ref from view
-//         classi_ref_no: "", // will fill after RPC
-//       }))
-
-//       // Trigger generation when selecting breeder:
-//       // Needs Date Classify + base ref to generate
-//       const baseRef = selected.classfi_ref_no ?? ""
-//       if (!form.date_classify) {
-//         // if you prefer strict behavior, stop here and let them pick date first
-//         // (still "triggered" on breeder selection, but blocked by missing date)
-//         return
-//       }
-//       if (!baseRef) return
-
-//       try {
-//         setRefLoading(true)
-//         const finalRef = await generateRef(form.date_classify, baseRef)
-//         setForm((prev) => ({ ...prev, classi_ref_no: finalRef }))
-//       } catch (e) {
-//         console.error(e)
-//         setForm((prev) => ({ ...prev, classi_ref_no: "" }))
-//       } finally {
-//         setRefLoading(false)
-//       }
-//     }
-
-
 const handleBreederChange = async (value: string) => {
   const selected = breeders.find((b) => b.brdr_ref_no === value)
   if (!selected) return
@@ -206,7 +156,6 @@ const handleBreederChange = async (value: string) => {
     sku: selected.sku ?? "",
     uom: selected.UoM ?? "",
     total_count_view: Number(selected.actual_count ?? 0),
-
     classfi_ref_no: baseRef, // ✅ store base
     classi_ref_no: "",       // reset generated
   }))
@@ -229,25 +178,36 @@ const handleBreederChange = async (value: string) => {
   
 
 // handle inputs (numbers + date_classify)
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type } = e.target
+const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const { name, value, type } = e.target
 
-    setForm((prev) => {
-      const updated: any = { ...prev }
+  setForm((prev) => {
+    const updated: any = { ...prev }
 
-      if (type === "number") updated[name] = value === "" ? null : Number(value)
-      else updated[name] = value
+    if (type === "number") {
+      if (value === "") {
+        updated[name] = null
+      } else {
+        let n = Number(value)
+        if (!Number.isFinite(n)) n = 0
+        if (n < 0) n = 0 // ✅ clamp
+        updated[name] = n
+      }
+    } else {
+      updated[name] = value
+    }
 
-      const total = numericFields.reduce(
-        (sum, f) => sum + Number(updated[f.name] || 0),
-        0
-      )
-      updated.ttl_count = total
-      updated.discrepancy = Number(updated.total_count_view || 0) - total
+    const total = numericFields.reduce(
+      (sum, f) => sum + Number(updated[f.name] || 0),
+      0
+    )
+    updated.ttl_count = total
+    updated.discrepancy = Number(updated.total_count_view || 0) - total
 
-      return updated
-    })
-  }
+    return updated
+  })
+}
+
 
   useEffect(() => {
   const run = async () => {
@@ -270,42 +230,6 @@ const handleBreederChange = async (value: string) => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
 }, [form.date_classify])
 
-  // // generate Classification Ref No when br_no + date_classify are ready
-  // useEffect(() => {
-  //   const generate = async () => {
-  //     if (!form.br_no || !form.date_classify) {
-  //       setForm((p) => ({ ...p, classi_ref_no: "" }))
-  //       return
-  //     }
-
-  //     setRefLoading(true)
-  //     try {
-  //       // count how many classifications exist for that date
-  //       // (auto-increment "per day")
-  //       const { count, error } = await db
-  //         .from("hatch_classification")
-  //         .select("id", { count: "exact", head: true })
-  //         .eq("date_classify", form.date_classify)
-
-  //       if (error) throw error
-
-  //       const seq = Number(count || 0) + 1
-  //       const datePart = ddmmyyFromYYYYMMDD(form.date_classify)
-  //       const ref = `${form.br_no}-${datePart}-CL${pad3(seq)}`
-
-  //       setForm((p) => ({ ...p, classi_ref_no: ref }))
-  //     } catch (err) {
-  //       console.error("Failed to generate ref no:", err)
-  //       // keep UI usable even if ref generation fails
-  //       setForm((p) => ({ ...p, classi_ref_no: "" }))
-  //     } finally {
-  //       setRefLoading(false)
-  //     }
-  //   }
-
-  //   generate()
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [form.br_no, form.date_classify])
 
   const handleSave = async () => {
     // required checks
@@ -430,6 +354,7 @@ const handleBreederChange = async (value: string) => {
                 placeholder="0"
                 form={form}
                 onChange={handleChange}
+                 min={0}
               />
             </div>
             <div className="md:col-span-2" />
@@ -548,7 +473,26 @@ function NumberField({
   form,
   onChange,
   disabled = false,
+  min = 0,
 }: any) {
+  const blockBadKeys = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // block negative sign and exponent chars (some browsers allow "e" in type=number)
+    if (e.key === "-" || e.key === "e" || e.key === "E" || e.key === "+") {
+      e.preventDefault()
+    }
+  }
+
+  const blockNegativePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    const txt = e.clipboardData.getData("text")
+    // allow only digits (optional: allow empty)
+    if (txt.includes("-") || /[eE+]/.test(txt)) {
+      e.preventDefault()
+      return
+    }
+    const n = Number(txt)
+    if (Number.isFinite(n) && n < 0) e.preventDefault()
+  }
+
   return (
     <div className="space-y-1">
       <Label>{label}</Label>
@@ -559,7 +503,13 @@ function NumberField({
         disabled={disabled}
         value={form[name] ?? ""}
         onChange={onChange}
+        min={min}          // ✅ UI-level prevention
+        step={1}           // ✅ integers only (remove if you want decimals)
+        inputMode="numeric"
+        onKeyDown={blockBadKeys}
+        onPaste={blockNegativePaste}
       />
     </div>
   )
 }
+
