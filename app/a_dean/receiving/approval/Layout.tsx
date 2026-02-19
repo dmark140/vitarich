@@ -19,6 +19,7 @@ import { today } from '@/lib/Defaults/DefaultValues'
 import { useRouter } from 'next/navigation'
 import Breadcrumb from '@/lib/Breadcrumb'
 import SearchableDropdown from '@/lib/SearchableDropdown'
+import { toast } from 'sonner'
 
 type DraftItem = {
   id: number
@@ -83,9 +84,9 @@ export default function ApprovalDecisionForm() {
 
   useEffect(() => {
     if (!header?.docentry) return
-    console.log({ header })
+    // console.log({ header })
     getHatcheryDraftItems(Number(header.docentry)).then(({ data }) => {
-      console.log({ data })
+      // console.log({ data })
       if (!data) return
       setItems(data.map((i: DraftItem) => ({
         ...i,
@@ -147,21 +148,21 @@ export default function ApprovalDecisionForm() {
   //     items
   //   })
 
-  //   if (!res.success) return alert(res.error)
+  //   if (!res.success) return toast(res.error)
 
   //   setValue("forApproval", [])
-  //   alert('Document approved')
+  //   toast('Document approved')
   //   route.push("/a_dean/receiving")
   // }
 
   // const approveDocument = async () => {
   //   if (!header?.docentry) return
 
-  //   if (!temperature) return alert('Temperature is required')
-  //   if (!humidity) return alert('Humidity is required')
+  //   if (!temperature) return toast('Temperature is required')
+  //   if (!humidity) return toast('Humidity is required')
 
   //   if (items.length === 0)
-  //     return alert('No line items')
+  //     return toast('No line items')
 
   //   // Ensure every item has actual_count
   //   const normalizedItems = items.map(i => ({
@@ -197,10 +198,10 @@ export default function ApprovalDecisionForm() {
   //     items: normalizedItems,
   //   })
 
-  //   if (!res.success) return alert(res.error)
+  //   if (!res.success) return toast(res.error)
 
   //   setValue("forApproval", [])
-  //   alert('Document received successfully')
+  //   toast('Document received successfully')
   //   route.push("/a_dean/receiving")
   // }
   const approveDocument = async () => {
@@ -247,10 +248,10 @@ export default function ApprovalDecisionForm() {
 
     const res = await approveHatcheryDraft(payload)
 
-    if (!res.success) return alert(res.error)
+    if (!res.success) return toast(res.error)
 
     setValue("forApproval", [])
-    alert('Document approved')
+    toast('Document approved')
     route.push("/a_dean/receiving")
   }
 
@@ -258,9 +259,9 @@ export default function ApprovalDecisionForm() {
   const rejectDocument = async () => {
     if (!header?.uid) return
     const res = await rejectHatcheryDraft(Number(header.uid), 'Rejected')
-    if (!res.success) return alert(res.error)
+    if (!res.success) return toast(res.error)
 
-    alert('Document rejected')
+    toast('Document rejected')
     route.push("/a_dean/receiving")
   }
 
