@@ -8,9 +8,11 @@ import Breadcrumb from '@/lib/Breadcrumb'
 import { ArrowDown, ArrowUp, Plus } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 import { addFarmFull, formatCode, generateNextCode, getLastCode } from './api'
+import { toast } from 'sonner'
+import { useRouter } from 'next/navigation'
 
 export default function Layout() {
-
+  const router = useRouter()
   const [buildingCounter, setBuildingCounter] = useState<number | null>(null)
   const [penCounter, setPenCounter] = useState<number | null>(null)
 
@@ -145,13 +147,14 @@ export default function Layout() {
     }
 
     const id = await addFarmFull(output)
-    console.log("Inserted Farm ID:", id)
-
+    toast("Farm added with ID of " + id +"")
+    router.push("/a_dean/farm")
   }
 
   // ================= LOAD FARM CODE =================
 
   useEffect(() => {
+    router.prefetch("/a_dean/farm")
     async function loadFarmCode() {
       const code = await generateNextCode("v_last_farm_code", "FRM", 6)
       setFarmData((prev: any) => ({ ...prev, code }))

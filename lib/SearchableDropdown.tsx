@@ -14,6 +14,7 @@ import {
   CommandInput,
   CommandItem,
 } from '@/components/ui/command'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 
 type Props<T> = {
   list: T[]
@@ -75,14 +76,24 @@ export default function SearchableDropdown<T extends Record<string, any>>({
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          className="h-8 w-full justify-start"
-        >
+      <Tooltip>
+        {/* PopoverTrigger wraps TooltipTrigger OR vice-versa — both asChild */}
+        <PopoverTrigger asChild>
+          <TooltipTrigger asChild>
+            <Button
+              className=" bg-background text-foreground hover:bg-white/50 h-9 w-full justify-start overflow-hidden whitespace-nowrap border border-green-500"
+            >
+              <span className="truncate">
+                {displayText}
+              </span>
+            </Button>
+          </TooltipTrigger>
+        </PopoverTrigger>
+
+        <TooltipContent>
           {displayText}
-        </Button>
-      </PopoverTrigger>
+        </TooltipContent>
+      </Tooltip>
 
       <PopoverContent
         className="p-0"
@@ -112,5 +123,6 @@ export default function SearchableDropdown<T extends Record<string, any>>({
         </Command>
       </PopoverContent>
     </Popover>
+
   )
 }

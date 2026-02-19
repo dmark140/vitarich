@@ -248,3 +248,21 @@ export type ApproveHatcheryDraftPayload = {
     actual_count: number
   }[]
 }
+
+
+export type Farms = {
+  id: number
+  code: string
+  name: string
+  tin: string
+  tel: string
+  contact_person: string
+  contact_number: string
+  void: number
+  created_at: string
+  updated_at: string | null
+  address: string
+  barangay: string
+  city: string
+  province: string
+}

@@ -11,9 +11,10 @@ import Breadcrumb from '@/lib/Breadcrumb'
 import { useEffect, useMemo, useState } from 'react'
 import { ColumnConfig, RowDataKey } from '@/lib/Defaults/DefaultTypes'
 import { toast } from 'sonner'
-import { Edit, Plus } from 'lucide-react'
+import { Edit, Plus, RefreshCcw } from 'lucide-react'
 import DynamicTable from '@/components/ui/DataTableV2'
 import { useRouter } from 'next/navigation'
+import { getFarms } from './api'
 
 type Field = {
   label: string
@@ -29,26 +30,34 @@ type Section = {
 }
 
 export default function FarmMasterPage() {
-  // ⭐ ALL UI COMPONENTS DEFINED HERE
   const router = useRouter()
   const [initialRows, setinitialRows] = useState<RowDataKey[]>([])
   const [loading, setLoading] = useState(false)
   const tableColumnsx: ColumnConfig[] = useMemo(
     () => [
-      { key: 'id', label: 'Approval ID', type: 'text', disabled: true },
-      { key: 'dr_num', label: 'Dr #', type: 'text', disabled: true },
+      { key: 'id', label: 'ID', type: 'text', disabled: true },
+      { key: 'code', label: 'Code', type: 'text', disabled: true },
+      { key: 'name', label: 'Name', type: 'text', disabled: true },
       { key: 'status', label: 'Status', type: 'text', disabled: true },
-      { key: 'decided_by_email', label: 'Decided By', type: 'text', disabled: true },
-      { key: 'decided_at', label: 'Decision Date', type: 'text', disabled: true },
       { key: 'remarks', label: 'Remarks', type: 'text', disabled: true },
-      { key: 'created_at', label: 'Created At', type: 'text', disabled: true },
       { key: 'action', label: 'Action', type: 'button', disabled: false },
     ],
     [initialRows]
   )
 
+
+  const getData = async () => {
+    setLoading(true)
+    const data = await getFarms()
+    console.log({ data })
+    setinitialRows(data)
+    setLoading(false)
+
+  }
+
   useEffect(() => {
     router.prefetch("/a_dean/farm/new")
+    getData()
   }, [])
 
   return (
@@ -58,7 +67,10 @@ export default function FarmMasterPage() {
           FirstPreviewsPageName='Settings'
           CurrentPageName='Farm Management'
         />
-        <Button onClick={() => router.push("/a_dean/farm/new")}><Plus /> New Farm</Button>
+        <div className='flex gap-2'>
+          <Button onClick={getData}><RefreshCcw /></Button>
+          <Button onClick={() => router.push("/a_dean/farm/new")}><Plus /> New Farm</Button>
+        </div>
       </div>
 
       {!loading && (
@@ -71,7 +83,7 @@ export default function FarmMasterPage() {
             render: (row: RowDataKey) => {
               if (col.key === 'action') {
                 return (
-                  <div className="flex justify-end gap-2">
+                  <div className="flex  gap-2">
                     <Button
                       className='bg-background border hover:bg-foreground/10 border-green-400 text-green-400 p-1 rounded-xs   '
 

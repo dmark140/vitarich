@@ -13,3 +13,17 @@ export async function getReceivingDraftPending() {
 
     return data as DocumentApproval[]
 }
+
+
+
+
+export async function getReceivingList() {
+  const { data, error } = await db
+    .from('recieving') // yes, your table name is "recieving"
+    .select('*')
+    .order('created_at', { ascending: false })
+
+  if (error) throw error
+
+  return data
+}

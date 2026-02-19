@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import { DataTable } from '@/components/ui/DataTable'
 import { ColumnConfig, RowDataKey } from '@/lib/Defaults/DefaultTypes'
 import React, { useEffect, useMemo, useState } from 'react'
-import { getReceivingDraftPending } from './api'
+import { getReceivingDraftPending, getReceivingList } from './api'
 import TableSkeleton from '@/components/ui/TableSkeleton'
 import { sleep } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
@@ -13,7 +13,7 @@ import ScannerModal from '@/components/ScannerModal'
 import Breadcrumb from '@/lib/Breadcrumb'
 import DataTableV2 from '@/components/ui/DataTableV2'
 import DynamicTable from '@/components/ui/DataTableV2'
-import { EditIcon, HandCoins, RefreshCcw } from 'lucide-react'
+import { EditIcon, HandCoins, Plus, QrCode, RefreshCcw } from 'lucide-react'
 
 
 
@@ -22,6 +22,11 @@ export default function Layout() {
         await new Promise(resolve => setTimeout(resolve, 3000))
 
     }
+
+    const [receivedRows, setReceivedRows] = useState<RowDataKey[]>([])
+    const [loadingReceived, setLoadingReceived] = useState(true)
+
+
     const { setValue, getValue } = useGlobalContext()
     const [isScanning, setIsScanning] = useState(false);
     const [scannedData, setScannedData] = useState<string | null>(null);
@@ -66,6 +71,22 @@ export default function Layout() {
         [initialRows]
     )
 
+    const receivedColumns: ColumnConfig[] = [
+        { key: 'id', label: 'ID', type: 'text', disabled: true },
+        { key: 'doc_date', label: 'Doc Date', type: 'text', disabled: true },
+        { key: 'dr_num', label: 'DR #', type: 'text', disabled: true },
+        { key: 'status', label: 'Status', type: 'text', disabled: true },
+        { key: 'soldTo', label: 'Sold To', type: 'text', disabled: true },
+        { key: 'po_no', label: 'PO No.', type: 'text', disabled: true },
+        { key: 'voyage_no', label: 'Voyage No.', type: 'text', disabled: true },
+        { key: 'shipped_via', label: 'Shipped Via', type: 'text', disabled: true },
+        { key: 'plate_no', label: 'Plate No.', type: 'text', disabled: true },
+        { key: 'driver', label: 'Driver', type: 'text', disabled: true },
+        { key: 'temperature', label: 'Temp', type: 'text', disabled: true },
+        { key: 'humidity', label: 'Humidity', type: 'text', disabled: true },
+    ]
+
+
 
     const getData = async () => {
         setLoading(true)
@@ -75,12 +96,33 @@ export default function Layout() {
         setLoading(!true)
 
     }
+    const getReceivedData = async () => {
+        setLoadingReceived(true)
+
+        const data = await getReceivingList()
+
+        setReceivedRows(data)
+        setLoadingReceived(false)
+    }
 
     useEffect(() => {
         get()
         getData()
         route.prefetch("/a_dean/receiving/approval")
+        route.prefetch("/a_dean/receiving/manual")
     }, [])
+
+
+    useEffect(() => {
+        get()
+        getData()
+        getReceivedData()
+
+        route.prefetch("/a_dean/receiving/approval")
+        route.prefetch("/a_dean/receiving/manual")
+    }, [])
+
+
 
     return (
         <div>
@@ -91,14 +133,20 @@ export default function Layout() {
                 />
             )}
             <div className='mx-4 flex justify-between items-center mb-4 mt-4'>
+
                 <Breadcrumb
                     FirstPreviewsPageName='Hatchery'
                     CurrentPageName='Receiving List'
                 />
-                <div className=''>
+                <div className='flex gap-4'>
                     <Button
                         onClick={() => setIsScanning(true)}
-                    >Scan Search</Button>
+                    ><QrCode />Scan Search</Button>
+
+                    <Button
+                        // onClick={() => setIsScanning(true)}
+                        onClick={() => route.push("/a_dean/receiving/manual")}
+                    ><Plus /> Recieve Manually</Button>
                 </div>
             </div>
             <div className='my-4'></div>
@@ -106,6 +154,9 @@ export default function Layout() {
             {loading && (
                 <RefreshCcw className='animate-spin clasm  mx-auto' />
             )}
+            <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold mx-4">For Receiving Items</h2>
+            </div>
             {!loading && (
                 <DynamicTable
                     initialFilters={[
@@ -161,6 +212,40 @@ export default function Layout() {
 
                 />
             )}
+
+
+            <div className="mt-10">
+
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-semibold mx-4">Received Items</h2>
+                </div>
+
+                {loadingReceived && (
+                    <RefreshCcw className='animate-spin mx-auto' />
+                )}
+
+                {!loadingReceived && (
+                    <DynamicTable
+                        initialFilters={[]} // show all records
+                        columns={receivedColumns.map((col) => ({
+                            key: col.key,
+                            label: col.label,
+                            align: 'left',
+
+                            render: (row: RowDataKey) => {
+                                const value = row[col.key]
+
+                                if (value === null || value === undefined || value === '') return '-'
+
+                                return String(value)
+                            },
+                        }))}
+
+                        data={receivedRows}
+                    />
+                )}
+            </div>
+
             {/* <Button onClick={() => console.log({ initialRows })}>check initialRows</Button> */}
         </div>
     )
