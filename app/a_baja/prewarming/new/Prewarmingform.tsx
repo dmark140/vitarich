@@ -20,15 +20,28 @@ type FormState = {
   remarks: string
 }
 
-function minutesBetween(startIsoLocal: string, endIsoLocal: string) {
+function durationInMinutes(startIsoLocal: string, endIsoLocal: string): number | null {
   if (!startIsoLocal || !endIsoLocal) return null
+
   const start = new Date(startIsoLocal).getTime()
   const end = new Date(endIsoLocal).getTime()
+
   if (Number.isNaN(start) || Number.isNaN(end)) return null
   const diffMs = end - start
   if (diffMs < 0) return null
+
   return Math.round(diffMs / 60000)
 }
+
+function fmtDuration(mins: number | null) {
+  if (mins == null) return ""
+  const h = Math.floor(mins / 60)
+  const m = mins % 60
+  if (h <= 0) return `${m} min`
+  return `${h} hr ${m} min`
+}
+
+
 
 export default function Prewarmingform() {
   const router = useRouter()
@@ -43,10 +56,15 @@ export default function Prewarmingform() {
     remarks: "",
   })
 
-  const durationMinutes = useMemo(
-    () => minutesBetween(form.egg_temp_time_start, form.egg_temp_time_end),
-    [form.egg_temp_time_start, form.egg_temp_time_end]
-  )
+const durationMins = useMemo(
+  () => durationInMinutes(form.egg_temp_time_start, form.egg_temp_time_end),
+  [form.egg_temp_time_start, form.egg_temp_time_end]
+)
+
+const durationDisplay = useMemo(
+  () => fmtDuration(durationMins),
+  [durationMins]
+)
 
   async function onSave() {
     // Basic validations (adjust if you want stricter)
@@ -54,7 +72,7 @@ export default function Prewarmingform() {
       alert("Egg Reference No. is required.")
       return
     }
-    if (form.egg_temp_time_start && form.egg_temp_time_end && durationMinutes === null) {
+    if (form.egg_temp_time_start && form.egg_temp_time_end && durationMins === null) {
       alert("End Time must be after Start Time.")
       return
     }
@@ -66,8 +84,8 @@ export default function Prewarmingform() {
         pre_temp: form.pre_temp || null,
         egg_temp: form.egg_temp || null,
         egg_temp_time_start: form.egg_temp_time_start || null,
-        egg_temp_time_end: form.egg_temp_time_end || null,
-        duration: durationMinutes ?? null,
+        egg_temp_time_end: form.egg_temp_time_end || null, 
+        duration: durationMins,
         remarks: form.remarks || null,
         is_active: true,
       })
@@ -146,8 +164,8 @@ export default function Prewarmingform() {
             </div>
 
             <div className="space-y-2">
-              <Label>Duration (minutes)</Label>
-              <Input value={durationMinutes ?? ""} disabled placeholder="" />
+              <Label>Duration </Label>
+              <Input value={durationDisplay ?? ""} disabled placeholder="" />
             </div>
           </div>
 

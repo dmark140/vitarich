@@ -1,5 +1,20 @@
 import { db } from "@/lib/Supabase/supabaseClient";
- 
+  
+export type HatchClassiRefOption = {
+  classi_ref_no: string
+  good_egg: number | null
+}
+
+export async function listHatchClassiRefs(): Promise<HatchClassiRefOption[]> {
+  const { data, error } = await db
+    .from("hatch_classification")
+    .select("classi_ref_no, good_egg")
+    .not("classi_ref_no", "is", null)
+    .order("created_at", { ascending: false })
+
+  if (error) throw error
+  return (data ?? []) as HatchClassiRefOption[]
+}
 
 export type SetterIncubation = {
   id: number
@@ -76,4 +91,4 @@ export async function deleteSetterIncubation(id: number) {
   const { error } = await db.from(TABLE).delete().eq("id", id)
   if (error) throw error
   return true
-}
+} 

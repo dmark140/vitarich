@@ -26,7 +26,8 @@ import {
 
 function num(v: any) {
   const n = Number(v)
-  return Number.isFinite(n) ? n : 0
+  if (!Number.isFinite(n)) return 0
+  return Math.max(0, n)
 }
 
 export default function CheckPulloutForm() {
@@ -48,6 +49,21 @@ export default function CheckPulloutForm() {
     dead_in_shell: 0,
     hatch_window: 0,
   })
+
+  function clampNonNegative(value: string) {
+  // allow empty while typing if you want; but you said "return to 0"
+  const n = Number(value)
+  if (!Number.isFinite(n)) return 0
+  return Math.max(0, n)
+}
+
+function onNumChange<K extends keyof ChickPulloutProcess>(key: K) {
+  return (e: React.ChangeEvent<HTMLInputElement>) => {
+    const v = clampNonNegative(e.target.value)
+    setForm((p) => ({ ...p, [key]: v }))
+  }
+}
+
 
   // Load dropdown + edit record
   useEffect(() => {
@@ -220,10 +236,15 @@ export default function CheckPulloutForm() {
           <Label>Chick Hatched</Label>
           <Input
             type="number"
+            min={0}
             value={String(form.chicks_hatched ?? 0)}
-            onChange={(e) =>
-              setForm((p) => ({ ...p, chicks_hatched: Number(e.target.value) }))
-            }
+            onChange={onNumChange("chicks_hatched")}
+            onBlur={(e) => {
+              // force to 0 if somehow left blank/negative
+              const v = clampNonNegative(e.target.value)
+              e.currentTarget.value = String(v)
+              setForm((p) => ({ ...p, chicks_hatched: v }))
+            }}
           />
         </div>
 
@@ -232,12 +253,17 @@ export default function CheckPulloutForm() {
           <Label>Dead -In- Shell</Label>
           <Input
             type="number"
+            min={0}
             value={String(form.dead_in_shell ?? 0)}
-            onChange={(e) =>
-              setForm((p) => ({ ...p, dead_in_shell: Number(e.target.value) }))
-            }
+            onChange={onNumChange("dead_in_shell")}
+            onBlur={(e) => {
+              const v = clampNonNegative(e.target.value)
+              e.currentTarget.value = String(v)
+              setForm((p) => ({ ...p, dead_in_shell: v }))
+            }}
           />
         </div>
+
 
         {/* HATCH OF FERTILE (AUTO) */}
         <div className="space-y-1">

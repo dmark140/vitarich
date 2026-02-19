@@ -94,8 +94,17 @@ export default function EggTable() {
     },
     {
       accessorKey: "duration",
-      header: "Duration (min)",
-      cell: ({ row }) => row.original.duration ?? "",
+      header: "Duration",
+      cell: ({ row }) => {
+        const sec = row.original.duration
+        if (sec == null) return ""
+
+        const hours = Math.floor(sec / 3600)
+        const minutes = Math.floor((sec % 3600) / 60)
+
+        if (hours <= 0) return `${minutes}m`
+        return `${hours}h ${minutes}m`
+      },
     },
     {
       accessorKey: "remarks",

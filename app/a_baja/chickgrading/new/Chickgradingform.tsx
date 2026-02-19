@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState, type ChangeEvent } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -24,18 +24,27 @@ import {
   updateChickGradingProcess,
 } from "./api"
 
+// non-negative number helper (handles NaN, null, undefined)
 function n(v: any) {
   const x = Number(v)
-  return Number.isFinite(x) ? x : 0
+  if (!Number.isFinite(x)) return 0
+  return Math.max(0, x)
+}
+
+// used for inputs: "return to 0" if invalid/negative
+function clampNonNegative(value: string) {
+  const x = Number(value)
+  if (!Number.isFinite(x)) return 0
+  return Math.max(0, x)
 }
 
 function fmtDT(v?: string | null) {
   if (!v) return ""
   const d = new Date(v)
   const pad = (x: number) => String(x).padStart(2, "0")
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(
-    d.getMinutes()
-  )}`
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(
+    d.getHours()
+  )}:${pad(d.getMinutes())}`
 }
 
 export default function Chickgradingform() {
@@ -47,15 +56,22 @@ export default function Chickgradingform() {
   const [saving, setSaving] = useState(false)
   const [eggRefs, setEggRefs] = useState<string[]>([])
 
+  /**
+   * IMPORTANT FIX:
+   * - generated fields must be NULL initially, otherwise UI shows "0" and never falls back to preview
+   * - include class_c in state (you said it exists in schema)
+   */
   const [form, setForm] = useState<Partial<ChickGradingProcess>>({
     egg_ref_no: "",
     batch_code: "",
     grading_datetime: new Date().toISOString(),
     grading_personnel: "",
+
     class_a: 0,
     class_b: 0,
     class_a_junior: 0,
-    class_c: 0, // (optional UI-only, ignore if not used)
+    class_c: 0,
+
     cull_chicks: 0,
     dead_chicks: 0,
     infertile: 0,
@@ -65,12 +81,29 @@ export default function Chickgradingform() {
     unhatched: 0,
     rotten: 0,
 
-    // generated fields (read-only)
-    total_chicks: 0,
-    good_quality_chicks: 0,
+    chick_room_temperature: null,
+
+    // generated fields (read-only) -> NULL so preview can display until DB computed values are loaded
+    total_chicks: null,
+    good_quality_chicks: null,
     quality_grade_rate: null,
     cull_rate: null,
   })
+
+  function onNumChange<K extends keyof ChickGradingProcess>(key: K) {
+    return (e: ChangeEvent<HTMLInputElement>) => {
+      const v = clampNonNegative(e.target.value)
+      setForm((p) => ({ ...p, [key]: v }))
+    }
+  }
+
+  function onNumBlur<K extends keyof ChickGradingProcess>(key: K) {
+    return (e: ChangeEvent<HTMLInputElement>) => {
+      const v = clampNonNegative(e.target.value)
+      e.currentTarget.value = String(v)
+      setForm((p) => ({ ...p, [key]: v }))
+    }
+  }
 
   // load dropdown
   useEffect(() => {
@@ -89,10 +122,38 @@ export default function Chickgradingform() {
     ;(async () => {
       try {
         const rec = await getChickGradingProcessById(editId)
+
         setForm({
           ...rec,
+
+          // normalize strings
           egg_ref_no: rec.egg_ref_no ?? "",
+          batch_code: rec.batch_code ?? "",
           grading_personnel: rec.grading_personnel ?? "",
+
+          // normalize numbers (avoid undefined)
+          class_a: n(rec.class_a),
+          class_b: n(rec.class_b),
+          class_a_junior: n(rec.class_a_junior),
+          class_c: n((rec as any).class_c),
+
+          cull_chicks: n(rec.cull_chicks),
+          dead_chicks: n(rec.dead_chicks),
+          infertile: n(rec.infertile),
+          dead_germ: n(rec.dead_germ),
+          live_pip: n(rec.live_pip),
+          dead_pip: n(rec.dead_pip),
+          unhatched: n(rec.unhatched),
+          rotten: n(rec.rotten),
+
+          // keep computed fields from DB (if your view/trigger fills them)
+          total_chicks: rec.total_chicks ?? null,
+          good_quality_chicks: rec.good_quality_chicks ?? null,
+          quality_grade_rate: rec.quality_grade_rate ?? null,
+          cull_rate: rec.cull_rate ?? null,
+
+          chick_room_temperature:
+            rec.chick_room_temperature === undefined ? null : rec.chick_room_temperature ?? null,
         })
       } catch (e) {
         console.error(e)
@@ -100,7 +161,7 @@ export default function Chickgradingform() {
     })()
   }, [editId])
 
-  // UI-only: compute total for display before save (your DB also computes)
+  // ---- PREVIEWS (UI computed) ----
   const totalChicksPreview = useMemo(() => {
     return (
       n(form.class_a) +
@@ -116,11 +177,24 @@ export default function Chickgradingform() {
       n(form.unhatched) +
       n(form.rotten)
     )
-  }, [form])
+  }, [
+    form.class_a,
+    form.class_b,
+    form.class_a_junior,
+    (form as any).class_c,
+    form.cull_chicks,
+    form.dead_chicks,
+    form.infertile,
+    form.dead_germ,
+    form.live_pip,
+    form.dead_pip,
+    form.unhatched,
+    form.rotten,
+  ])
 
   const goodQualityPreview = useMemo(() => {
     return n(form.class_a) + n(form.class_b) + n(form.class_a_junior) + n((form as any).class_c)
-  }, [form])
+  }, [form.class_a, form.class_b, form.class_a_junior, (form as any).class_c])
 
   const qualityRatePreview = useMemo(() => {
     const t = totalChicksPreview
@@ -138,7 +212,9 @@ export default function Chickgradingform() {
     try {
       setSaving(true)
 
-      // Only send real DB columns (no generated columns, no UI-only class_c)
+      // IMPORTANT FIX:
+      // - include class_c in payload (you said it exists)
+      // - do NOT send generated fields (total_chicks/good_quality_chicks/quality rates)
       const payload: any = {
         egg_ref_no: form.egg_ref_no?.trim() || null,
         batch_code: (form.batch_code ?? "").trim(),
@@ -148,6 +224,8 @@ export default function Chickgradingform() {
         class_a: n(form.class_a),
         class_b: n(form.class_b),
         class_a_junior: n(form.class_a_junior),
+        class_c: n((form as any).class_c),
+
         cull_chicks: n(form.cull_chicks),
         dead_chicks: n(form.dead_chicks),
         infertile: n(form.infertile),
@@ -250,8 +328,10 @@ export default function Chickgradingform() {
                 <Label>Quality: class A</Label>
                 <Input
                   type="number"
+                  min={0}
                   value={String(form.class_a ?? 0)}
-                  onChange={(e) => setForm((p) => ({ ...p, class_a: Number(e.target.value) }))}
+                  onChange={onNumChange("class_a")}
+                  onBlur={onNumBlur("class_a")}
                 />
               </div>
 
@@ -259,10 +339,10 @@ export default function Chickgradingform() {
                 <Label>Quality: class A junior</Label>
                 <Input
                   type="number"
+                  min={0}
                   value={String(form.class_a_junior ?? 0)}
-                  onChange={(e) =>
-                    setForm((p) => ({ ...p, class_a_junior: Number(e.target.value) }))
-                  }
+                  onChange={onNumChange("class_a_junior")}
+                  onBlur={onNumBlur("class_a_junior")}
                 />
               </div>
             </div>
@@ -272,8 +352,10 @@ export default function Chickgradingform() {
                 <Label>Infertile</Label>
                 <Input
                   type="number"
+                  min={0}
                   value={String(form.infertile ?? 0)}
-                  onChange={(e) => setForm((p) => ({ ...p, infertile: Number(e.target.value) }))}
+                  onChange={onNumChange("infertile")}
+                  onBlur={onNumBlur("infertile")}
                 />
               </div>
 
@@ -281,8 +363,10 @@ export default function Chickgradingform() {
                 <Label>Live pip</Label>
                 <Input
                   type="number"
+                  min={0}
                   value={String(form.live_pip ?? 0)}
-                  onChange={(e) => setForm((p) => ({ ...p, live_pip: Number(e.target.value) }))}
+                  onChange={onNumChange("live_pip")}
+                  onBlur={onNumBlur("live_pip")}
                 />
               </div>
             </div>
@@ -292,8 +376,10 @@ export default function Chickgradingform() {
                 <Label>Cull chicks</Label>
                 <Input
                   type="number"
+                  min={0}
                   value={String(form.cull_chicks ?? 0)}
-                  onChange={(e) => setForm((p) => ({ ...p, cull_chicks: Number(e.target.value) }))}
+                  onChange={onNumChange("cull_chicks")}
+                  onBlur={onNumBlur("cull_chicks")}
                 />
               </div>
 
@@ -301,8 +387,10 @@ export default function Chickgradingform() {
                 <Label>Unhatched</Label>
                 <Input
                   type="number"
+                  min={0}
                   value={String(form.unhatched ?? 0)}
-                  onChange={(e) => setForm((p) => ({ ...p, unhatched: Number(e.target.value) }))}
+                  onChange={onNumChange("unhatched")}
+                  onBlur={onNumBlur("unhatched")}
                 />
               </div>
             </div>
@@ -315,19 +403,21 @@ export default function Chickgradingform() {
                 <Label>Quality: class B</Label>
                 <Input
                   type="number"
+                  min={0}
                   value={String(form.class_b ?? 0)}
-                  onChange={(e) => setForm((p) => ({ ...p, class_b: Number(e.target.value) }))}
+                  onChange={onNumChange("class_b")}
+                  onBlur={onNumBlur("class_b")}
                 />
               </div>
 
-              {/* The photo shows class C, but your schema doesn't have it.
-                  If you want it, add column class_c integer null. */}
               <div className="space-y-1">
                 <Label>Quality: class C</Label>
                 <Input
                   type="number"
+                  min={0}
                   value={String((form as any).class_c ?? 0)}
-                  onChange={(e) => setForm((p) => ({ ...(p as any), class_c: Number(e.target.value) }))}
+                  onChange={onNumChange("class_c" as any)}
+                  onBlur={onNumBlur("class_c" as any)}
                 />
               </div>
             </div>
@@ -337,8 +427,10 @@ export default function Chickgradingform() {
                 <Label>Dead chicks</Label>
                 <Input
                   type="number"
+                  min={0}
                   value={String(form.dead_chicks ?? 0)}
-                  onChange={(e) => setForm((p) => ({ ...p, dead_chicks: Number(e.target.value) }))}
+                  onChange={onNumChange("dead_chicks")}
+                  onBlur={onNumBlur("dead_chicks")}
                 />
               </div>
 
@@ -346,8 +438,10 @@ export default function Chickgradingform() {
                 <Label>Dead germ</Label>
                 <Input
                   type="number"
+                  min={0}
                   value={String(form.dead_germ ?? 0)}
-                  onChange={(e) => setForm((p) => ({ ...p, dead_germ: Number(e.target.value) }))}
+                  onChange={onNumChange("dead_germ")}
+                  onBlur={onNumBlur("dead_germ")}
                 />
               </div>
             </div>
@@ -357,8 +451,10 @@ export default function Chickgradingform() {
                 <Label>Dead pip</Label>
                 <Input
                   type="number"
+                  min={0}
                   value={String(form.dead_pip ?? 0)}
-                  onChange={(e) => setForm((p) => ({ ...p, dead_pip: Number(e.target.value) }))}
+                  onChange={onNumChange("dead_pip")}
+                  onBlur={onNumBlur("dead_pip")}
                 />
               </div>
 
@@ -366,8 +462,10 @@ export default function Chickgradingform() {
                 <Label>Rotten</Label>
                 <Input
                   type="number"
+                  min={0}
                   value={String(form.rotten ?? 0)}
-                  onChange={(e) => setForm((p) => ({ ...p, rotten: Number(e.target.value) }))}
+                  onChange={onNumChange("rotten")}
+                  onBlur={onNumBlur("rotten")}
                 />
               </div>
             </div>
@@ -430,25 +528,21 @@ export default function Chickgradingform() {
           </div>
         </div>
 
-            {/* Buttons */}
-            <div className="flex flex-col md:flex-row gap-4">
-            <Button
-                onClick={onSave}
-                disabled={saving}
-                className="w-[10%] justify-left"
-            >
-                {saving ? "Saving..." : "Save"}
-            </Button>
+        {/* Buttons */}
+        <div className="flex flex-col md:flex-row gap-4">
+          <Button onClick={onSave} disabled={saving} className="w-[10%] justify-left">
+            {saving ? "Saving..." : "Save"}
+          </Button>
 
-            <Button
-                type="button"
-                variant="secondary"
-               className="w-[10%] justify-left"
-                onClick={() => router.push("/a_baja/chickgrading")}
-            >
-                Cancel
-            </Button>
-            </div>`
+          <Button
+            type="button"
+            variant="secondary"
+            className="w-[10%] justify-left"
+            onClick={() => router.push("/a_baja/chickgrading")}
+          >
+            Cancel
+          </Button>
+        </div>
       </CardContent>
     </Card>
   )

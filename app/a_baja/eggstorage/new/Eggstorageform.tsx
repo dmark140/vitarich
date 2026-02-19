@@ -48,14 +48,11 @@ export default function Eggstorageform() {
   const router = useRouter()
 
   const [saving, setSaving] = useState(false)
-
   const [stor_temp, setStorTemp] = useState("")
   const [room_temp, setRoomTemp] = useState("")
   const [stor_humi, setStorHumi] = useState("")
-
-  const [shellStartLocal, setShellStartLocal] = useState("") // datetime-local
-  const [shellEndLocal, setShellEndLocal] = useState("")     // datetime-local
-
+  const [shellStartLocal, setShellStartLocal] = useState("") 
+  const [shellEndLocal, setShellEndLocal] = useState("")     
   const [remarks, setRemarks] = useState("")
 
   const durationSeconds = useMemo(() => {
@@ -67,11 +64,11 @@ export default function Eggstorageform() {
   }, [shellStartLocal, shellEndLocal])
 
   const durationDisplay = useMemo(() => {
-    if (durationSeconds == null) return "AUTO"
-    const mins = Math.floor(durationSeconds / 60)
-    const secs = durationSeconds % 60
-    return `${mins}m`
-    // return `${mins}m ${secs}s`
+    if (durationSeconds == null) return ""
+    const hours = Math.floor(durationSeconds / 3600)
+    const minutes = Math.floor((durationSeconds % 3600) / 60)
+    if (hours <= 0) return `${minutes}m`
+    return `${hours}h ${minutes}m`
   }, [durationSeconds])
 
   async function onSave() {
@@ -127,7 +124,7 @@ export default function Eggstorageform() {
       />
       <Separator />
 
-      <CardContent className="p-4 space-y-4">
+      <CardContent className="p-2 space-y-4">
 
         <BreederRef />
         {/* TEMPS / HUMI */}
