@@ -104,7 +104,7 @@ export default function ChickPulloutTable() {
                 variant="outline"
                 onClick={() => router.push(`/a_baja/chickpullout/new?id=${item.id}`)}
               >
-                <Pencil className="h-4 w-4" />
+                <Pencil className="h-4 w-4" />Edit
               </Button>
               {/* <Button
                 size="sm"

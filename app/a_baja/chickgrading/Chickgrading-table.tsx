@@ -79,7 +79,7 @@ export default function ChickgradingTable() {
                 variant="outline"
                 onClick={() => router.push(`/a_baja/chickgrading/new?id=${item.id}`)}
               >
-                <Pencil className="h-4 w-4" />
+                <Pencil className="h-4 w-4" />Edit
               </Button>
               {/* <Button size="sm" variant="destructive" onClick={() => onDelete(item.id)}>
                 <Trash2 className="h-4 w-4" />

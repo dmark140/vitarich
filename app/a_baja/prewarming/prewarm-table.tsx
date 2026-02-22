@@ -97,7 +97,7 @@ export default function PrewarmTable() {
           onClick={() => router.push(`/a_baja/prewarming/new?id=${row.original.id}`)}
           title="Edit"
         >
-          <Pencil className="h-4 w-4" />
+          <Pencil className="h-4 w-4" />Edit
         </Button>
       ),
     }

@@ -1,26 +1,32 @@
-// app/a_baja/egghatcheryprocessform/new/EggHatchform.tsx
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+
 import {
   createEggHatcheryProcess,
   deleteEggHatcheryProcess,
   getEggHatcheryProcessById,
   updateEggHatcheryProcess,
-  type EggHatcheryProcess,
+  listClassiRefNos, // ✅ NEW
 } from "./api"
+
 import Breadcrumb from "@/lib/Breadcrumb"
+import { Separator } from "@/components/ui/separator"
 
 function toDatetimeLocalValue(v: string | null | undefined) {
   if (!v) return ""
-  // v is timestamp without tz (string). We’ll convert to "YYYY-MM-DDTHH:mm"
-  // If v already has "T", keep it.
   const d = new Date(v)
   const pad = (n: number) => String(n).padStart(2, "0")
   const yyyy = d.getFullYear()
@@ -34,7 +40,7 @@ function toDatetimeLocalValue(v: string | null | undefined) {
 function minutesBetween(start: string, end: string) {
   const a = new Date(start).getTime()
   const b = new Date(end).getTime()
-  if (isNaN(a) || isNaN(b)) return null
+  if (Number.isNaN(a) || Number.isNaN(b)) return null
   if (b < a) return null
   return Math.floor((b - a) / 60000)
 }
@@ -47,15 +53,19 @@ function fmtDuration(mins: number | null) {
   return `${h}h ${m}m`
 }
 
-
 export default function EggHatchform() {
   const router = useRouter()
   const sp = useSearchParams()
   const idParam = sp.get("id")
   const editId = useMemo(() => (idParam ? Number(idParam) : null), [idParam])
+  const isEdit = !!editId
 
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
+
+  // ✅ dropdown state
+  const [eggRefs, setEggRefs] = useState<string[]>([])
+  const [eggRefsLoading, setEggRefsLoading] = useState(false)
 
   const [form, setForm] = useState({
     egg_ref: "",
@@ -68,58 +78,82 @@ export default function EggHatchform() {
 
     hatch_time_start: "",
     hatch_time_end: "",
-    duration: "" as string, // auto (minutes)
+    duration: "" as string,
 
     hatch_window: "",
     total_egg: "",
   })
 
-    const durationMinutes = useMemo(() => {
-      if (!form.hatch_time_start) return null
-      if (!form.hatch_time_end) return null
-      return minutesBetween(form.hatch_time_start, form.hatch_time_end)
-    }, [form.hatch_time_start, form.hatch_time_end])
-  
-    const isValidDates = useMemo(() => {
-      if (!form.hatch_time_start) return true
-      if (!form.hatch_time_end) return true
-      return durationMinutes !== null
-    }, [form.hatch_time_start, form.hatch_time_end, durationMinutes])
-  
-    
-  const isEdit = !!editId
+  const durationMinutes = useMemo(() => {
+    if (!form.hatch_time_start) return null
+    if (!form.hatch_time_end) return null
+    return minutesBetween(form.hatch_time_start, form.hatch_time_end)
+  }, [form.hatch_time_start, form.hatch_time_end])
 
+  const isValidDates = useMemo(() => {
+    if (!form.hatch_time_start) return true
+    if (!form.hatch_time_end) return true
+    return durationMinutes !== null
+  }, [form.hatch_time_start, form.hatch_time_end, durationMinutes])
+
+  function setField<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
+    setForm((p) => ({ ...p, [key]: value }))
+  }
+
+  // ✅ load ref dropdown options
+  useEffect(() => {
+    let alive = true
+    ;(async () => {
+      setEggRefsLoading(true)
+      try {
+        const refs = await listClassiRefNos()
+        if (!alive) return
+        setEggRefs(refs)
+      } catch (e: any) {
+        console.error(e)
+        if (!alive) return
+        setEggRefs([])
+      } finally {
+        if (alive) setEggRefsLoading(false)
+      }
+    })()
+    return () => {
+      alive = false
+    }
+  }, [])
+
+  // load edit record
   useEffect(() => {
     if (!editId) return
     setLoading(true)
-      ; (async () => {
-        try {
-          const data = await getEggHatcheryProcessById(editId)
-          setForm({
-            egg_ref: data.egg_ref ?? "",
-            farm_source: data.farm_source ?? "",
-            daterec: data.daterec ?? "",
+    ;(async () => {
+      try {
+        const data = await getEggHatcheryProcessById(editId)
+        setForm({
+          egg_ref: data.egg_ref ?? "",
+          farm_source: data.farm_source ?? "",
+          daterec: data.daterec ?? "",
 
-            machine_no: data.machine_no ?? "",
-            hatch_temp: data.hatch_temp ?? "",
-            hatch_humidity: data.hatch_humidity ?? "",
+          machine_no: data.machine_no ?? "",
+          hatch_temp: data.hatch_temp ?? "",
+          hatch_humidity: data.hatch_humidity ?? "",
 
-            hatch_time_start: toDatetimeLocalValue(data.hatch_time_start),
-            hatch_time_end: toDatetimeLocalValue(data.hatch_time_end),
-            duration: data.duration != null ? String(data.duration) : "",
+          hatch_time_start: toDatetimeLocalValue(data.hatch_time_start),
+          hatch_time_end: toDatetimeLocalValue(data.hatch_time_end),
+          duration: data.duration != null ? String(data.duration) : "",
 
-            hatch_window: data.hatch_window != null ? String(data.hatch_window) : "",
-            total_egg: data.total_egg != null ? String(data.total_egg) : "",
-          })
-        } catch (e: any) {
-          alert(e?.message ?? "Failed to load record.")
-        } finally {
-          setLoading(false)
-        } 
-      })()
+          hatch_window: data.hatch_window != null ? String(data.hatch_window) : "",
+          total_egg: data.total_egg != null ? String(data.total_egg) : "",
+        })
+      } catch (e: any) {
+        alert(e?.message ?? "Failed to load record.")
+      } finally {
+        setLoading(false)
+      }
+    })()
   }, [editId])
 
-  // Auto compute duration (minutes)
+  // auto compute duration minutes
   useEffect(() => {
     if (!form.hatch_time_start || !form.hatch_time_end) {
       setForm((p) => ({ ...p, duration: "" }))
@@ -129,11 +163,21 @@ export default function EggHatchform() {
     setForm((p) => ({ ...p, duration: mins == null ? "" : String(mins) }))
   }, [form.hatch_time_start, form.hatch_time_end])
 
-  function setField<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
-    setForm((p) => ({ ...p, [key]: value }))
-  }
-
   async function onSave() {
+    // optional: enforce ref selection
+    if (!form.egg_ref) {
+      alert("Reference No. is required.")
+      return
+    }
+    if (!form.hatch_time_start || !form.hatch_time_end) {
+      alert("Hatch Time Start and End are required.")
+      return
+    }
+    if (!isValidDates) {
+      alert("Hatch Time End must be after Start.")
+      return
+    }
+
     setSaving(true)
     try {
       const payload = {
@@ -143,8 +187,12 @@ export default function EggHatchform() {
         machine_no: form.machine_no || null,
         hatch_temp: form.hatch_temp || null,
         hatch_humidity: form.hatch_humidity || null,
-        hatch_time_start: form.hatch_time_start ? new Date(form.hatch_time_start).toISOString() : null,
-        hatch_time_end: form.hatch_time_end ? new Date(form.hatch_time_end).toISOString() : null,
+        hatch_time_start: form.hatch_time_start
+          ? new Date(form.hatch_time_start).toISOString()
+          : null,
+        hatch_time_end: form.hatch_time_end
+          ? new Date(form.hatch_time_end).toISOString()
+          : null,
         duration: form.duration ? Number(form.duration) : null,
         hatch_window: form.hatch_window ? Number(form.hatch_window) : null,
         total_egg: form.total_egg ? Number(form.total_egg) : null,
@@ -186,39 +234,49 @@ export default function EggHatchform() {
 
   return (
     <div className="space-y-4 mt-4">
-
       <Breadcrumb
         SecondPreviewPageName="Hatchery"
         FirstPreviewsPageName="Egg  Hatchery Process"
         CurrentPageName={isEdit ? "Edit Record" : "New Entry"}
       />
+
       <Card className="max-w-3xl ml-0 p-6">
-        {/* <CardHeader>
-    <CardTitle>{isEdit ? "Edit Egg Hatchery Process" : "Egg Hatchery Process"}</CardTitle>
-  </CardHeader> */}
-
-
         <CardContent className="pt-4">
           {loading ? (
             <div className="text-sm text-muted-foreground">Loading...</div>
           ) : (
             <div className="space-y-4">
-              <div className="space-y-4">
+              <div className="space-y-4"> 
                 <div className="space-y-1">
-                  <Label>Egg Reference</Label>
-                  <Input
+                  <Label>Reference No.</Label>
+                  <Select
                     value={form.egg_ref}
-                    onChange={(e) => setField("egg_ref", e.target.value)}
-                    placeholder="01FARM1-B1-P1-01012026"
-                  />
+                    onValueChange={(v) => setField("egg_ref", v)}
+                    disabled={eggRefsLoading || saving}
+                  >
+                    <SelectTrigger>
+                      <SelectValue
+                        placeholder={
+                          eggRefsLoading ? "Loading..." : "Select egg reference..."
+                        }
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {eggRefs.map((r) => (
+                        <SelectItem key={r} value={r}>
+                          {r}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-
+               <Separator />
                 <div className="space-y-1">
                   <Label>Farm Source</Label>
                   <Input
                     value={form.farm_source}
                     onChange={(e) => setField("farm_source", e.target.value)}
-                    placeholder="PETRI"
+                    placeholder=""
                   />
                 </div>
 
@@ -236,19 +294,18 @@ export default function EggHatchform() {
                   <Input
                     value={form.machine_no}
                     onChange={(e) => setField("machine_no", e.target.value)}
-                    placeholder="HATCHER 001"
+                    placeholder=""
                   />
                 </div>
               </div>
 
-              {/* Hatch Temp + Humidity (2 cols) */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <Label>Hatch Temperature</Label>
                   <Input
                     value={form.hatch_temp}
                     onChange={(e) => setField("hatch_temp", e.target.value)}
-                    placeholder='35 °C'
+                    placeholder=""
                   />
                 </div>
 
@@ -257,12 +314,11 @@ export default function EggHatchform() {
                   <Input
                     value={form.hatch_humidity}
                     onChange={(e) => setField("hatch_humidity", e.target.value)}
-                    placeholder="85%"
+                    placeholder=""
                   />
                 </div>
               </div>
 
-              {/* Time Start + End (2 cols) */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <Label>Hatch Time Start</Label>
@@ -283,16 +339,10 @@ export default function EggHatchform() {
                 </div>
               </div>
 
-              {/* Duration + Hatch Window (2 cols) */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <Label>Duration</Label>
-                  <Input
-                                  disabled
-                                  value={fmtDuration(durationMinutes)}
-                                  placeholder=""
-                                />
-
+                  <Input disabled value={fmtDuration(durationMinutes)} placeholder="" />
                   <Input value={form.duration} disabled placeholder="" />
                 </div>
 
@@ -302,23 +352,21 @@ export default function EggHatchform() {
                     inputMode="numeric"
                     value={form.hatch_window}
                     onChange={(e) => setField("hatch_window", e.target.value)}
-                    placeholder="120"
+                    placeholder=""
                   />
                 </div>
               </div>
 
-              {/* Total Egg (1 col) */}
               <div className="space-y-1">
                 <Label>Total Egg Loaded</Label>
                 <Input
                   inputMode="numeric"
                   value={form.total_egg}
                   onChange={(e) => setField("total_egg", e.target.value)}
-                  placeholder="10000"
+                  placeholder=""
                 />
               </div>
 
-              {/* Buttons */}
               <div className="flex gap-2 pt-2">
                 <Button type="button" onClick={onSave} disabled={saving}>
                   {saving ? "Saving..." : isEdit ? "Update" : "Save"}
@@ -332,6 +380,18 @@ export default function EggHatchform() {
                 >
                   Cancel
                 </Button>
+
+                {/* optional delete */}
+                {isEdit ? (
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    onClick={onDelete}
+                    disabled={saving}
+                  >
+                    Delete
+                  </Button>
+                ) : null}
               </div>
             </div>
           )}
@@ -340,9 +400,3 @@ export default function EggHatchform() {
     </div>
   )
 }
-
-{/* {isEdit ? (
-                <Button type="button" variant="destructive" onClick={onDelete} disabled={saving}>
-                  Delete
-                </Button>
-              ) : null} */}

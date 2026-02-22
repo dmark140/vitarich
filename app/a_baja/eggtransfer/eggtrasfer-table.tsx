@@ -23,7 +23,7 @@ import {
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Plus, RefreshCw, Search } from "lucide-react"
+import { Plus, RefreshCw, Search, Pencil } from "lucide-react"
 
 import { EggTransferProcess, listEggTransfers } from "./new/api"
 import Breadcrumb from "@/lib/Breadcrumb"
@@ -137,6 +137,22 @@ function fmtDurationHHMM(mins: number | string | null | undefined) {
       accessorKey: "total_egg_transfer",
       header: "Total Egg Transfer",
       cell: ({ row }) => row.original.total_egg_transfer ?? "",
+    },
+    {
+    id: "actions",
+    header: "Action",
+    cell: ({ row }) => (
+      <Button
+        variant="ghost"
+        size="icon"
+        title="Edit"
+        onClick={() =>
+          router.push(`/a_baja/eggtransfer/new?id=${row.original.id}`)
+        }
+      >
+        <Pencil className="h-4 w-4" /> Edit
+      </Button>
+    ),
     },
   ]
 
