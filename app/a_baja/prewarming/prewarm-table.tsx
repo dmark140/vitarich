@@ -23,180 +23,133 @@ import {
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Search, Plus, RefreshCw } from "lucide-react"
+import { Pencil, Plus, RefreshCwIcon, Search } from "lucide-react"
 
-import { EggPreWarmingRow, listPreWarmings } from "./new/api"
-import Breadcrumb from "@/lib/Breadcrumb"
+import { listEggPreWarming, type EggPreWarming } from "./new/api"
 
+function fmtDuration(mins: number | null) {
+  if (mins == null) return ""
+  const h = Math.floor(mins / 60)
+  const m = mins % 60
+  if (h <= 0) return `${m} min`
+  return `${h} hr ${m} min`
+}
 
 export default function PrewarmTable() {
-  const [items, setItems] = useState<EggPreWarmingRow[]>([])
+  const router = useRouter()
+  const [items, setItems] = useState<EggPreWarming[]>([])
   const [sorting, setSorting] = useState<any>([])
   const [columnFilters, setColumnFilters] = useState<any>([])
-  const [columnVisibility, setColumnVisibility] = useState<any>({})
-  const [rowSelection, setRowSelection] = useState<any>({})
+  const [globalFilter, setGlobalFilter] = useState("")
   const [loading, setLoading] = useState(false)
 
-  const router = useRouter()
-
-  const fetchData = async () => {
+  async function load() {
     setLoading(true)
     try {
-      const data = await listPreWarmings({ is_active: true, limit: 200 })
-      setItems((Array.isArray(data) ? data : []) as EggPreWarmingRow[])
+      const rows = await listEggPreWarming()
+      setItems(rows)
     } catch (e) {
-      setItems([])
+      console.error(e)
+      alert("Failed to load data.")
     } finally {
       setLoading(false)
     }
   }
 
   useEffect(() => {
-    ; (async () => {
-      router.prefetch("/a_baja/prewarming/new")
-      await fetchData()
-    })()
+    load()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const columns: ColumnDef<EggPreWarmingRow>[] = [
-    {
-      accessorKey: "id",
-      header: "#",
-      cell: ({ row }) => row.index + 1,
-    },
+  const columns: ColumnDef<EggPreWarming>[] = [ 
     {
       accessorKey: "egg_ref_no",
       header: "Egg Reference No.",
+      cell: ({ row }) => row.original.egg_ref_no ?? "",
     },
     {
       accessorKey: "pre_temp",
       header: "Pre-Warming Temp",
+      cell: ({ row }) => row.original.pre_temp ?? "",
     },
     {
       accessorKey: "egg_temp",
       header: "Egg Shell Temp",
-    },
-    {
-      accessorKey: "egg_temp_time_start",
-      header: "Start Time",
-       cell: ({ row }) => {
-        const v = row.original.egg_temp_time_start
-        return v ? new Date(v).toLocaleString() : ""
-      },
-    },
-    {
-      accessorKey: "egg_temp_time_end",
-      header: "End Time",
-      cell: ({ row }) => {
-        const v = row.original.egg_temp_time_end
-        return v ? new Date(v).toLocaleString() : ""
-      },
+      cell: ({ row }) => row.original.egg_temp ?? "",
     },
     {
       accessorKey: "duration",
       header: "Duration",
-      cell: ({ row }) => {
-        const mins = row.original.duration
-
-        if (mins == null) return ""
-
-        const h = Math.floor(mins / 60)
-        const m = mins % 60
-
-        if (h <= 0) return `${m} min`
-        return `${h} hr ${m} min`
-      },
+      cell: ({ row }) => fmtDuration((row.original.duration as number | null) ?? null),
     },
     {
       accessorKey: "remarks",
       header: "Remarks",
+      cell: ({ row }) => row.original.remarks ?? "",
     },
+        {
+      id: "action",
+      header: "Action",
+      cell: ({ row }) => (
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => router.push(`/a_baja/prewarming/new?id=${row.original.id}`)}
+          title="Edit"
+        >
+          <Pencil className="h-4 w-4" />
+        </Button>
+      ),
+    }
   ]
 
   const table = useReactTable({
     data: items,
     columns,
+    state: { sorting, columnFilters, globalFilter },
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    onGlobalFilterChange: setGlobalFilter,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
-    onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: setRowSelection,
-    state: {
-      sorting,
-      columnFilters,
-      columnVisibility,
-      rowSelection,
-    },
   })
 
   return (
-    <div className="rounded-md border p-4">
-
-
-      {/* Top Controls */}
-      <div className="flex items-center justify-between mb-4">
+    <div className="space-y-4">
+      <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <Breadcrumb
-            FirstPreviewsPageName="Hatchery"
-            CurrentPageName="Egg Pre-Warming"
-          />
-          <div className="relative w-72">
+          <div className="relative w-70">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Filter Egg Reference No."
-              className="pl-10"
-              value={
-                (table.getColumn("egg_ref_no")?.getFilterValue() as string) ?? ""
-              }
-              onChange={(e) =>
-                table.getColumn("egg_ref_no")?.setFilterValue(e.target.value)
-              }
+              value={globalFilter ?? ""}
+              onChange={(e) => setGlobalFilter(e.target.value)}
+              placeholder="Search..."
+              className="pl-8"
             />
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
           </div>
 
-          <Button
-            type="button"
-            variant="outline"
-            onClick={fetchData}
-            disabled={loading}
-            className="flex items-center gap-2"
-          >
-            <RefreshCw className="size-4" />
-            {loading ? "Refreshing..." : "Refresh"}
+          <Button variant="outline" onClick={load} disabled={loading}>
+            <RefreshCwIcon className="h-4 w-4 mr-2" />
+            Refresh
           </Button>
         </div>
 
-        <Button
-          type="button"
-          onClick={() => router.push("/a_baja/prewarming/new")}
-          className="flex items-center gap-2"
-        >
-          <Plus className="size-4" />
-          New Record
+        <Button onClick={() => router.push("/a_baja/prewarming/new")}>
+          <Plus className="h-4 w-4 mr-2" />
+          New Pre-Warming
         </Button>
       </div>
 
-      {/* Table */}
-      <div className="rounded-2xl bg-white p-4">
+      <div className="rounded-md border">
         <Table>
           <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead
-                    key={header.id}
-                    className="whitespace-nowrap wrap-break-word text-left align-middle"
-                  >
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
+            {table.getHeaderGroups().map((hg) => (
+              <TableRow key={hg.id}>
+                {hg.headers.map((h) => (
+                  <TableHead key={h.id}>
+                    {h.isPlaceholder ? null : flexRender(h.column.columnDef.header, h.getContext())}
                   </TableHead>
                 ))}
               </TableRow>
@@ -204,15 +157,12 @@ export default function PrewarmTable() {
           </TableHeader>
 
           <TableBody>
-            {table.getRowModel().rows.length ? (
+            {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
                 </TableRow>
@@ -220,7 +170,7 @@ export default function PrewarmTable() {
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                  No results.
+                  {loading ? "Loading..." : "No results."}
                 </TableCell>
               </TableRow>
             )}
@@ -228,8 +178,7 @@ export default function PrewarmTable() {
         </Table>
       </div>
 
-      {/* Pagination */}
-      <div className="flex items-center justify-end space-x-2 py-4">
+      <div className="flex items-center justify-end gap-2">
         <Button
           variant="outline"
           size="sm"
@@ -238,7 +187,6 @@ export default function PrewarmTable() {
         >
           Previous
         </Button>
-
         <Button
           variant="outline"
           size="sm"

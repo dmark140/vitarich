@@ -23,10 +23,18 @@ import {
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Search, Plus } from "lucide-react"
+import { Search, Plus, Pencil, Trash2, RefreshCw } from "lucide-react"
 
-import { EggStorageMngt, listEggStorage } from "./new/api"
+import { EggStorageMngt, listEggStorage, deleteEggStorage } from "./new/api"
 import Breadcrumb from "@/lib/Breadcrumb"
+
+function fmtDuration(sec: number | null) {
+  if (sec == null) return ""
+  const hours = Math.floor(sec / 3600)
+  const minutes = Math.floor((sec % 3600) / 60)
+  if (hours <= 0) return `${minutes}m`
+  return `${hours}h ${minutes}m`
+}
 
 export default function EggTable() {
   const [items, setItems] = useState<EggStorageMngt[]>([])
@@ -34,28 +42,27 @@ export default function EggTable() {
   const [columnFilters, setColumnFilters] = useState<any>([])
   const [columnVisibility, setColumnVisibility] = useState<any>({})
   const [rowSelection, setRowSelection] = useState<any>({})
+  const [loading, setLoading] = useState(false)
 
   const router = useRouter()
 
+  const fetchItems = async () => {
+    try {
+      setLoading(true)
+      const data = await listEggStorage()
+      setItems(Array.isArray(data) ? data : [])
+    } catch (e) {
+      console.error(e)
+      setItems([])
+    } finally {
+      setLoading(false)
+    }
+  }
+
   useEffect(() => {
-    ; (async () => {
-      router.prefetch("/a_baja/eggstorage/new")
-
-      try {
-        const data = await listEggStorage()
-
-        if (
-          (data && !Array.isArray(data)) ||
-          (Array.isArray(data) && data.length > 0 && "error" in (data as any)[0])
-        ) {
-          setItems([])
-        } else {
-          setItems((Array.isArray(data) ? data : []) as EggStorageMngt[])
-        }
-      } catch {
-        setItems([])
-      }
-    })()
+    router.prefetch("/a_baja/eggstorage/new")
+    fetchItems()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router])
 
   const columns: ColumnDef<EggStorageMngt>[] = [
@@ -63,6 +70,10 @@ export default function EggTable() {
       accessorKey: "id",
       header: "#",
       cell: ({ row }) => row.index + 1,
+    },
+    {
+      accessorKey: "classi_ref_no",
+      header: "Reference No.",
     },
     {
       accessorKey: "stor_temp",
@@ -95,20 +106,56 @@ export default function EggTable() {
     {
       accessorKey: "duration",
       header: "Duration",
-      cell: ({ row }) => {
-        const sec = row.original.duration
-        if (sec == null) return ""
-
-        const hours = Math.floor(sec / 3600)
-        const minutes = Math.floor((sec % 3600) / 60)
-
-        if (hours <= 0) return `${minutes}m`
-        return `${hours}h ${minutes}m`
-      },
+      cell: ({ row }) => fmtDuration(row.original.duration),
     },
     {
       accessorKey: "remarks",
       header: "Remarks",
+    },
+
+    // ✅ ACTIONS
+    {
+      id: "actions",
+      header: "Action",
+      enableSorting: false,
+      enableColumnFilter: false,
+      cell: ({ row }) => {
+        const id = row.original.id
+
+        return (
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => router.push(`/a_baja/eggstorage/new?id=${id}`)}
+              title="Edit"
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
+
+            {/* <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              title="Delete"
+              onClick={async () => {
+                const ok = confirm("Delete this record?")
+                if (!ok) return
+                try {
+                  await deleteEggStorage(id)
+                  await fetchItems()
+                  router.refresh()
+                } catch (e: any) {
+                  alert(e?.message ?? "Failed to delete.")
+                }
+              }}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button> */}
+          </div>
+        )
+      },
     },
   ]
 
@@ -145,15 +192,25 @@ export default function EggTable() {
             <Input
               placeholder="Filter Remarks"
               className="pl-10"
-              value={
-                (table.getColumn("remarks")?.getFilterValue() as string) ?? ""
-              }
+              value={(table.getColumn("remarks")?.getFilterValue() as string) ?? ""}
               onChange={(e) =>
                 table.getColumn("remarks")?.setFilterValue(e.target.value)
               }
             />
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
           </div>
+
+          <Button
+            type="button"
+            variant="outline"
+            className="flex items-center gap-2"
+            onClick={fetchItems}
+            disabled={loading}
+            title="Refresh"
+          >
+            <RefreshCw className="h-4 w-4" />
+            {loading ? "Loading..." : "Refresh"}
+          </Button>
         </div>
 
         <Button
@@ -166,7 +223,7 @@ export default function EggTable() {
       </div>
 
       {/* Table */}
-      <div className="rounded-md border bg-white p-4 rounded-2xl">
+      <div className="rounded-md border bg-white p-4 overflow-auto">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -179,9 +236,9 @@ export default function EggTable() {
                     {header.isPlaceholder
                       ? null
                       : flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                   </TableHead>
                 ))}
               </TableRow>

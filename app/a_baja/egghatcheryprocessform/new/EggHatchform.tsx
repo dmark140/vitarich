@@ -309,7 +309,7 @@ export default function EggHatchform() {
 
               {/* Total Egg (1 col) */}
               <div className="space-y-1">
-                <Label>Total Egg</Label>
+                <Label>Total Egg Loaded</Label>
                 <Input
                   inputMode="numeric"
                   value={form.total_egg}
