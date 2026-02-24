@@ -23,10 +23,11 @@ import {
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Plus, RefreshCw, Search } from "lucide-react"
+import { Plus, RefreshCw, Search, Pencil } from "lucide-react"
 
 import { EggTransferProcess, listEggTransfers } from "./new/api"
 import Breadcrumb from "@/lib/Breadcrumb"
+import EditActionButton from "@/components/EditActionButton"
 
 function formatDateTime(v?: string | null) {
   if (!v) return ""
@@ -137,7 +138,17 @@ function fmtDurationHHMM(mins: number | string | null | undefined) {
       accessorKey: "total_egg_transfer",
       header: "Total Egg Transfer",
       cell: ({ row }) => row.original.total_egg_transfer ?? "",
-    },
+    }, 
+    {
+      id: "action",
+      header: "Action",
+      cell: ({ row }) => (
+        <EditActionButton
+          id={row.original?.id}
+          href={(id) => `/a_baja/eggtransfer/new?id=${id}`}
+        />
+      ),
+    }, 
   ]
 
   const table = useReactTable({
@@ -161,14 +172,15 @@ function fmtDurationHHMM(mins: number | string | null | undefined) {
 
   return (
     <div className="rounded-md   p-4 mt-5">
-      {/* Top Controls */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-4">
           <Breadcrumb
             SecondPreviewPageName="Hatchery"
             CurrentPageName="Egg Transfer"
             // CurrentPageName="New Entry"
           />
+          <br />
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-4">
+
           <div className="relative w-72">
             <Input
               placeholder="Filter Reference No."

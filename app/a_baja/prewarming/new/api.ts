@@ -1,12 +1,29 @@
-// app/a_baja/prewarming/new/api.ts
-import { createClient } from "@supabase/supabase-js"
+import { db } from "@/lib/Supabase/supabaseClient"
 
-export type EggPreWarmingRow = {
+/** Dropdown option source: hatch_classification.classi_ref_no */
+export type HatchClassiRefOption = {
+  classi_ref_no: string
+}
+
+export async function listHatchClassiRefs(): Promise<HatchClassiRefOption[]> {
+  const { data, error } = await db
+    .from("hatch_classification")
+    .select("classi_ref_no")
+    .eq("is_active", true)
+    .order("classi_ref_no", { ascending: true })
+
+  if (error) throw error
+  return (data ?? []).filter((r) => !!r.classi_ref_no)
+}
+
+/** egg_pre_warming types */
+export type EggPreWarming = {
   id: number
   created_at: string
   created_by: string | null
   updated_at: string | null
   updated_by: string | null
+
   egg_ref_no: string | null
   pre_temp: string | null
   egg_temp: string | null
@@ -18,106 +35,68 @@ export type EggPreWarmingRow = {
 }
 
 export type EggPreWarmingInsert = {
-  egg_ref_no?: string | null
-  pre_temp?: string | null
-  egg_temp?: string | null
-  egg_temp_time_start?: string | null
-  egg_temp_time_end?: string | null
-  duration?: number | null
-  remarks?: string | null
-  is_active?: boolean | null
+  egg_ref_no: string | null
+  pre_temp: string | null
+  egg_temp: string | null
+  egg_temp_time_start: string | null
+  egg_temp_time_end: string | null
+  duration: number | null
+  remarks: string | null
+  is_active: boolean | null
 }
 
 export type EggPreWarmingUpdate = Partial<EggPreWarmingInsert>
 
-type Sort = { column: keyof EggPreWarmingRow; ascending?: boolean }
-
-export type EggPreWarmingSelectParams = {
-  search?: string // searches egg_ref_no + remarks
-  is_active?: boolean
-  limit?: number
-  offset?: number
-  sort?: Sort
-}
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
-
-const TABLE = "egg_pre_warming"
-
-export async function listPreWarmings(params: EggPreWarmingSelectParams = {}) {
-  const {
-    search,
-    is_active,
-    limit = 50,
-    offset = 0,
-    sort = { column: "created_at", ascending: false },
-  } = params
-
-  let q = supabase
-    .from(TABLE)
+export async function listEggPreWarming(): Promise<EggPreWarming[]> {
+  const { data, error } = await db
+    .from("egg_pre_warming")
     .select("*")
-    .range(offset, offset + limit - 1)
+    .order("created_at", { ascending: false })
 
-  if (typeof is_active === "boolean") q = q.eq("is_active", is_active)
-
-  if (search?.trim()) {
-    const s = search.trim()
-    // OR filter across columns
-    q = q.or(`egg_ref_no.ilike.%${s}%,remarks.ilike.%${s}%`)
-  }
-
-  if (sort?.column) {
-    q = q.order(String(sort.column), { ascending: !!sort.ascending })
-  }
-
-  const { data, error } = await q
   if (error) throw error
-  return data as EggPreWarmingRow[]
+  return (data ?? []) as EggPreWarming[]
 }
 
-export async function getPreWarmingById(id: number) {
-  const { data, error } = await supabase.from(TABLE).select("*").eq("id", id).single()
+export async function getEggPreWarmingById(id: number): Promise<EggPreWarming | null> {
+  const { data, error } = await db
+    .from("egg_pre_warming")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle()
+
   if (error) throw error
-  return data as EggPreWarmingRow
+  return (data ?? null) as EggPreWarming | null
 }
 
-export async function createPreWarming(payload: EggPreWarmingInsert) {
-  const { data, error } = await supabase.from(TABLE).insert(payload).select("*").single()
+export async function createEggPreWarming(payload: EggPreWarmingInsert): Promise<EggPreWarming> {
+  const { data, error } = await db
+    .from("egg_pre_warming")
+    .insert(payload)
+    .select("*")
+    .single()
+
   if (error) throw error
-  return data as EggPreWarmingRow
+  return data as EggPreWarming
 }
 
-export async function updatePreWarming(id: number, payload: EggPreWarmingUpdate) {
-  const { data, error } = await supabase
-    .from(TABLE)
-    .update({ ...payload, updated_at: new Date().toISOString() })
+export async function updateEggPreWarming(id: number, payload: EggPreWarmingUpdate): Promise<EggPreWarming> {
+  const { data, error } = await db
+    .from("egg_pre_warming")
+    .update(payload)
     .eq("id", id)
     .select("*")
     .single()
 
   if (error) throw error
-  return data as EggPreWarmingRow
+  return data as EggPreWarming
 }
 
-/** Soft delete (recommended) */
-export async function deactivatePreWarming(id: number) {
-  const { data, error } = await supabase
-    .from(TABLE)
-    .update({ is_active: false, updated_at: new Date().toISOString() })
+/** soft-delete pattern */
+export async function deleteEggPreWarming(id: number): Promise<void> {
+  const { error } = await db
+    .from("egg_pre_warming")
+    .update({ is_active: false })
     .eq("id", id)
-    .select("*")
-    .single()
 
   if (error) throw error
-  return data as EggPreWarmingRow
-}
-
-/** Hard delete (only use if you really want) */
-export async function deletePreWarming(id: number) {
-  const { error } = await supabase.from(TABLE).delete().eq("id", id)
-  if (error) throw error
-  return true
 }

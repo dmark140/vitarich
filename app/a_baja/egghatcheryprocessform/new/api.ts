@@ -80,3 +80,17 @@ export async function deleteEggHatcheryProcess(id: number) {
   if (error) throw error
   return true
 }
+export async function listClassiRefNos(): Promise<string[]> {
+  const { data, error } = await db
+    .from("hatch_classification")
+    .select("classi_ref_no")
+    .order("created_at", { ascending: false })
+
+  if (error) throw error
+
+  const vals = (data ?? [])
+    .map((r: any) => String(r.classi_ref_no ?? "").trim())
+    .filter(Boolean)
+
+  return Array.from(new Set(vals))
+}

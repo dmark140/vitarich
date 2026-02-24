@@ -1,11 +1,26 @@
-// app/a_baja/eggstorage/new/api.ts
-import { db } from "@/lib/Supabase/supabaseClient" 
+import { db } from "@/lib/Supabase/supabaseClient"
 
+const TABLE = "egg_storage_mngt" // ✅ CHANGE THIS if your real table name is different
+
+// Insert payload (what the form sends)
+export type EggStorageInsert = {
+  classi_ref_no: string | null
+  stor_temp: string | null
+  room_temp: string | null
+  stor_humi: string | null
+  shell_start: string | null // ISO string
+  shell_end: string | null // ISO string
+  duration: number | null // seconds
+  remarks: string | null
+}
+
+// Row shape for table/listing
 export type EggStorageMngt = {
   id: number
-  created_at: string
-  created_by: string
+  created_at: string | null
   updated_at: string | null
+
+  classi_ref_no: string | null
   stor_temp: string | null
   room_temp: string | null
   stor_humi: string | null
@@ -15,74 +30,10 @@ export type EggStorageMngt = {
   remarks: string | null
 }
 
-export type EggStorageInsert = Omit<
-  EggStorageMngt,
-  "id" | "created_at" | "created_by" | "updated_at"
-> & {
-  // allow passing duration optional; you may compute it client-side
-  duration?: number | null
-}
-
-export type EggStorageUpdate = Partial<EggStorageInsert> & {
-  id: number
-}
-
-export type EggStorageSelectParams = {
-  id?: number
-  created_by?: string
-  isNullShellStart?: boolean
-  isNullShellEnd?: boolean
-  dateFrom?: string // ISO string
-  dateTo?: string   // ISO string
-  orderBy?: keyof EggStorageMngt
-  ascending?: boolean
-  limit?: number
-}
-
-const TABLE = "egg_storage_mngt"
-
-export async function listEggStorage(params: EggStorageSelectParams = {}) {
-  let q = db.from(TABLE).select("*")
-
-  if (params.id != null) q = q.eq("id", params.id)
-  if (params.created_by) q = q.eq("created_by", params.created_by)
-
-  if (params.isNullShellStart === true) q = q.is("shell_start", null)
-  if (params.isNullShellEnd === true) q = q.is("shell_end", null)
-
-  if (params.dateFrom) q = q.gte("created_at", params.dateFrom)
-  if (params.dateTo) q = q.lte("created_at", params.dateTo)
-
-  const orderBy = params.orderBy ?? "created_at"
-  q = q.order(orderBy as string, { ascending: params.ascending ?? false })
-
-  if (params.limit) q = q.limit(params.limit)
-
-  const { data, error } = await q
-  if (error) throw error
-  return data as EggStorageMngt[]
-}
-
-export async function getEggStorageById(id: number) {
-  const { data, error } = await db
-    .from(TABLE)
-    .select("*")
-    .eq("id", id)
-    .single()
-
-  if (error) throw error
-  return data as EggStorageMngt
-}
-
 export async function createEggStorage(payload: EggStorageInsert) {
   const { data, error } = await db
     .from(TABLE)
-    .insert([
-      {
-        ...payload,
-        // created_by comes from auth.uid() default (db), but okay to not send it
-      },
-    ])
+    .insert(payload)
     .select("*")
     .single()
 
@@ -90,12 +41,27 @@ export async function createEggStorage(payload: EggStorageInsert) {
   return data as EggStorageMngt
 }
 
-export async function updateEggStorage(payload: EggStorageUpdate) {
-  const { id, ...updates } = payload
+export async function listEggStorage() {
+  const { data, error } = await db
+    .from(TABLE)
+    .select("*")
+    .order("id", { ascending: false })
+
+  if (error) throw error
+  return (data ?? []) as EggStorageMngt[]
+}
+
+export async function getEggStorageById(id: number) {
+  const { data, error } = await db.from(TABLE).select("*").eq("id", id).single()
+  if (error) throw error
+  return data as EggStorageMngt
+}
+
+export async function updateEggStorage(id: number, payload: EggStorageInsert) {
   const { data, error } = await db
     .from(TABLE)
     .update({
-      ...updates,
+      ...payload,
       updated_at: new Date().toISOString(),
     })
     .eq("id", id)

@@ -1,118 +1,117 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import {
   ColumnDef,
-  useReactTable,
+  flexRender,
   getCoreRowModel,
+  getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  getFilteredRowModel,
-  flexRender,
+  useReactTable,
 } from "@tanstack/react-table"
 
 import {
   Table,
-  TableHeader,
   TableBody,
-  TableRow,
-  TableHead,
   TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Search, Plus, RefreshCw } from "lucide-react"
+import { Plus, RefreshCw, Search } from "lucide-react"
 
-import { EggPreWarmingRow, listPreWarmings } from "./new/api"
 import Breadcrumb from "@/lib/Breadcrumb"
+import EditActionButton from "@/components/EditActionButton"
+import { listEggPreWarming, type EggPreWarming } from "./new/api"
 
+function fmtDuration(mins: number | null) {
+  if (mins == null) return ""
+  const h = Math.floor(mins / 60)
+  const m = mins % 60
+  if (h <= 0) return `${m} min`
+  return `${h} hr ${m} min`
+}
 
 export default function PrewarmTable() {
-  const [items, setItems] = useState<EggPreWarmingRow[]>([])
+  const router = useRouter()
+
+  const [items, setItems] = useState<EggPreWarming[]>([])
   const [sorting, setSorting] = useState<any>([])
   const [columnFilters, setColumnFilters] = useState<any>([])
   const [columnVisibility, setColumnVisibility] = useState<any>({})
   const [rowSelection, setRowSelection] = useState<any>({})
-  const [loading, setLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [lastUpdated, setLastUpdated] = useState<string>("")
 
-  const router = useRouter()
-
-  const fetchData = async () => {
-    setLoading(true)
+  const load = useCallback(async () => {
+    setIsLoading(true)
     try {
-      const data = await listPreWarmings({ is_active: true, limit: 200 })
-      setItems((Array.isArray(data) ? data : []) as EggPreWarmingRow[])
+      const rows = await listEggPreWarming()
+      setItems(Array.isArray(rows) ? rows : [])
+      setLastUpdated(new Date().toLocaleString())
     } catch (e) {
+      console.error(e)
       setItems([])
     } finally {
-      setLoading(false)
+      setIsLoading(false)
     }
-  }
-
-  useEffect(() => {
-    ; (async () => {
-      router.prefetch("/a_baja/prewarming/new")
-      await fetchData()
-    })()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const columns: ColumnDef<EggPreWarmingRow>[] = [
-    {
-      accessorKey: "id",
-      header: "#",
-      cell: ({ row }) => row.index + 1,
-    },
-    {
-      accessorKey: "egg_ref_no",
-      header: "Egg Reference No.",
-    },
-    {
-      accessorKey: "pre_temp",
-      header: "Pre-Warming Temp",
-    },
-    {
-      accessorKey: "egg_temp",
-      header: "Egg Shell Temp",
-    },
-    {
-      accessorKey: "egg_temp_time_start",
-      header: "Start Time",
-       cell: ({ row }) => {
-        const v = row.original.egg_temp_time_start
-        return v ? new Date(v).toLocaleString() : ""
-      },
-    },
-    {
-      accessorKey: "egg_temp_time_end",
-      header: "End Time",
-      cell: ({ row }) => {
-        const v = row.original.egg_temp_time_end
-        return v ? new Date(v).toLocaleString() : ""
-      },
-    },
-    {
-      accessorKey: "duration",
-      header: "Duration",
-      cell: ({ row }) => {
-        const mins = row.original.duration
+  useEffect(() => {
+    router.prefetch("/a_baja/prewarming/new")
+    load()
+  }, [router, load])
 
-        if (mins == null) return ""
-
-        const h = Math.floor(mins / 60)
-        const m = mins % 60
-
-        if (h <= 0) return `${m} min`
-        return `${h} hr ${m} min`
+  const columns = useMemo<ColumnDef<EggPreWarming>[]>(
+    () => [
+      {
+        id: "row_no",
+        header: "#",
+        cell: ({ row }) => row.index + 1,
       },
-    },
-    {
-      accessorKey: "remarks",
-      header: "Remarks",
-    },
-  ]
+      {
+        accessorKey: "egg_ref_no",
+        header: "Egg Reference No.",
+        cell: ({ row }) => row.original.egg_ref_no ?? "",
+      },
+      {
+        accessorKey: "pre_temp",
+        header: "Pre-Warming Temp",
+        cell: ({ row }) => row.original.pre_temp ?? "",
+      },
+      {
+        accessorKey: "egg_temp",
+        header: "Egg Shell Temp",
+        cell: ({ row }) => row.original.egg_temp ?? "",
+      },
+      {
+        accessorKey: "duration",
+        header: "Duration",
+        cell: ({ row }) => fmtDuration((row.original.duration as number | null) ?? null),
+      },
+      {
+        accessorKey: "remarks",
+        header: "Remarks",
+        cell: ({ row }) => row.original.remarks ?? "",
+      },
+      {
+        id: "action",
+        header: "Action",
+        cell: ({ row }) => (
+          <EditActionButton
+            id={row.original?.id}
+            href={(id) => `/a_baja/prewarming/new?id=${id}`}
+          />
+        ),
+      },
+    ],
+    []
+  )
 
   const table = useReactTable({
     data: items,
@@ -134,16 +133,16 @@ export default function PrewarmTable() {
   })
 
   return (
-    <div className="rounded-md border p-4">
-
+    <div className="rounded-md p-4">
+      <Breadcrumb
+        FirstPreviewsPageName="Hatchery"
+        CurrentPageName="Pre-Warming"
+      />
+      <br />
 
       {/* Top Controls */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <Breadcrumb
-            FirstPreviewsPageName="Hatchery"
-            CurrentPageName="Egg Pre-Warming"
-          />
+      <div className="flex items-center justify-between mb-4 gap-3">
+        <div className="flex items-center gap-3">
           <div className="relative w-72">
             <Input
               placeholder="Filter Egg Reference No."
@@ -161,13 +160,13 @@ export default function PrewarmTable() {
           <Button
             type="button"
             variant="outline"
-            onClick={fetchData}
-            disabled={loading}
+            onClick={load}
+            disabled={isLoading}
             className="flex items-center gap-2"
           >
-            <RefreshCw className="size-4" />
-            {loading ? "Refreshing..." : "Refresh"}
-          </Button>
+            <RefreshCw className={`size-4 ${isLoading ? "animate-spin" : ""}`} />
+            {isLoading ? "Refreshing..." : "Refresh"}
+          </Button> 
         </div>
 
         <Button
@@ -176,27 +175,27 @@ export default function PrewarmTable() {
           className="flex items-center gap-2"
         >
           <Plus className="size-4" />
-          New Record
+          New Pre-Warming
         </Button>
       </div>
 
       {/* Table */}
-      <div className="rounded-2xl bg-white p-4">
+      <div className="rounded-md border p-4 bg-white">
         <Table>
           <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
+            {table.getHeaderGroups().map((hg) => (
+              <TableRow key={hg.id}>
+                {hg.headers.map((header) => (
                   <TableHead
                     key={header.id}
-                    className="whitespace-nowrap wrap-break-word text-left align-middle"
+                    className="whitespace-nowrap text-left align-middle"
                   >
                     {header.isPlaceholder
                       ? null
                       : flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                   </TableHead>
                 ))}
               </TableRow>
@@ -220,7 +219,7 @@ export default function PrewarmTable() {
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                  No results.
+                  {isLoading ? "Loading..." : "No results."}
                 </TableCell>
               </TableRow>
             )}
