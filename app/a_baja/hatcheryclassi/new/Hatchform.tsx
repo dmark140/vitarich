@@ -2,8 +2,7 @@
 
 import { useEffect, useMemo, useState, ChangeEvent } from "react"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label" 
 import { Separator } from "@/components/ui/separator"
 import { Card, CardContent } from "@/components/ui/card"
 import {
@@ -32,17 +31,7 @@ type ViewForHatcheryClassi = {
   actual_count: number | null
   classfi_ref_no: string | null
 }
-
-function pad3(n: number) {
-  return String(n).padStart(3, "0")
-}
-
-function ddmmyyFromYYYYMMDD(dateStr: string) {
-  // dateStr expected: YYYY-MM-DD
-  const [y, m, d] = dateStr.split("-")
-  if (!y || !m || !d) return ""
-  return `${d}${m}${y.slice(-2)}`
-}
+  
 
 export default function Hatchform() {
   const router = useRouter()
@@ -52,30 +41,30 @@ export default function Hatchform() {
   const [refLoading, setRefLoading] = useState(false)
 
   const [form, setForm] = useState({
-    br_no: "",
-    dr_no: "",
-    dr_date: "",
-    temperature: "",
-    sku: "",
-    uom: "",
-    total_count_view: 0,
-    classfi_ref_no: "",
-    classi_ref_no: "",
-    date_classify: "",
-    // numeric...
-    good_egg: 0,
-    trans_crack: 0,
-    trans_condemn: 0,
-    hatc_crack: 0,
-    thin_shell: 0,
-    hatc_condemn: 0,
-    small: 0,
-    pee_wee: 0,
-    d_yolk: 0,
-    jumbo: 0,
-    ttl_count: 0,
-    discrepancy: 0,
-  })
+  br_no: "",
+  dr_no: "",
+  dr_date: "",
+  temperature: "",
+  sku: "",
+  uom: "",
+  total_count_view: 0, 
+  classfi_ref_no: "",   
+  classi_ref_no: "",
+  date_classify: "",
+  // numeric...
+  good_egg: 0,
+  trans_crack: 0,
+  trans_condemn: 0,
+  hatc_crack: 0,
+  thin_shell: 0,
+  hatc_condemn: 0,
+  small: 0,
+  pee_wee: 0,
+  d_yolk: 0,
+  jumbo: 0, 
+  ttl_count: 0,
+  discrepancy: 0,
+})
 
   const numericFields = useMemo(
     () => [
@@ -207,31 +196,31 @@ export default function Hatchform() {
       updated.ttl_count = total
       updated.discrepancy = Number(updated.total_count_view || 0) - total
 
-      return updated
-    })
-  }
+    return updated
+  })
+}
 
 
   useEffect(() => {
-    const run = async () => {
-      if (!form.date_classify) return
-      if (!form.classi_ref_no) return
+  const run = async () => {
+    if (!form.date_classify) return
+    if (!form.classi_ref_no) return
 
-      try {
-        setRefLoading(true)
-        const finalRef = await generateRef(form.date_classify, form.classi_ref_no)
-        setForm((p) => ({ ...p, classi_ref_no: finalRef }))
-      } catch (e) {
-        console.error(e)
-        setForm((p) => ({ ...p, classi_ref_no: "" }))
-      } finally {
-        setRefLoading(false)
-      }
+    try {
+      setRefLoading(true)
+      const finalRef = await generateRef(form.date_classify, form.classi_ref_no)
+      setForm((p) => ({ ...p, classi_ref_no: finalRef }))
+    } catch (e) {
+      console.error(e)
+      setForm((p) => ({ ...p, classi_ref_no: "" }))
+    } finally {
+      setRefLoading(false)
     }
+  }
 
-    run()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form.date_classify])
+  run()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [form.date_classify])
 
 
   const handleSave = async () => {
@@ -288,14 +277,11 @@ export default function Hatchform() {
 
   return (
     <div className="max-w-6xl ml-0 p-6 space-y-2">
-      {/* <h1 className="text-2xl font-bold">Hatch Classification</h1> */}
-      <Breadcrumb
-        CurrentPageName="New Hatch Classification"
-        FirstPreviewsPageName="Hatch Classification"
-      />
+      <h1 className="text-2xl font-bold">Hatch Classification</h1>
+
       {/* TOP CARD (Breeder + view fields) */}
       <Card>
-        <CardContent className="pt-4 space-y-3">
+        <CardContent className="pt-4 space-y-4">
           <div className="space-y-1 max-w-sm">
             <Label>Breeder Ref. No.</Label>
             {/* <Select onValueChange={handleBreederChange}>
@@ -309,19 +295,7 @@ export default function Hatchform() {
                   </SelectItem>
                 ))}
               </SelectContent>
-            </Select> */}
-            <SearchableDropdown
-              list={breeders}
-              codeLabel="brdr_ref_no"
-              nameLabel="brdr_ref_no"
-              showNameOnly
-              value={form.br_no}
-              onChange={(val, selected) => {
-                console.log({ val, selected })
-                handleBreederChange(val)
-
-              }}
-            />
+            </Select>
           </div>
 
           <Separator />
@@ -373,8 +347,8 @@ export default function Hatchform() {
                 placeholder="0"
                 form={form}
                 onChange={handleChange}
-                min={0}
-
+                 min={0}
+                 
               />
             </div>
             <div className="md:col-span-2" />
@@ -526,7 +500,6 @@ function NumberField({
       <Label>{label}</Label>
       <Input
         type="number"
-        className="focus:select all in input"// -> please update to select when focus
         name={name}
         placeholder={placeholder}
         disabled={disabled}
@@ -538,6 +511,7 @@ function NumberField({
         onKeyDown={blockBadKeys}
         onPaste={blockNegativePaste}
         onFocus={(e) => e.target.select()}
+        className="focus:select all in input"
       />
     </div>
   )
