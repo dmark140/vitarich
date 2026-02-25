@@ -234,7 +234,7 @@ export default function EggHatchform() {
   }
 
   return (
-    <div className="space-y-4 mt-4">
+    <div className="space-y-4 mt-8">
       <Breadcrumb
         SecondPreviewPageName="Hatchery"
         FirstPreviewsPageName="Egg  Hatchery Process"

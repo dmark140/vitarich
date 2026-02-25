@@ -159,7 +159,7 @@ export default function EggsetterTable() {
   })
 
   return (
-    <div className="rounded-md p-4">
+    <div className="rounded-md p-4 mt-4">
       {/* Top Controls */}
           <Breadcrumb SecondPreviewPageName="Hatchery" 
           CurrentPageName="Egg Setter List" 

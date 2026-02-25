@@ -1,7 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import React, { useEffect, useMemo, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -20,6 +20,8 @@ import {
 } from "@/components/ui/select"
 
 import Breadcrumb from "@/lib/Breadcrumb"
+import FormActionButtons from "@/components/FormActionButtons"
+
 import {
   createDispatchDoc,
   getDispatchDocById,
@@ -51,13 +53,6 @@ type ItemDraft = {
   qty: string
 }
 
-function toNonNegNumber(v: any): number | null {
-  if (v === "" || v == null) return null
-  const n = Number(v)
-  if (!Number.isFinite(n)) return null
-  return Math.max(0, n)
-}
-
 function todayYMD() {
   const d = new Date()
   const yyyy = d.getFullYear()
@@ -66,17 +61,35 @@ function todayYMD() {
   return `${yyyy}-${mm}-${dd}`
 }
 
+function clampNonNegStringToNumberOrNull(v: any): number | null {
+  if (v === "" || v == null) return null
+  const n = Number(v)
+  if (!Number.isFinite(n)) return null
+  return Math.max(0, n)
+}
+
+function clampNonNegString(v: string) {
+  // for controlled inputs that should "return to 0"
+  const n = Number(v)
+  if (!Number.isFinite(n)) return "0"
+  return String(Math.max(0, n))
+}
+
 export default function DocdispatchForm() {
   const router = useRouter()
   const sp = useSearchParams()
   const idParam = sp.get("id")
-  const isEdit = !!idParam
+
+  const editId = useMemo(() => (idParam ? Number(idParam) : null), [idParam])
+  const isEdit = !!editId
 
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
 
   const [haulers, setHaulers] = useState<string[]>([])
   const [plates, setPlates] = useState<string[]>([])
+  const [haulersLoading, setHaulersLoading] = useState(false)
+  const [platesLoading, setPlatesLoading] = useState(false)
 
   const [form, setForm] = useState<FormState>({
     doc_date: todayYMD(),
@@ -100,60 +113,6 @@ export default function DocdispatchForm() {
 
   const [items, setItems] = useState<DispatchDocItemInsert[]>([])
 
-  useEffect(() => {
-    ;(async () => {
-      try {
-        const [h, p] = await Promise.all([listDistinctHaulers(), listDistinctPlates()])
-        setHaulers(h)
-        setPlates(p)
-      } catch {
-        // ignore dropdown fetch errors
-      }
-    })()
-  }, [])
-
-  useEffect(() => {
-    if (!isEdit) return
-    const id = Number(idParam)
-    if (!Number.isFinite(id)) return
-
-    setLoading(true)
-    ;(async () => {
-      try {
-        const res = await getDispatchDocById(id)
-        if (!res) return
-
-        const { header, items } = res
-
-        setForm({
-          doc_date: header.doc_date,
-          dr_no: header.dr_no ?? "",
-          farm_name: header.farm_name ?? "",
-          hauler_name: header.hauler_name ?? "",
-          hauler_plate_no: header.hauler_plate_no ?? "",
-          truck_seal_no: header.truck_seal_no ?? "",
-          chick_van_temp_c: header.chick_van_temp_c == null ? "" : String(header.chick_van_temp_c),
-          number_of_fans: header.number_of_fans == null ? "" : String(header.number_of_fans),
-          remarks: header.remarks ?? "",
-        })
-
-        setItems(
-          (items ?? []).map((it) => ({
-            doc_batch_code: it.doc_batch_code,
-            sku_name: it.sku_name,
-            classification: it.classification,
-            uom: it.uom,
-            qty: Number(it.qty ?? 0),
-          }))
-        )
-      } catch (e) {
-        console.error(e)
-      } finally {
-        setLoading(false)
-      }
-    })()
-  }, [idParam, isEdit])
-
   const totalQty = useMemo(() => {
     return items.reduce((sum, it) => sum + (Number.isFinite(it.qty) ? it.qty : 0), 0)
   }, [items])
@@ -166,14 +125,84 @@ export default function DocdispatchForm() {
     setItemDraft((p) => ({ ...p, [k]: v }))
   }
 
+  // ✅ load dropdowns (like EggHatchform)
+  useEffect(() => {
+    let alive = true
+    ;(async () => {
+      setHaulersLoading(true)
+      setPlatesLoading(true)
+      try {
+        const [h, p] = await Promise.all([listDistinctHaulers(), listDistinctPlates()])
+        if (!alive) return
+        setHaulers(h)
+        setPlates(p)
+      } catch (e) {
+        console.error(e)
+        if (!alive) return
+        setHaulers([])
+        setPlates([])
+      } finally {
+        if (alive) {
+          setHaulersLoading(false)
+          setPlatesLoading(false)
+        }
+      }
+    })()
+    return () => {
+      alive = false
+    }
+  }, [])
+
+  // ✅ load edit record (like EggHatchform)
+  useEffect(() => {
+    if (!editId) return
+    setLoading(true)
+    ;(async () => {
+      try {
+        const res = await getDispatchDocById(editId)
+        if (!res) return
+
+        const { header, items } = res
+
+        setForm({
+          doc_date: header.doc_date,
+          dr_no: header.dr_no ?? "",
+          farm_name: header.farm_name ?? "",
+          hauler_name: header.hauler_name ?? "",
+          hauler_plate_no: header.hauler_plate_no ?? "",
+          truck_seal_no: header.truck_seal_no ?? "",
+          chick_van_temp_c:
+            header.chick_van_temp_c == null ? "" : String(header.chick_van_temp_c),
+          number_of_fans: header.number_of_fans == null ? "" : String(header.number_of_fans),
+          remarks: header.remarks ?? "",
+        })
+
+        setItems(
+          (items ?? []).map((it: any) => ({
+            doc_batch_code: it.doc_batch_code,
+            sku_name: it.sku_name,
+            classification: it.classification,
+            uom: it.uom,
+            qty: Number(it.qty ?? 0),
+          }))
+        )
+      } catch (e) {
+        console.error(e)
+        alert("Failed to load record.")
+      } finally {
+        setLoading(false)
+      }
+    })()
+  }, [editId])
+
   function addItem() {
     const doc_batch_code = itemDraft.doc_batch_code.trim()
     const sku_name = itemDraft.sku_name.trim()
-    const qtyN = toNonNegNumber(itemDraft.qty)
+    const qtyN = clampNonNegStringToNumberOrNull(itemDraft.qty)
 
-    if (!doc_batch_code) return
-    if (!sku_name) return
-    if (qtyN == null) return
+    if (!doc_batch_code) return alert("DOC Batch Code is required.")
+    if (!sku_name) return alert("SKU Name is required.")
+    if (qtyN == null) return alert("Qty is required.")
 
     setItems((prev) => [
       ...prev,
@@ -193,12 +222,12 @@ export default function DocdispatchForm() {
     setItems((prev) => prev.filter((_, i) => i !== idx))
   }
 
-  async function onSubmit() {
-    // Basic validations
-    if (!form.doc_date) return
-    if (!form.dr_no.trim()) return
-    if (!form.farm_name.trim()) return
-    if (!items.length) return
+  async function onSave() {
+    // basic validations
+    if (!form.doc_date) return alert("Date is required.")
+    if (!form.dr_no.trim()) return alert("Delivery Receipt No. is required.")
+    if (!form.farm_name.trim()) return alert("Farm Name is required.")
+    if (!items.length) return alert("Please add at least 1 item.")
 
     setSaving(true)
     try {
@@ -209,17 +238,18 @@ export default function DocdispatchForm() {
         hauler_name: form.hauler_name.trim() || null,
         hauler_plate_no: form.hauler_plate_no.trim() || null,
         truck_seal_no: form.truck_seal_no.trim() || null,
-        chick_van_temp_c: toNonNegNumber(form.chick_van_temp_c),
-        number_of_fans: toNonNegNumber(form.number_of_fans),
+        chick_van_temp_c: clampNonNegStringToNumberOrNull(form.chick_van_temp_c),
+        number_of_fans: clampNonNegStringToNumberOrNull(form.number_of_fans),
         remarks: form.remarks.trim() || null,
         items,
       }
 
-      if (isEdit) {
-        const id = Number(idParam)
-        await updateDispatchDoc(id, payload)
+      if (isEdit && editId) {
+        await updateDispatchDoc(editId, payload)
+        alert("Updated successfully.")
       } else {
         await createDispatchDoc(payload)
+        alert("Saved successfully.")
       }
 
       router.push("/a_baja/docdispatch")
@@ -233,22 +263,20 @@ export default function DocdispatchForm() {
   }
 
   return (
-    <div className="space-y-4 mt-4">
+    <div className="space-y-4 mt-8">
       <Breadcrumb
         SecondPreviewPageName="Hatchery"
-        FirstPreviewsPageName="Egg Setter List"
+        FirstPreviewsPageName="DOC Dispatch"
         CurrentPageName={isEdit ? "Edit Delivery Receipt" : "Delivery Receipt"}
-      /> 
-      <Card className="max-w-4xl ml-0"> 
+      />
 
-        <Separator />
-
-        <CardContent className="pt-4 space-y-6">
+      <Card className="max-w-4xl ml-0 p-6"> 
+        <CardContent className="px-0 pt-4">
           {loading ? (
             <div className="text-sm text-muted-foreground">Loading...</div>
           ) : (
-            <>
-              {/* Header section (2 columns like screenshot) */}
+            <div className="space-y-6">
+              {/* Header section */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Left */}
                 <div className="space-y-4">
@@ -258,6 +286,7 @@ export default function DocdispatchForm() {
                       type="date"
                       value={form.doc_date}
                       onChange={(e) => setField("doc_date", e.target.value)}
+                      disabled={saving}
                     />
                   </div>
 
@@ -267,6 +296,7 @@ export default function DocdispatchForm() {
                       value={form.farm_name}
                       onChange={(e) => setField("farm_name", e.target.value)}
                       placeholder="BROILER FARM 1"
+                      disabled={saving}
                     />
                   </div>
 
@@ -275,9 +305,12 @@ export default function DocdispatchForm() {
                     <Select
                       value={form.hauler_plate_no}
                       onValueChange={(v) => setField("hauler_plate_no", v)}
+                      disabled={platesLoading || saving}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Select plate number" />
+                        <SelectValue
+                          placeholder={platesLoading ? "Loading..." : "Select plate number"}
+                        />
                       </SelectTrigger>
                       <SelectContent>
                         {plates.map((p) => (
@@ -293,10 +326,12 @@ export default function DocdispatchForm() {
                     <Label>Chick Van Temp</Label>
                     <Input
                       type="number"
+                      min={0}
                       value={form.chick_van_temp_c}
                       onChange={(e) => setField("chick_van_temp_c", e.target.value)}
+                      onBlur={(e) => setField("chick_van_temp_c", clampNonNegString(e.target.value))}
                       placeholder="°C"
-                      min={0}
+                      disabled={saving}
                     />
                   </div>
                 </div>
@@ -309,6 +344,7 @@ export default function DocdispatchForm() {
                       value={form.dr_no}
                       onChange={(e) => setField("dr_no", e.target.value)}
                       placeholder="DR-11XXX11"
+                      disabled={saving}
                     />
                   </div>
 
@@ -317,9 +353,10 @@ export default function DocdispatchForm() {
                     <Select
                       value={form.hauler_name}
                       onValueChange={(v) => setField("hauler_name", v)}
+                      disabled={haulersLoading || saving}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Select hauler" />
+                        <SelectValue placeholder={haulersLoading ? "Loading..." : "Select hauler"} />
                       </SelectTrigger>
                       <SelectContent>
                         {haulers.map((h) => (
@@ -337,6 +374,7 @@ export default function DocdispatchForm() {
                       value={form.truck_seal_no}
                       onChange={(e) => setField("truck_seal_no", e.target.value)}
                       placeholder=""
+                      disabled={saving}
                     />
                   </div>
 
@@ -344,10 +382,12 @@ export default function DocdispatchForm() {
                     <Label>Number of Fans</Label>
                     <Input
                       type="number"
+                      min={0}
                       value={form.number_of_fans}
                       onChange={(e) => setField("number_of_fans", e.target.value)}
+                      onBlur={(e) => setField("number_of_fans", clampNonNegString(e.target.value))}
                       placeholder=""
-                      min={0}
+                      disabled={saving}
                     />
                   </div>
                 </div>
@@ -355,7 +395,7 @@ export default function DocdispatchForm() {
 
               <Separator />
 
-              {/* Item entry row */}
+              {/* Item entry */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <div className="space-y-1">
@@ -364,6 +404,7 @@ export default function DocdispatchForm() {
                       value={itemDraft.doc_batch_code}
                       onChange={(e) => setDraft("doc_batch_code", e.target.value)}
                       placeholder="001FARM1B1P1-010126-B1%Sequence%"
+                      disabled={saving}
                     />
                   </div>
 
@@ -372,6 +413,7 @@ export default function DocdispatchForm() {
                     <Select
                       value={itemDraft.classification}
                       onValueChange={(v) => setDraft("classification", v as any)}
+                      disabled={saving}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select classification" />
@@ -385,7 +427,11 @@ export default function DocdispatchForm() {
 
                   <div className="space-y-1">
                     <Label>UoM</Label>
-                    <Select value={itemDraft.uom} onValueChange={(v) => setDraft("uom", v as any)}>
+                    <Select
+                      value={itemDraft.uom}
+                      onValueChange={(v) => setDraft("uom", v as any)}
+                      disabled={saving}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Select UoM" />
                       </SelectTrigger>
@@ -404,10 +450,12 @@ export default function DocdispatchForm() {
                     <Label>Qty</Label>
                     <Input
                       type="number"
+                      min={0}
                       value={itemDraft.qty}
                       onChange={(e) => setDraft("qty", e.target.value)}
+                      onBlur={(e) => setDraft("qty", clampNonNegString(e.target.value))}
                       placeholder=""
-                      min={0}
+                      disabled={saving}
                     />
                   </div>
 
@@ -417,12 +465,13 @@ export default function DocdispatchForm() {
                       value={itemDraft.sku_name}
                       onChange={(e) => setDraft("sku_name", e.target.value)}
                       placeholder="Class C"
+                      disabled={saving}
                     />
                   </div>
 
                   <div className="pt-6">
-                    <Button type="button" onClick={addItem}>
-                      Add Item
+                    <Button type="button" className="w-full md:w-auto h-full md:h-auto" onClick={addItem} disabled={saving}>
+                      ADD ITEM
                     </Button>
                   </div>
                 </div>
@@ -452,6 +501,7 @@ export default function DocdispatchForm() {
                           variant="destructive"
                           size="sm"
                           onClick={() => removeItem(idx)}
+                          disabled={saving}
                         >
                           Remove
                         </Button>
@@ -474,23 +524,19 @@ export default function DocdispatchForm() {
                 <Textarea
                   value={form.remarks}
                   onChange={(e) => setField("remarks", e.target.value)}
-                  placeholder="Sample remarks"
+                  placeholder=""
+                  className="border-2"
+                  disabled={saving}
                 />
               </div>
 
-              <div className="flex gap-2">
-                <Button disabled={saving} onClick={onSubmit}>
-                  {saving ? "Saving..." : "Save"}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => router.push("/a_baja/docdispatch")}
-                >
-                  Cancel
-                </Button>
-              </div>
-            </>
+              <FormActionButtons
+                saving={saving}
+                isEdit={isEdit}
+                cancelPath="/a_baja/docdispatch"
+                onSave={onSave}
+              />
+            </div>
           )}
         </CardContent>
       </Card>
