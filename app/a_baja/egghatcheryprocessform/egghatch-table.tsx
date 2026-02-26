@@ -175,7 +175,7 @@ function fmtDurationHHMM(mins: number | string | null | undefined) {
   })
 
   return (
-    <div className="rounded-md p-4">
+    <div className="rounded-md p-4 mt-4">
         <Breadcrumb
             SecondPreviewPageName="Hatchery"
             // FirstPreviewsPageName="Egg Transfer"

@@ -26,6 +26,7 @@ import {
   type HatchClassiRefOption,
 } from "./api"
 import FormActionButtons from "@/components/FormActionButtons"
+import SearchableDropdown from "@/lib/SearchableDropdown"
 
 type FormState = {
   egg_ref_no: string
@@ -189,15 +190,15 @@ export default function Prewarmingform() {
   }
 
   return (
-    <div className="space-y-4 mt-4">
+    <div className="space-y-4 mt-8">
       <Breadcrumb
         SecondPreviewPageName="Hatchery"
         FirstPreviewsPageName="Egg Pre-Warming"
         CurrentPageName={isEdit ? "Edit Entry" : "New Entry"}
       />
 
-      <Card > 
-        <CardContent className="pt-4 space-y-4">
+      <Card className="max-w-4xl ml-0 p-6 space-y-2"> 
+        <CardContent className="p-2 space-y-2"> 
           {(loading || refLoading) && (
             <div className="text-sm text-muted-foreground">
               {loading ? "Loading record..." : "Loading egg references..."}
@@ -207,7 +208,7 @@ export default function Prewarmingform() {
           {/* Row 1 */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Egg Reference No.</Label>
+              <Label>Egg Reference No.</Label> 
               <Select
                 value={form.egg_ref_no}
                 onValueChange={(v) => setForm((p) => ({ ...p, egg_ref_no: v }))}
@@ -229,8 +230,8 @@ export default function Prewarmingform() {
           </div>
           <Separator />
           {/* Row 2 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
+          <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
+            <div className="space-y-2">
               <Label>Pre-Warming Temp</Label>
               <Input
                 value={form.pre_temp}

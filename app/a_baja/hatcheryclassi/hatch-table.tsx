@@ -110,12 +110,13 @@ export default function HatchTable() {
   })
 
   return (
+   
     <div className="rounded-md p-4">
+      <br />
       <Breadcrumb
         FirstPreviewsPageName="Hatchery"
         CurrentPageName="Hatchery Classification"
       />
-      <br />
 
       {/* Top Controls */}
         <div className="flex items-center justify-between mb-4 gap-3">

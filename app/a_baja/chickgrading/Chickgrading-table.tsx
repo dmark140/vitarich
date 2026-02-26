@@ -134,9 +134,9 @@ export default function ChickgradingTable() {
   })
 
   return (
-    <div className="rounded-md p-4">
-      <Breadcrumb SecondPreviewPageName="Hatchery" CurrentPageName="Doc Classification" />
-      <br />
+    <div className="rounded-md p-4 mt-4"> 
+      <Breadcrumb SecondPreviewPageName="Hatchery" 
+      CurrentPageName="Doc Classification" /> 
 
       <div className="flex items-center justify-between mb-4 gap-3">
         <div className="flex items-center gap-3">

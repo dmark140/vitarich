@@ -145,17 +145,14 @@ export default function EggTable() {
   })
 
   return (
-    <div className="rounded-md p-4">
-      {/* Top Controls */} 
+    <div className="rounded-md p-4 mt-4"> 
           <Breadcrumb
             CurrentPageName="Egg Storage Management"
             FirstPreviewsPageName="Hatchery "
           />
-          <br />
+         
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-4">
-    
-
           <div className="relative w-72">
             <Input
               placeholder="Filter Reference No."

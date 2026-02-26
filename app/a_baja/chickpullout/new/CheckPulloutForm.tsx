@@ -1,11 +1,11 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import React, { useEffect, useMemo, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
 import {
   Select,
   SelectContent,
@@ -23,6 +23,8 @@ import {
   getEggReferenceMeta,
   updateChickPulloutProcess,
 } from "./api"
+
+import Breadcrumb from "@/lib/Breadcrumb"
 import FormActionButtons from "@/components/FormActionButtons"
 
 function num(v: any) {
@@ -31,18 +33,29 @@ function num(v: any) {
   return Math.max(0, n)
 }
 
+function clampNonNegative(value: string) {
+  const n = Number(value)
+  if (!Number.isFinite(n)) return 0
+  return Math.max(0, n)
+}
+
 export default function CheckPulloutForm() {
   const router = useRouter()
   const sp = useSearchParams()
   const idParam = sp.get("id")
-  const editId = idParam ? Number(idParam) : null
 
+  const editId = useMemo(() => (idParam ? Number(idParam) : null), [idParam])
+  const isEdit = !!editId
+
+  const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
+
   const [eggRefs, setEggRefs] = useState<string[]>([])
+  const [eggRefsLoading, setEggRefsLoading] = useState(false)
 
   const [form, setForm] = useState<Partial<ChickPulloutProcess>>({
     egg_ref_no: "",
-    chick_hatch_ref_no: "", // auto: we can mirror egg ref or keep blank
+    chick_hatch_ref_no: "",
     farm_source: "",
     machine_no: "",
     hatch_date: "",
@@ -51,41 +64,51 @@ export default function CheckPulloutForm() {
     hatch_window: 0,
   })
 
-  function clampNonNegative(value: string) {
-  // allow empty while typing if you want; but you said "return to 0"
-  const n = Number(value)
-  if (!Number.isFinite(n)) return 0
-  return Math.max(0, n)
-}
-
-function onNumChange<K extends keyof ChickPulloutProcess>(key: K) {
-  return (e: React.ChangeEvent<HTMLInputElement>) => {
-    const v = clampNonNegative(e.target.value)
-    setForm((p) => ({ ...p, [key]: v }))
+  function setField<K extends keyof ChickPulloutProcess>(
+    key: K,
+    value: ChickPulloutProcess[K]
+  ) {
+    setForm((p) => ({ ...p, [key]: value }))
   }
-}
 
+  function onNumChange<K extends keyof ChickPulloutProcess>(key: K) {
+    return (e: React.ChangeEvent<HTMLInputElement>) => {
+      const v = clampNonNegative(e.target.value)
+      setForm((p) => ({ ...p, [key]: v as any }))
+    }
+  }
 
-  // Load dropdown + edit record
+  // ✅ load dropdown options
   useEffect(() => {
+    let alive = true
     ;(async () => {
+      setEggRefsLoading(true)
       try {
         const refs = await listEggReferences()
+        if (!alive) return
         setEggRefs(refs)
-      } catch (e: any) {
+      } catch (e) {
         console.error(e)
+        if (!alive) return
+        setEggRefs([])
+      } finally {
+        if (alive) setEggRefsLoading(false)
       }
     })()
+    return () => {
+      alive = false
+    }
   }, [])
 
+  // ✅ load edit record
   useEffect(() => {
     if (!editId) return
+    setLoading(true)
     ;(async () => {
       try {
         const rec = await getChickPulloutProcessById(editId)
         setForm({
           ...rec,
-          // ensure strings
           egg_ref_no: rec.egg_ref_no ?? "",
           chick_hatch_ref_no: rec.chick_hatch_ref_no ?? "",
           farm_source: rec.farm_source ?? "",
@@ -95,24 +118,27 @@ function onNumChange<K extends keyof ChickPulloutProcess>(key: K) {
           dead_in_shell: rec.dead_in_shell ?? 0,
           hatch_window: rec.hatch_window ?? 0,
         })
-      } catch (e) {
-        console.error(e)
+      } catch (e: any) {
+        alert(e?.message ?? "Failed to load record.")
+      } finally {
+        setLoading(false)
       }
     })()
   }, [editId])
 
-  // When egg_ref changes: auto-fill farm/machine/hatch_window, and auto set chick_hatch_ref_no
+  // ✅ when egg_ref changes: auto mirror + auto meta
   useEffect(() => {
-    const egg = form.egg_ref_no?.trim()
+    const egg = (form.egg_ref_no ?? "").trim()
     if (!egg) return
 
-    // auto mirror
+    // mirror chick hatch ref
     setForm((p) => ({ ...p, chick_hatch_ref_no: egg }))
 
+    let alive = true
     ;(async () => {
       try {
         const meta = await getEggReferenceMeta(egg)
-        if (!meta) return
+        if (!alive || !meta) return
         setForm((p) => ({
           ...p,
           farm_source: meta.farm_source ?? "",
@@ -123,6 +149,10 @@ function onNumChange<K extends keyof ChickPulloutProcess>(key: K) {
         console.error(e)
       }
     })()
+
+    return () => {
+      alive = false
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.egg_ref_no])
 
@@ -141,28 +171,34 @@ function onNumChange<K extends keyof ChickPulloutProcess>(key: K) {
   }, [fertileTotal, form.dead_in_shell])
 
   async function onSave() {
-    try {
-      setSaving(true)
+    if (!(form.egg_ref_no ?? "").trim()) {
+      alert("Egg Reference No. is required.")
+      return
+    }
 
+    setSaving(true)
+    try {
       const payload: Partial<ChickPulloutProcess> = {
         egg_ref_no: form.egg_ref_no?.trim() || null,
         chick_hatch_ref_no: form.chick_hatch_ref_no?.trim() || null,
         farm_source: form.farm_source?.trim() || null,
         machine_no: form.machine_no?.trim() || null,
         hatch_date: form.hatch_date || null,
+
         chicks_hatched: num(form.chicks_hatched),
         dead_in_shell: num(form.dead_in_shell),
         hatch_window: num(form.hatch_window),
 
-        // store computed (rounded)
         hatch_fertile: Math.round(hatchOfFertile * 100) / 100,
         mortality_rate: Math.round(mortalityRate * 100) / 100,
       }
 
-      if (editId) {
+      if (isEdit && editId) {
         await updateChickPulloutProcess(editId, payload)
+        alert("Updated successfully.")
       } else {
         await createChickPulloutProcess(payload as ChickPulloutProcess)
+        alert("Saved successfully.")
       }
 
       router.push("/a_baja/chickpullout")
@@ -176,138 +212,136 @@ function onNumChange<K extends keyof ChickPulloutProcess>(key: K) {
   }
 
   return (
-    <Card className="max-w-xl">
-      <CardHeader>
-        <CardTitle>Chick Pullout Process</CardTitle>
-      </CardHeader>
+    <div className="space-y-4 mt-8">
+      <Breadcrumb
+        SecondPreviewPageName="Hatchery"
+        FirstPreviewsPageName="Chick Pullout Process"
+        CurrentPageName={isEdit ? "Edit Record" : "New Entry"}
+      />
 
-      <Separator />
+      <Card className="max-w-3xl ml-0 p-6">
+        <CardContent className="px-0 pt-4">
+          {loading ? (
+            <div className="text-sm text-muted-foreground">Loading...</div>
+          ) : (
+            <div className="space-y-4">
+              {/* Reference */}
+              <div className="space-y-1">
+                <Label>Egg Reference No.</Label>
+                <Select
+                  value={form.egg_ref_no ?? ""}
+                  onValueChange={(v) => setField("egg_ref_no", v as any)}
+                  disabled={eggRefsLoading || saving}
+                >
+                  <SelectTrigger>
+                    <SelectValue
+                      placeholder={
+                        eggRefsLoading ? "Loading..." : "Select egg reference..."
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {eggRefs.map((r) => (
+                      <SelectItem key={r} value={r}>
+                        {r}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-      <CardContent className="pt-4 space-y-3">
-        {/* EGG REFERENCE */}
-        <div className="space-y-1">
-          <Label>Egg Refference No.</Label>
-          <Select
-            value={form.egg_ref_no ?? ""}
-            onValueChange={(v) => setForm((p) => ({ ...p, egg_ref_no: v }))}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select egg reference..." />
-            </SelectTrigger>
-            <SelectContent>
-              {eggRefs.map((r) => (
-                <SelectItem key={r} value={r}>
-                  {r}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+              <Separator />
 
-        {/* CHICK HATCHED REFERENCE (AUTO) */}
-        <div className="space-y-1">
-          <Label>Chick Hatch Ref. No.</Label>
-          <Input value={form.chick_hatch_ref_no ?? ""} disabled />
-        </div>
+              {/* AUTO fields */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <Label>Chick Hatch Ref. No.</Label>
+                  <Input value={form.chick_hatch_ref_no ?? ""} disabled />
+                </div>
 
-        {/* FARM SOURCE */}
-        <div className="space-y-1">
-          <Label>Farm Source</Label>
-          <Input value={form.farm_source ?? ""} disabled placeholder="AUTO" />
-        </div>
+                <div className="space-y-1">
+                  <Label>Hatch Window</Label>
+                  <Input value={String(form.hatch_window ?? 0)} disabled />
+                </div>
 
-        {/* MACHINE NUMBER */}
-        <div className="space-y-1">
-          <Label>Machine Number</Label>
-          <Input value={form.machine_no ?? ""} disabled placeholder="AUTO" />
-        </div>
+                <div className="space-y-1">
+                  <Label>Farm Source</Label>
+                  <Input value={form.farm_source ?? ""} disabled placeholder="" />
+                </div>
 
-        {/* DATE Hatch */}
-        <div className="space-y-1">
-          <Label>Date Hatch</Label>
-          <Input
-            type="date"
-            value={form.hatch_date ?? ""}
-            onChange={(e) => setForm((p) => ({ ...p, hatch_date: e.target.value }))}
-          />
-        </div>
+                <div className="space-y-1">
+                  <Label>Machine Number</Label>
+                  <Input value={form.machine_no ?? ""} disabled placeholder="" />
+                </div>
+              </div>
 
-        {/* CHICKS HATCHED */}
-        <div className="space-y-1">
-          <Label>Chick Hatched</Label>
-          <Input
-            type="number"
-            min={0}
-            value={String(form.chicks_hatched ?? 0)}
-            onChange={onNumChange("chicks_hatched")}
-            onBlur={(e) => {
-              // force to 0 if somehow left blank/negative
-              const v = clampNonNegative(e.target.value)
-              e.currentTarget.value = String(v)
-              setForm((p) => ({ ...p, chicks_hatched: v }))
-            }}
-          />
-        </div>
-
-        {/* DEAD -IN- SHELL */}
-        <div className="space-y-1">
-          <Label>Dead -In- Shell</Label>
-          <Input
-            type="number"
-            min={0}
-            value={String(form.dead_in_shell ?? 0)}
-            onChange={onNumChange("dead_in_shell")}
-            onBlur={(e) => {
-              const v = clampNonNegative(e.target.value)
-              e.currentTarget.value = String(v)
-              setForm((p) => ({ ...p, dead_in_shell: v }))
-            }}
-          />
-        </div>
-
-
-        {/* HATCH OF FERTILE (AUTO) */}
-        <div className="space-y-1">
-          <Label>Hatch Of Fertile</Label>
-          <Input value={`${hatchOfFertile.toFixed(2)} %`} disabled />
-        </div>
-
-        {/* HATCH WINDOW (AUTO) */}
-        <div className="space-y-1">
-          <Label>Hatch Window</Label>
-          <Input value={String(form.hatch_window ?? 0)} disabled />
-        </div>
-
-        {/* MORTALITY RATE (AUTO) */}
-        <div className="space-y-1">
-          <Label>Mortality Rate</Label>
-          <Input value={`${mortalityRate.toFixed(2)} %`} disabled />
-        </div>
-       {/* Actions */}
-                <FormActionButtons
-                  saving={saving}
-                  // isEdit={isEdit}
-                  // disabled={disabledAll}
-                  cancelPath="/a_baja/chickpullout"
-                  onSave={onSave}
+              {/* Date */}
+              <div className="space-y-1">
+                <Label>Date Hatch</Label>
+                <Input
+                  type="date"
+                  value={form.hatch_date ?? ""}
+                  onChange={(e) => setField("hatch_date", e.target.value as any)}
                 />
-                
-        {/* <div className="flex gap-2 pt-2">
-          <Button onClick={onSave} disabled={saving} className="w-32">
-            {saving ? "Saving..." : "Save"}
-          </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() => router.push("/a_baja/chickpullout")}
-            className="w-32"
-          >
-            Cancel
-          </Button>
-        </div> */}
+              </div>
 
+              {/* Numbers */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <Label>Chick Hatched</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    value={String(form.chicks_hatched ?? 0)}
+                    onChange={onNumChange("chicks_hatched")}
+                    onBlur={(e) => {
+                      const v = clampNonNegative(e.target.value)
+                      e.currentTarget.value = String(v)
+                      setForm((p) => ({ ...p, chicks_hatched: v }))
+                    }}
+                  />
+                </div>
 
-      </CardContent>
-    </Card>
+                <div className="space-y-1">
+                  <Label>Dead -In- Shell</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    value={String(form.dead_in_shell ?? 0)}
+                    onChange={onNumChange("dead_in_shell")}
+                    onBlur={(e) => {
+                      const v = clampNonNegative(e.target.value)
+                      e.currentTarget.value = String(v)
+                      setForm((p) => ({ ...p, dead_in_shell: v }))
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Computed */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <Label>Hatch Of Fertile</Label>
+                  <Input value={`${hatchOfFertile.toFixed(2)} %`} disabled />
+                </div>
+
+                <div className="space-y-1">
+                  <Label>Mortality Rate</Label>
+                  <Input value={`${mortalityRate.toFixed(2)} %`} disabled />
+                </div>
+              </div>
+
+              {/* Actions */}
+              <FormActionButtons
+                saving={saving}
+                isEdit={isEdit}
+                cancelPath="/a_baja/chickpullout"
+                onSave={onSave}
+              />
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   )
 }

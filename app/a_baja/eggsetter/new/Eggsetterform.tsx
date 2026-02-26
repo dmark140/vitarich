@@ -266,11 +266,11 @@ export default function Eggsetterform() {
   const disabledAll = saving || loadingRecord
 
   return (
-    <div className="space-y-4 mt-4">
+    <div className="space-y-4 mt-8">
       <Breadcrumb
         SecondPreviewPageName="Hatchery"
         FirstPreviewsPageName="Egg Setter List"
-        CurrentPageName={isEdit ? "Edit Entry" : "New Entry"}
+        CurrentPageName={isEdit ? "Edit Entry" : "New Egg Setter"}
       />
 
       <Card className="max-w-4xl ml-0">
@@ -312,9 +312,7 @@ export default function Eggsetterform() {
                 <Input value={form.total_eggs} readOnly placeholder="" disabled />
               </div>
             </div>
-          </div>
-
-          <Separator />
+          </div> 
 
           {/* SECTION 2 */}
           <div className="rounded-md border p-4 space-y-3">

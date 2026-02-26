@@ -167,14 +167,14 @@ export default function Eggstorageform() {
   }
 
   return (
-    <Card className="max-w-6xl ml-0 p-6 space-y-2">
+
+    <div className="space-y-4 mt-8"> 
       <Breadcrumb
         FirstPreviewsPageName="Egg Storage Management"
         SecondPreviewPageName="Hatchery "
         CurrentPageName={isEdit ? "Edit Record" : "New Record"}
       />
-      <Separator />
-
+      <Card className="max-w-6xl ml-0 p-6 space-y-2"> 
       <CardContent className="p-2 space-y-2">
         {loading ? (
           <div className="text-sm text-muted-foreground">Loading...</div>
@@ -200,7 +200,7 @@ export default function Eggstorageform() {
                 </SelectContent>
               </Select>
             </div>
-
+            <Separator />
             {/* TEMPS / HUMI */}
             <div className="grid grid-cols-1 md:grid-cols-1 gap-2">
               <div className="grid grid-cols-1 gap-2">
@@ -283,23 +283,10 @@ export default function Eggstorageform() {
                               cancelPath="/a_baja/eggstorage"
                               onSave={onSave}
                             />
-                            
-            {/* <div className="flex gap-2 justify-end">
-              <Button type="button" onClick={onSave} disabled={saving}>
-                {saving ? "Saving..." : isEdit ? "Update" : "Save"}
-              </Button>
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() => router.push("/a_baja/eggstorage")}
-                disabled={saving}
-              >
-                Cancel
-              </Button>
-            </div> */}
           </>
         )}
       </CardContent>
     </Card>
+    </div>
   )
 }

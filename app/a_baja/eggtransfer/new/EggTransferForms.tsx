@@ -202,7 +202,7 @@ export default function EggTransferForm() {
   }
 
   return (
-    <div className="mt-5 space-y-4">
+    <div className="mt-8 space-y-4">
       <Breadcrumb
         SecondPreviewPageName="Hatchery"
         FirstPreviewsPageName="Egg Transfer"
@@ -210,9 +210,9 @@ export default function EggTransferForm() {
       />
 
       <Card className="max-w-3xl ml-0">
-        <CardHeader>
+        {/* <CardHeader>
           <CardTitle>{isEdit ? "Edit Egg Transfer" : "Egg Transfer"}</CardTitle>
-        </CardHeader>
+        </CardHeader> */}
 
         <CardContent className="pt-2 space-y-4">
           {loading ? (
@@ -319,22 +319,7 @@ export default function EggTransferForm() {
                   // disabled={disabledAll}
                   cancelPath="/a_baja/eggtransfer"
                   onSave={onSave}
-                />
-              
-              {/* <div className="flex items-center justify-end gap-2 pt-2">
-                <Button type="button" onClick={onSave} disabled={saving}>
-                  {saving ? "Saving..." : "Save"}
-                </Button>
-
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => router.push("/a_baja/eggtransfer")}
-                  disabled={saving}
-                >
-                  Cancel
-                </Button>
-              </div> */}
+                /> 
             </>
           )}
         </CardContent>

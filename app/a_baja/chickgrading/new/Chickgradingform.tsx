@@ -1,12 +1,11 @@
 "use client"
 
-import { useEffect, useMemo, useState, type ChangeEvent } from "react"
+import React, { useEffect, useMemo, useState, type ChangeEvent } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import {
   Select,
@@ -23,6 +22,8 @@ import {
   listEggReferences,
   updateChickGradingProcess,
 } from "./api"
+
+import Breadcrumb from "@/lib/Breadcrumb"
 import FormActionButtons from "@/components/FormActionButtons"
 
 // non-negative number helper (handles NaN, null, undefined)
@@ -52,17 +53,20 @@ export default function Chickgradingform() {
   const router = useRouter()
   const sp = useSearchParams()
   const idParam = sp.get("id")
-  const editId = idParam ? Number(idParam) : null
 
+  const editId = useMemo(() => (idParam ? Number(idParam) : null), [idParam])
+  const isEdit = !!editId
+
+  const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [eggRefs, setEggRefs] = useState<string[]>([])
 
-  /**
-   * IMPORTANT FIX:
-   * - generated fields must be NULL initially, otherwise UI shows "0" and never falls back to preview
-   * - include class_c in state (you said it exists in schema)
-   */
-  const [form, setForm] = useState<Partial<ChickGradingProcess>>({
+  const [eggRefs, setEggRefs] = useState<string[]>([])
+  const [eggRefsLoading, setEggRefsLoading] = useState(false)
+
+  // NOTE:
+  // - keep computed fields NULL initially so previews show until DB value exists
+  // - include class_c
+  const [form, setForm] = useState<Partial<ChickGradingProcess> & { class_c?: any }>({
     egg_ref_no: "",
     batch_code: "",
     grading_datetime: new Date().toISOString(),
@@ -84,55 +88,69 @@ export default function Chickgradingform() {
 
     chick_room_temperature: null,
 
-    // generated fields (read-only) -> NULL so preview can display until DB computed values are loaded
+    // generated/read-only -> NULL initially
     total_chicks: null,
     good_quality_chicks: null,
     quality_grade_rate: null,
     cull_rate: null,
   })
 
-  function onNumChange<K extends keyof ChickGradingProcess>(key: K) {
+  function setField<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
+    setForm((p) => ({ ...p, [key]: value }))
+  }
+
+  function onNumChange(key: keyof typeof form) {
     return (e: ChangeEvent<HTMLInputElement>) => {
       const v = clampNonNegative(e.target.value)
-      setForm((p) => ({ ...p, [key]: v }))
+      setForm((p) => ({ ...p, [key]: v as any }))
     }
   }
 
-  function onNumBlur<K extends keyof ChickGradingProcess>(key: K) {
+  function onNumBlur(key: keyof typeof form) {
     return (e: ChangeEvent<HTMLInputElement>) => {
       const v = clampNonNegative(e.target.value)
       e.currentTarget.value = String(v)
-      setForm((p) => ({ ...p, [key]: v }))
+      setForm((p) => ({ ...p, [key]: v as any }))
     }
   }
 
-  // load dropdown
+  // ✅ load dropdown (like EggHatchform)
   useEffect(() => {
+    let alive = true
     ;(async () => {
+      setEggRefsLoading(true)
       try {
-        setEggRefs(await listEggReferences())
+        const refs = await listEggReferences()
+        if (!alive) return
+        setEggRefs(refs)
       } catch (e) {
         console.error(e)
+        if (!alive) return
+        setEggRefs([])
+      } finally {
+        if (alive) setEggRefsLoading(false)
       }
     })()
+    return () => {
+      alive = false
+    }
   }, [])
 
-  // load for edit
+  // ✅ load edit record (like EggHatchform)
   useEffect(() => {
     if (!editId) return
+    setLoading(true)
     ;(async () => {
       try {
         const rec = await getChickGradingProcessById(editId)
 
         setForm({
           ...rec,
-
-          // normalize strings
           egg_ref_no: rec.egg_ref_no ?? "",
           batch_code: rec.batch_code ?? "",
           grading_personnel: rec.grading_personnel ?? "",
+          grading_datetime: rec.grading_datetime ?? new Date().toISOString(),
 
-          // normalize numbers (avoid undefined)
           class_a: n(rec.class_a),
           class_b: n(rec.class_b),
           class_a_junior: n(rec.class_a_junior),
@@ -147,17 +165,21 @@ export default function Chickgradingform() {
           unhatched: n(rec.unhatched),
           rotten: n(rec.rotten),
 
-          // keep computed fields from DB (if your view/trigger fills them)
+          // keep computed fields from DB if present
           total_chicks: rec.total_chicks ?? null,
           good_quality_chicks: rec.good_quality_chicks ?? null,
           quality_grade_rate: rec.quality_grade_rate ?? null,
           cull_rate: rec.cull_rate ?? null,
 
           chick_room_temperature:
-            rec.chick_room_temperature === undefined ? null : rec.chick_room_temperature ?? null,
+            rec.chick_room_temperature === undefined
+              ? null
+              : rec.chick_room_temperature ?? null,
         })
-      } catch (e) {
-        console.error(e)
+      } catch (e: any) {
+        alert(e?.message ?? "Failed to load record.")
+      } finally {
+        setLoading(false)
       }
     })()
   }, [editId])
@@ -210,12 +232,13 @@ export default function Chickgradingform() {
   }, [totalChicksPreview, form.cull_chicks])
 
   async function onSave() {
-    try {
-      setSaving(true)
+    if (!(form.egg_ref_no ?? "").trim()) {
+      alert("Egg Reference No. is required.")
+      return
+    }
 
-      // IMPORTANT FIX:
-      // - include class_c in payload (you said it exists)
-      // - do NOT send generated fields (total_chicks/good_quality_chicks/quality rates)
+    setSaving(true)
+    try {
       const payload: any = {
         egg_ref_no: form.egg_ref_no?.trim() || null,
         batch_code: (form.batch_code ?? "").trim(),
@@ -242,8 +265,13 @@ export default function Chickgradingform() {
             : Number(form.chick_room_temperature),
       }
 
-      if (editId) await updateChickGradingProcess(editId, payload)
-      else await createChickGradingProcess(payload)
+      if (isEdit && editId) {
+        await updateChickGradingProcess(editId, payload)
+        alert("Updated successfully.")
+      } else {
+        await createChickGradingProcess(payload)
+        alert("Saved successfully.")
+      }
 
       router.push("/a_baja/chickgrading")
       router.refresh()
@@ -256,304 +284,295 @@ export default function Chickgradingform() {
   }
 
   return (
-    <Card className="max-w-5xl">
-      <CardHeader>
-        <CardTitle>Chick grading process</CardTitle>
-      </CardHeader>
+    <div className="space-y-4 mt-8">
+      <Breadcrumb
+        SecondPreviewPageName="Hatchery"
+        FirstPreviewsPageName="DOC Classification"
+        CurrentPageName={isEdit ? "Edit Entry" : "New DOC Classification"}
+      />
 
-      <Separator />
+      <Card className="max-w-5xl ml-0 p-6">  
+        <CardContent className="px-0 pt-4">
+          {loading ? (
+            <div className="text-sm text-muted-foreground">Loading...</div>
+          ) : (
+            <div className="space-y-4">
+              {/* Top row */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <div className="space-y-1">
+                    <Label>Egg Reference No.</Label>
+                    <Select
+                      value={form.egg_ref_no ?? ""}
+                      onValueChange={(v) => setField("egg_ref_no", v)}
+                      disabled={eggRefsLoading || saving}
+                    >
+                      <SelectTrigger>
+                        <SelectValue
+                          placeholder={eggRefsLoading ? "Loading..." : "Select Egg Ref. No."}
+                        />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {eggRefs.map((r) => (
+                          <SelectItem key={r} value={r}>
+                            {r}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-      <CardContent className="pt-4 space-y-4">
-        {/* Top row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Left */}
-          <div className="space-y-3">
-            <div className="space-y-1">
-              <Label>Egg Reference No.</Label>
-              <Select
-                value={form.egg_ref_no ?? ""}
-                onValueChange={(v) => setForm((p) => ({ ...p, egg_ref_no: v }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Egg Ref. No." />
-                </SelectTrigger>
-                <SelectContent>
-                  {eggRefs.map((r) => (
-                    <SelectItem key={r} value={r}>
-                      {r}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+                  <div className="space-y-1">
+                    <Label>Batch code</Label>
+                    <Input
+                      value={form.batch_code ?? ""}
+                      onChange={(e) => setField("batch_code", e.target.value)}
+                      placeholder="Enter batch code"
+                      disabled={saving}
+                    />
+                  </div>
+                </div>
 
-            <div className="space-y-1">
-              <Label>Batch code</Label>
-              <Input
-                value={form.batch_code ?? ""}
-                onChange={(e) => setForm((p) => ({ ...p, batch_code: e.target.value }))}
-                placeholder="Enter batch code"
-              />
-            </div>
-          </div>
+                <div className="space-y-3">
+                  <div className="space-y-1">
+                    <Label>Grading date & time</Label>
+                    <Input value={fmtDT(form.grading_datetime)} disabled />
+                  </div>
 
-          {/* Right */}
-          <div className="space-y-3">
-            <div className="space-y-1">
-              <Label>Grading date & time</Label>
-              <Input value={fmtDT(form.grading_datetime)} disabled />
-            </div>
-
-            <div className="space-y-1">
-              <Label>Total chicks</Label>
-              <Input
-                value={
-                  form.total_chicks !== null && form.total_chicks !== undefined
-                    ? String(form.total_chicks)
-                    : String(totalChicksPreview)
-                }
-                disabled
-              />
-            </div>
-          </div>
-        </div>
-
-        <Separator />
-
-        {/* Middle grid like photo */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-          {/* Left column */}
-          <div className="space-y-4">
-            <div className="grid gap-3">
-              <div className="space-y-1">
-                <Label>Quality: class A</Label>
-                <Input
-                  type="number"
-                  min={0}
-                  value={String(form.class_a ?? 0)}
-                  onChange={onNumChange("class_a")}
-                  onBlur={onNumBlur("class_a")}
-                />
+                  <div className="space-y-1">
+                    <Label>Total Chicks</Label>
+                    <Input
+                      value={
+                        form.total_chicks !== null && form.total_chicks !== undefined
+                          ? String(form.total_chicks)
+                          : String(totalChicksPreview)
+                      }
+                      disabled
+                    />
+                  </div>
+                </div>
               </div>
 
-              <div className="space-y-1">
-                <Label>Quality: class A junior</Label>
-                <Input
-                  type="number"
-                  min={0}
-                  value={String(form.class_a_junior ?? 0)}
-                  onChange={onNumChange("class_a_junior")}
-                  onBlur={onNumBlur("class_a_junior")}
-                />
+              <Separator />
+
+              {/* Middle grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                {/* Left column */}
+                <div className="space-y-4">
+                  <div className="grid gap-3">
+                    <div className="space-y-1">
+                      <Label>Quality: Class A</Label>
+                      <Input
+                        type="number"
+                        min={0}
+                        value={String(form.class_a ?? 0)}
+                        onChange={onNumChange("class_a")}
+                        onBlur={onNumBlur("class_a")}
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label>Quality: Class A Junior</Label>
+                      <Input
+                        type="number"
+                        min={0}
+                        value={String(form.class_a_junior ?? 0)}
+                        onChange={onNumChange("class_a_junior")}
+                        onBlur={onNumBlur("class_a_junior")}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid gap-3">
+                    <div className="space-y-1">
+                      <Label>Infertile</Label>
+                      <Input
+                        type="number"
+                        min={0}
+                        value={String(form.infertile ?? 0)}
+                        onChange={onNumChange("infertile")}
+                        onBlur={onNumBlur("infertile")}
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label>Live Pip</Label>
+                      <Input
+                        type="number"
+                        min={0}
+                        value={String(form.live_pip ?? 0)}
+                        onChange={onNumChange("live_pip")}
+                        onBlur={onNumBlur("live_pip")}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid gap-3">
+                    <div className="space-y-1">
+                      <Label>Cull Chicks</Label>
+                      <Input
+                        type="number"
+                        min={0}
+                        value={String(form.cull_chicks ?? 0)}
+                        onChange={onNumChange("cull_chicks")}
+                        onBlur={onNumBlur("cull_chicks")}
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label>Unhatched</Label>
+                      <Input
+                        type="number"
+                        min={0}
+                        value={String(form.unhatched ?? 0)}
+                        onChange={onNumChange("unhatched")}
+                        onBlur={onNumBlur("unhatched")}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right column */}
+                <div className="space-y-4">
+                  <div className="grid gap-3">
+                    <div className="space-y-1">
+                      <Label>Quality: Class B</Label>
+                      <Input
+                        type="number"
+                        min={0}
+                        value={String(form.class_b ?? 0)}
+                        onChange={onNumChange("class_b")}
+                        onBlur={onNumBlur("class_b")}
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label>Quality: Class C</Label>
+                      <Input
+                        type="number"
+                        min={0}
+                        value={String((form as any).class_c ?? 0)}
+                        onChange={onNumChange("class_c")}
+                        onBlur={onNumBlur("class_c")}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid gap-3">
+                    <div className="space-y-1">
+                      <Label>Dead Chicks</Label>
+                      <Input
+                        type="number"
+                        min={0}
+                        value={String(form.dead_chicks ?? 0)}
+                        onChange={onNumChange("dead_chicks")}
+                        onBlur={onNumBlur("dead_chicks")}
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label>Dead Germ</Label>
+                      <Input
+                        type="number"
+                        min={0}
+                        value={String(form.dead_germ ?? 0)}
+                        onChange={onNumChange("dead_germ")}
+                        onBlur={onNumBlur("dead_germ")}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid gap-3">
+                    <div className="space-y-1">
+                      <Label>Dead Pip</Label>
+                      <Input
+                        type="number"
+                        min={0}
+                        value={String(form.dead_pip ?? 0)}
+                        onChange={onNumChange("dead_pip")}
+                        onBlur={onNumBlur("dead_pip")}
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label>Rotten</Label>
+                      <Input
+                        type="number"
+                        min={0}
+                        value={String(form.rotten ?? 0)}
+                        onChange={onNumChange("rotten")}
+                        onBlur={onNumBlur("rotten")}
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
 
-            <div className="grid gap-3">
-              <div className="space-y-1">
-                <Label>Infertile</Label>
-                <Input
-                  type="number"
-                  min={0}
-                  value={String(form.infertile ?? 0)}
-                  onChange={onNumChange("infertile")}
-                  onBlur={onNumBlur("infertile")}
-                />
+              <Separator />
+
+              {/* Bottom section */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-3">
+                  <div className="space-y-1">
+                    <Label>Good quality chicks</Label>
+                    <Input
+                      value={
+                        form.good_quality_chicks !== null && form.good_quality_chicks !== undefined
+                          ? String(form.good_quality_chicks)
+                          : String(goodQualityPreview)
+                      }
+                      disabled
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label>Quality grade rate %</Label>
+                    <Input
+                      value={
+                        form.quality_grade_rate !== null && form.quality_grade_rate !== undefined
+                          ? String(form.quality_grade_rate)
+                          : qualityRatePreview
+                      }
+                      disabled
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="space-y-1">
+                    <Label>Grading personnel</Label>
+                    <Input
+                      value={form.grading_personnel ?? ""}
+                      onChange={(e) => setField("grading_personnel", e.target.value)}
+                      placeholder="Enter name"
+                      disabled={saving}
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label>Cull rate %</Label>
+                    <Input
+                      value={
+                        form.cull_rate !== null && form.cull_rate !== undefined
+                          ? String(form.cull_rate)
+                          : cullRatePreview
+                      }
+                      disabled
+                    />
+                  </div>
+                </div>
               </div>
-
-              <div className="space-y-1">
-                <Label>Live pip</Label>
-                <Input
-                  type="number"
-                  min={0}
-                  value={String(form.live_pip ?? 0)}
-                  onChange={onNumChange("live_pip")}
-                  onBlur={onNumBlur("live_pip")}
-                />
-              </div>
-            </div>
-
-            <div className="grid gap-3">
-              <div className="space-y-1">
-                <Label>Cull chicks</Label>
-                <Input
-                  type="number"
-                  min={0}
-                  value={String(form.cull_chicks ?? 0)}
-                  onChange={onNumChange("cull_chicks")}
-                  onBlur={onNumBlur("cull_chicks")}
-                />
-              </div>
-
-              <div className="space-y-1">
-                <Label>Unhatched</Label>
-                <Input
-                  type="number"
-                  min={0}
-                  value={String(form.unhatched ?? 0)}
-                  onChange={onNumChange("unhatched")}
-                  onBlur={onNumBlur("unhatched")}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Right column */}
-          <div className="space-y-4">
-            <div className="grid gap-3">
-              <div className="space-y-1">
-                <Label>Quality: class B</Label>
-                <Input
-                  type="number"
-                  min={0}
-                  value={String(form.class_b ?? 0)}
-                  onChange={onNumChange("class_b")}
-                  onBlur={onNumBlur("class_b")}
-                />
-              </div>
-
-              <div className="space-y-1">
-                <Label>Quality: class C</Label>
-                <Input
-                  type="number"
-                  min={0}
-                  value={String((form as any).class_c ?? 0)}
-                  onChange={onNumChange("class_c" as any)}
-                  onBlur={onNumBlur("class_c" as any)}
-                />
-              </div>
-            </div>
-
-            <div className="grid gap-3">
-              <div className="space-y-1">
-                <Label>Dead chicks</Label>
-                <Input
-                  type="number"
-                  min={0}
-                  value={String(form.dead_chicks ?? 0)}
-                  onChange={onNumChange("dead_chicks")}
-                  onBlur={onNumBlur("dead_chicks")}
-                />
-              </div>
-
-              <div className="space-y-1">
-                <Label>Dead germ</Label>
-                <Input
-                  type="number"
-                  min={0}
-                  value={String(form.dead_germ ?? 0)}
-                  onChange={onNumChange("dead_germ")}
-                  onBlur={onNumBlur("dead_germ")}
-                />
-              </div>
-            </div>
-
-            <div className="grid gap-3">
-              <div className="space-y-1">
-                <Label>Dead pip</Label>
-                <Input
-                  type="number"
-                  min={0}
-                  value={String(form.dead_pip ?? 0)}
-                  onChange={onNumChange("dead_pip")}
-                  onBlur={onNumBlur("dead_pip")}
-                />
-              </div>
-
-              <div className="space-y-1">
-                <Label>Rotten</Label>
-                <Input
-                  type="number"
-                  min={0}
-                  value={String(form.rotten ?? 0)}
-                  onChange={onNumChange("rotten")}
-                  onBlur={onNumBlur("rotten")}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <Separator />
-
-        {/* Bottom section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Left bottom */}
-          <div className="space-y-3">
-            <div className="space-y-1">
-              <Label>Good quality chicks</Label>
-              <Input
-                value={
-                  form.good_quality_chicks !== null && form.good_quality_chicks !== undefined
-                    ? String(form.good_quality_chicks)
-                    : String(goodQualityPreview)
-                }
-                disabled
-              />
-            </div>
-
-            <div className="space-y-1">
-              <Label>Quality grade rate %</Label>
-              <Input
-                value={
-                  form.quality_grade_rate !== null && form.quality_grade_rate !== undefined
-                    ? String(form.quality_grade_rate)
-                    : qualityRatePreview
-                }
-                disabled
-              />
-            </div>
-          </div>
-
-          {/* Right bottom */}
-          <div className="space-y-3">
-            <div className="space-y-1">
-              <Label>Grading personnel</Label>
-              <Input
-                value={form.grading_personnel ?? ""}
-                onChange={(e) => setForm((p) => ({ ...p, grading_personnel: e.target.value }))}
-                placeholder="Enter name"
-              />
-            </div>
-
-            <div className="space-y-1">
-              <Label>Cull rate %</Label>
-              <Input
-                value={
-                  form.cull_rate !== null && form.cull_rate !== undefined
-                    ? String(form.cull_rate)
-                    : cullRatePreview
-                }
-                disabled
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Buttons */}
 
               <FormActionButtons
-                          saving={saving}
-                          // isEdit={isEdit}
-                          // disabled={disabledAll}
-                          cancelPath="/a_baja/chickgrading"
-                          onSave={onSave}
-                        />
-                        
-        {/* <div className="flex flex-col md:flex-row gap-4">
-          <Button onClick={onSave} disabled={saving} className="w-[10%] justify-left">
-            {saving ? "Saving..." : "Save"}
-          </Button>
-
-          <Button
-            type="button"
-            variant="secondary"
-            className="w-[10%] justify-left"
-            onClick={() => router.push("/a_baja/chickgrading")}
-          >
-            Cancel
-          </Button>
-        </div> */}
-      </CardContent>
-    </Card>
+                saving={saving}
+                isEdit={isEdit}
+                cancelPath="/a_baja/chickgrading"
+                onSave={onSave}
+              />
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   )
 }

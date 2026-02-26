@@ -22,7 +22,7 @@ export default function FormActionButtons({
   const router = useRouter()
 
   return (
-    <div className="flex items-center justify-end gap-2 pt-2 ">
+    <div className="flex items-center justify-baseline gap-2 pt-2">
       <Button type="button" onClick={onSave} disabled={disabled} className="w-full md:w-auto h-full md:h-auto">
         {saving ? (
           <>
@@ -41,13 +41,14 @@ export default function FormActionButtons({
           </>
         )}
       </Button>
-
+      <div className="mr-8 md:mr-0"> 
+      </div>
       <Button
         type="button"
         variant="outline"
         onClick={() => router.push(cancelPath)}
         disabled={disabled}
-        className="bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 hover:text-red-700 w-full md:w-auto h-full md:h-auto"
+        className=" bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 hover:text-red-700 w-full md:w-auto h-full md:h-auto"
       >
         <X className="mr-2 h-4 w-4" />
         Cancel

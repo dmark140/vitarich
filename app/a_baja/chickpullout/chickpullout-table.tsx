@@ -147,13 +147,11 @@ export default function ChickPulloutTable() {
   })
 
   return (
-    <div className="rounded-md p-4">
+    <div className="rounded-md p-4 mt-4">
       <Breadcrumb
         SecondPreviewPageName="Hatchery"
         CurrentPageName="Chick Pullout"
-      />
-      <br />
-
+      /> 
       <div className="flex items-center justify-between mb-4 gap-3">
         <div className="flex items-center gap-3">
           <div className="relative w-72">
