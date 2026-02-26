@@ -182,12 +182,12 @@ export default function Eggstorageform() {
           <>
             {/* Reference No. */}
             <div className="grid grid-cols-1 gap-2">
-              <Label>Reference No.</Label>
+              <Label>Egg Reference No.</Label>
               <Select value={classiRefNo} onValueChange={setClassiRefNo}>
                 <SelectTrigger disabled={classiRefLoading || saving}>
                   <SelectValue
                     placeholder={
-                      classiRefLoading ? "Loading..." : "Select Reference No."
+                      classiRefLoading ? "Loading..." : "Select Egg Reference No."
                     }
                   />
                 </SelectTrigger>

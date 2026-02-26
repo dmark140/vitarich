@@ -1,10 +1,9 @@
-
 "use client"
 
-import React, { useEffect, useMemo, useState } from "react"
+import React, { useEffect, useMemo, useRef, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
@@ -27,12 +26,16 @@ import {
   getDispatchDocById,
   updateDispatchDoc,
   listDistinctHaulers,
-  listDistinctPlates,
   type DispatchDocItemInsert,
   type SkuClassification,
   type UomType,
+  // ✅ new
+  generateNextDrNo,
+  listDocBatchCodes,
 } from "./api"
-
+import { Trash2 } from "lucide-react"
+import type { ChickGradingQtyRow } from "./api"
+import { getChickGradingQtyByBatchCode } from "./api"
 type FormState = {
   doc_date: string // YYYY-MM-DD
   dr_no: string
@@ -53,6 +56,51 @@ type ItemDraft = {
   qty: string
 }
 
+const FARM_OPTIONS = [
+  "Wealthcore Bagbaguin",
+  "Wealthcore Sta Cruz",
+  "Fortune / Apena Hatchery",
+  "Imperial Hatchery",
+] as const
+
+type SkuOption = {
+  sku_name: string
+  classification: SkuClassification
+}
+const SKU_TO_FIELD: Record<string, keyof ChickGradingQtyRow> = {
+  "Class A": "class_a",
+  "Class B": "class_b",
+  "Class A Junior": "class_a_junior",
+  "Class C": "class_c",
+
+  "Infertile": "infertile",
+  "Live PIP": "live_pip",
+  "Dead Chick": "dead_chicks",
+  "Dead Germ": "dead_germ",
+
+  "Cull Chick": "cull_chicks",
+  "Unhatched": "unhatched",
+  "Dead Pip": "dead_pip",
+  "Rotten": "rotten",
+}
+
+const SKU_OPTIONS: SkuOption[] = [
+  { sku_name: "Class A", classification: "SALEABLE" },
+  { sku_name: "Class A Junior", classification: "SALEABLE" },
+  { sku_name: "Class B", classification: "SALEABLE" },
+  { sku_name: "Class C", classification: "SALEABLE" },
+
+  { sku_name: "Infertile", classification: "BY_PRODUCT" },
+  { sku_name: "Live PIP", classification: "BY_PRODUCT" },
+  { sku_name: "Dead Chick", classification: "BY_PRODUCT" },
+  { sku_name: "Dead Germ", classification: "BY_PRODUCT" },
+
+  { sku_name: "Cull Chick", classification: "DISPOSAL" },
+  { sku_name: "Unhatched", classification: "DISPOSAL" },
+  { sku_name: "Dead Pip", classification: "DISPOSAL" },
+  { sku_name: "Rotten", classification: "DISPOSAL" },
+]
+
 function todayYMD() {
   const d = new Date()
   const yyyy = d.getFullYear()
@@ -69,13 +117,21 @@ function clampNonNegStringToNumberOrNull(v: any): number | null {
 }
 
 function clampNonNegString(v: string) {
-  // for controlled inputs that should "return to 0"
   const n = Number(v)
   if (!Number.isFinite(n)) return "0"
   return String(Math.max(0, n))
 }
 
+function labelClassification(v: SkuClassification | "" | null | undefined) {
+  if (!v) return ""
+  if (v === "SALEABLE") return "SALEABLE DOC"
+  if (v === "BY_PRODUCT") return "BY-PRODUCT"
+  if (v === "DISPOSAL") return "DISPOSAL"
+  return String(v)
+}
+
 export default function DocdispatchForm() {
+  const [gradingCache, setGradingCache] = useState<Record<string, ChickGradingQtyRow | null>>({})
   const router = useRouter()
   const sp = useSearchParams()
   const idParam = sp.get("id")
@@ -87,9 +143,13 @@ export default function DocdispatchForm() {
   const [saving, setSaving] = useState(false)
 
   const [haulers, setHaulers] = useState<string[]>([])
-  const [plates, setPlates] = useState<string[]>([])
   const [haulersLoading, setHaulersLoading] = useState(false)
-  const [platesLoading, setPlatesLoading] = useState(false)
+
+  const [docBatchCodes, setDocBatchCodes] = useState<string[]>([])
+  const [docBatchLoading, setDocBatchLoading] = useState(false)
+
+  // if user manually edits DR no, we stop auto-overwriting
+  const drManualRef = useRef(false)
 
   const [form, setForm] = useState<FormState>({
     doc_date: todayYMD(),
@@ -106,7 +166,7 @@ export default function DocdispatchForm() {
   const [itemDraft, setItemDraft] = useState<ItemDraft>({
     doc_batch_code: "",
     sku_name: "",
-    classification: "SALEABLE",
+    classification: "",
     uom: "PCS",
     qty: "",
   })
@@ -125,26 +185,36 @@ export default function DocdispatchForm() {
     setItemDraft((p) => ({ ...p, [k]: v }))
   }
 
-  // ✅ load dropdowns (like EggHatchform)
+  async function ensureGradingRow(batch_code: string) {
+  const code = batch_code.trim()
+  if (!code) return null
+
+  if (code in gradingCache) return gradingCache[code]
+
+  const row = await getChickGradingQtyByBatchCode(code)
+  setGradingCache((p) => ({ ...p, [code]: row }))
+  return row
+}
+  // ✅ load dropdowns
   useEffect(() => {
     let alive = true
     ;(async () => {
       setHaulersLoading(true)
-      setPlatesLoading(true)
+      setDocBatchLoading(true)
       try {
-        const [h, p] = await Promise.all([listDistinctHaulers(), listDistinctPlates()])
+        const [h, b] = await Promise.all([listDistinctHaulers(), listDocBatchCodes()])
         if (!alive) return
         setHaulers(h)
-        setPlates(p)
+        setDocBatchCodes(b)
       } catch (e) {
         console.error(e)
         if (!alive) return
         setHaulers([])
-        setPlates([])
+        setDocBatchCodes([])
       } finally {
         if (alive) {
           setHaulersLoading(false)
-          setPlatesLoading(false)
+          setDocBatchLoading(false)
         }
       }
     })()
@@ -153,7 +223,7 @@ export default function DocdispatchForm() {
     }
   }, [])
 
-  // ✅ load edit record (like EggHatchform)
+  // ✅ load edit record
   useEffect(() => {
     if (!editId) return
     setLoading(true)
@@ -163,6 +233,9 @@ export default function DocdispatchForm() {
         if (!res) return
 
         const { header, items } = res
+
+        // editing: treat as manual (don’t auto-generate)
+        drManualRef.current = true
 
         setForm({
           doc_date: header.doc_date,
@@ -195,6 +268,64 @@ export default function DocdispatchForm() {
     })()
   }, [editId])
 
+  // ✅ auto-generate DR (new record only)
+  useEffect(() => {
+    if (isEdit) return
+    if (drManualRef.current) return
+    if (!form.doc_date) return
+
+    let alive = true
+    ;(async () => {
+      try {
+        const dr = await generateNextDrNo(form.doc_date)
+        if (!alive) return
+        setForm((p) => ({ ...p, dr_no: dr }))
+      } catch (e) {
+        console.error(e)
+        // keep empty if RPC fails
+      }
+    })()
+
+    return () => {
+      alive = false
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.doc_date, isEdit])
+
+  // ✅ when SKU changes: auto set classification (and keep it locked)
+async function handleSkuChange(skuName: string) {
+  const found = SKU_OPTIONS.find((x) => x.sku_name === skuName)
+
+  // set sku + classification first
+  setItemDraft((p) => ({
+    ...p,
+    sku_name: skuName,
+    classification: found?.classification ?? "",
+  }))
+
+  // auto-fill qty using selected batch code
+  const batch = itemDraft.doc_batch_code?.trim()
+  if (!batch) return // must select batch code first
+
+  try {
+    const row = await ensureGradingRow(batch)
+    if (!row) return
+
+    const field = SKU_TO_FIELD[skuName]
+    if (!field) return
+
+    const qty = row[field]
+    const qtyStr = String(Math.max(0, Number(qty ?? 0)))
+
+    setItemDraft((p) => ({
+      ...p,
+      qty: qtyStr,
+    }))
+  } catch (e) {
+    console.error(e)
+  }
+}
+
   function addItem() {
     const doc_batch_code = itemDraft.doc_batch_code.trim()
     const sku_name = itemDraft.sku_name.trim()
@@ -202,6 +333,7 @@ export default function DocdispatchForm() {
 
     if (!doc_batch_code) return alert("DOC Batch Code is required.")
     if (!sku_name) return alert("SKU Name is required.")
+    if (!itemDraft.classification) return alert("SKU Classification is required.")
     if (qtyN == null) return alert("Qty is required.")
 
     setItems((prev) => [
@@ -209,13 +341,18 @@ export default function DocdispatchForm() {
       {
         doc_batch_code,
         sku_name,
-        classification: (itemDraft.classification || null) as any,
+        classification: itemDraft.classification as any,
         uom: (itemDraft.uom || null) as any,
         qty: qtyN,
       },
     ])
 
-    setItemDraft((p) => ({ ...p, sku_name: "", qty: "" }))
+    setItemDraft((p) => ({
+      ...p,
+      sku_name: "",
+      classification: "",
+      qty: "",
+    }))
   }
 
   function removeItem(idx: number) {
@@ -223,7 +360,6 @@ export default function DocdispatchForm() {
   }
 
   async function onSave() {
-    // basic validations
     if (!form.doc_date) return alert("Date is required.")
     if (!form.dr_no.trim()) return alert("Delivery Receipt No. is required.")
     if (!form.farm_name.trim()) return alert("Farm Name is required.")
@@ -270,56 +406,67 @@ export default function DocdispatchForm() {
         CurrentPageName={isEdit ? "Edit Delivery Receipt" : "Delivery Receipt"}
       />
 
-      <Card className="max-w-4xl ml-0 p-6"> 
+      <Card className="max-w-4xl ml-0 p-6">
         <CardContent className="px-0 pt-4">
           {loading ? (
             <div className="text-sm text-muted-foreground">Loading...</div>
           ) : (
             <div className="space-y-6">
-              {/* Header section */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Header */}
+              <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
                 {/* Left */}
+                
                 <div className="space-y-4">
+                  <div className="space-y-1">
+                    <Label>Delivery Receipt No.</Label>
+                    <Input
+                      value={form.dr_no}
+                      onChange={(e) => {
+                        drManualRef.current = true
+                        setField("dr_no", e.target.value)
+                      }}
+                      placeholder="DR-MMDDYY-0001" 
+                      disabled                    /> 
+                  </div>
                   <div className="space-y-1">
                     <Label>Date</Label>
                     <Input
                       type="date"
                       value={form.doc_date}
-                      onChange={(e) => setField("doc_date", e.target.value)}
+                      onChange={(e) => {
+                        setField("doc_date", e.target.value)
+                      }}
                       disabled={saving}
                     />
                   </div>
 
                   <div className="space-y-1">
                     <Label>Farm Name</Label>
-                    <Input
-                      value={form.farm_name}
-                      onChange={(e) => setField("farm_name", e.target.value)}
-                      placeholder="BROILER FARM 1"
-                      disabled={saving}
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <Label>Hauler Plate Number</Label>
                     <Select
-                      value={form.hauler_plate_no}
-                      onValueChange={(v) => setField("hauler_plate_no", v)}
-                      disabled={platesLoading || saving}
+                      value={form.farm_name}
+                      onValueChange={(v) => setField("farm_name", v)}
+                      disabled={saving}
                     >
                       <SelectTrigger>
-                        <SelectValue
-                          placeholder={platesLoading ? "Loading..." : "Select plate number"}
-                        />
+                        <SelectValue placeholder="Select farm" />
                       </SelectTrigger>
                       <SelectContent>
-                        {plates.map((p) => (
-                          <SelectItem key={p} value={p}>
-                            {p}
+                        {FARM_OPTIONS.map((f) => (
+                          <SelectItem key={f} value={f}>
+                            {f}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label>Hauler Plate Number</Label>
+                    <Input
+                      value={form.hauler_plate_no}
+                      onChange={(e) => setField("hauler_plate_no", e.target.value)}
+                      disabled={saving}
+                    />
                   </div>
 
                   <div className="space-y-1">
@@ -337,35 +484,19 @@ export default function DocdispatchForm() {
                 </div>
 
                 {/* Right */}
-                <div className="space-y-4">
-                  <div className="space-y-1">
-                    <Label>Delivery Receipt No.</Label>
-                    <Input
-                      value={form.dr_no}
-                      onChange={(e) => setField("dr_no", e.target.value)}
-                      placeholder="DR-11XXX11"
-                      disabled={saving}
-                    />
-                  </div>
-
+                <div className="space-y-4"> 
                   <div className="space-y-1">
                     <Label>Hauler Name</Label>
-                    <Select
-                      value={form.hauler_name}
-                      onValueChange={(v) => setField("hauler_name", v)}
-                      disabled={haulersLoading || saving}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder={haulersLoading ? "Loading..." : "Select hauler"} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {haulers.map((h) => (
-                          <SelectItem key={h} value={h}>
-                            {h}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+
+                     <Input
+                      type="number"
+                      min={0}
+                      value={form.chick_van_temp_c}
+                      onChange={(e) => setField("hauler_name", e.target.value)}
+                      onBlur={(e) => setField("hauler_name", clampNonNegString(e.target.value))}
+                    
+                    />
+ 
                   </div>
 
                   <div className="space-y-1">
@@ -394,45 +525,91 @@ export default function DocdispatchForm() {
               </div>
 
               <Separator />
-
+ 
               {/* Item entry */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div className="space-y-1">
-                    <Label>DOC Batch Code</Label>
-                    <Input
-                      value={itemDraft.doc_batch_code}
-                      onChange={(e) => setDraft("doc_batch_code", e.target.value)}
-                      placeholder="001FARM1B1P1-010126-B1%Sequence%"
-                      disabled={saving}
-                    />
-                  </div>
+              <div className="space-y-6">
+                {/* Row 1: DOC Batch Code */}
+                <div className="space-y-1 max-w-xl">
+                  <Label>DOC Batch Code</Label>
+                  <Select
+                    value={itemDraft.doc_batch_code}
+                    onValueChange={async (v) => {
+                                                  setDraft("doc_batch_code", v)
 
-                  <div className="space-y-1">
-                    <Label>SKU Classification</Label>
+                                                  // if SKU already selected, refresh qty
+                                                  if (itemDraft.sku_name) {
+                                                    try {
+                                                      const row = await ensureGradingRow(v)
+                                                      if (!row) return
+                                                      const field = SKU_TO_FIELD[itemDraft.sku_name]
+                                                      if (!field) return
+                                                      const qtyStr = String(Math.max(0, Number(row[field] ?? 0)))
+                                                      setItemDraft((p) => ({ ...p, qty: qtyStr }))
+                                                    } catch (e) {
+                                                      console.error(e)
+                                                    }
+                                                  }
+                                                  }}
+                    disabled={docBatchLoading || saving}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue
+                        placeholder={docBatchLoading ? "Loading..." : "Select batch code"}
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {docBatchCodes.map((b) => (
+                        <SelectItem key={b} value={b}>
+                          {b}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Row 2: SKU Name | SKU Classification | UoM | Qty */}
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
+                  {/* SKU Name */}
+                  <div className="space-y-1 md:col-span-4">
+                    <Label>SKU Name</Label>
                     <Select
-                      value={itemDraft.classification}
-                      onValueChange={(v) => setDraft("classification", v as any)}
+                      value={itemDraft.sku_name}
+                      onValueChange={handleSkuChange}
                       disabled={saving}
                     >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select classification" />
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select SKU name" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="SALEABLE">Saleable</SelectItem>
-                        <SelectItem value="BY_PRODUCT">By Product</SelectItem>
+                        {SKU_OPTIONS.map((s) => (
+                          <SelectItem key={s.sku_name} value={s.sku_name}>
+                            {s.sku_name}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
 
-                  <div className="space-y-1">
+                  {/* SKU Classification (disabled input) */}
+                  <div className="space-y-1 md:col-span-4">
+                    <Label>SKU Classification</Label>
+                    <Input
+                      value={labelClassification(itemDraft.classification)}
+                      placeholder="Auto"
+                      disabled
+                      className="bg-muted"
+                    />
+                  </div>
+
+                  {/* UoM */}
+                  <div className="space-y-1 md:col-span-2">
                     <Label>UoM</Label>
                     <Select
                       value={itemDraft.uom}
                       onValueChange={(v) => setDraft("uom", v as any)}
                       disabled={saving}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select UoM" />
                       </SelectTrigger>
                       <SelectContent>
@@ -443,10 +620,9 @@ export default function DocdispatchForm() {
                       </SelectContent>
                     </Select>
                   </div>
-                </div>
 
-                <div className="space-y-4">
-                  <div className="space-y-1">
+                  {/* Qty */}
+                  <div className="space-y-1 md:col-span-2">
                     <Label>Qty</Label>
                     <Input
                       type="number"
@@ -454,78 +630,98 @@ export default function DocdispatchForm() {
                       value={itemDraft.qty}
                       onChange={(e) => setDraft("qty", e.target.value)}
                       onBlur={(e) => setDraft("qty", clampNonNegString(e.target.value))}
-                      placeholder=""
                       disabled={saving}
                     />
                   </div>
+                </div>
 
-                  <div className="space-y-1">
-                    <Label>SKU Name</Label>
-                    <Input
-                      value={itemDraft.sku_name}
-                      onChange={(e) => setDraft("sku_name", e.target.value)}
-                      placeholder="Class C"
-                      disabled={saving}
-                    />
-                  </div>
-
-                  <div className="pt-6">
-                    <Button type="button" className="w-full md:w-auto h-full md:h-auto" onClick={addItem} disabled={saving}>
-                      ADD ITEM
-                    </Button>
-                  </div>
+                {/* Button (optional: align under right side like typical forms) */}
+                <div className="flex justify-start md:justify-end ">
+                  <Button className="w-full md:w-auto h-full md:h-auto" type="button" onClick={addItem} disabled={saving}>
+                    Add item
+                  </Button>
                 </div>
               </div>
+              {/* Items table */} 
+              <div className="space-y-3">
+                <div className="border rounded-lg overflow-hidden bg-background">
+                  {/* Header */}
+                  <div className="grid grid-cols-12 bg-muted/60 px-5 py-3 text-sm font-medium">
+                    <div className="col-span-2">Action</div>
+                    <div className="col-span-5">Doc Batch Code</div>
+                    <div className="col-span-2">SKU</div>
+                    <div className="col-span-2">Classification</div>
+                    <div className="col-span-1 text-right">Qty</div>
+                  </div>
 
-              {/* Items table */}
-              <div className="border rounded-lg overflow-hidden">
-                <div className="grid grid-cols-6 bg-muted px-4 py-2 text-sm font-medium">
-                  <div>Action</div>
-                  <div className="col-span-2">Doc Batch Code</div>
-                  <div>SKU</div>
-                  <div>Classification</div>
-                  <div className="text-right">Qty</div>
-                </div>
-
-                {items.length === 0 ? (
-                  <div className="px-4 py-6 text-sm text-muted-foreground">No items added.</div>
-                ) : (
-                  items.map((it, idx) => (
-                    <div
-                      key={`${it.doc_batch_code}-${idx}`}
-                      className="grid grid-cols-6 px-4 py-2 border-t items-center text-sm"
-                    >
-                      <div>
+                  {/* Body */}
+                  {items.length === 0 ? (
+                    <div className="px-5 py-10 text-sm text-muted-foreground">
+                      No items added.
+                    </div>
+                  ) : (
+                    <div className="divide-y">
+                      {items.map((it, idx) => (
+                        <div
+                          key={`${it.doc_batch_code}-${idx}`}
+                          className="grid grid-cols-12 px-5 py-3 text-sm items-center"
+                        >
+                          <div className="col-span-2">
                         <Button
                           type="button"
-                          variant="destructive"
-                          size="sm"
+                          size="icon"
+                          variant="ghost"
+                          title="Remove"
                           onClick={() => removeItem(idx)}
                           disabled={saving}
+                          className="
+                            text-red-500 
+                            hover:bg-red-100 
+                            hover:text-red-600
+                            border
+                            border-red-200
+                            rounded-md
+                          "
                         >
-                          Remove
+                          <Trash2 className="size-4" />
                         </Button>
-                      </div>
-                      <div className="col-span-2">{it.doc_batch_code}</div>
-                      <div>{it.sku_name}</div>
-                      <div>{it.classification ?? ""}</div>
-                      <div className="text-right">{it.qty}</div>
+                          </div>
+
+                          <div className="col-span-5 truncate" title={it.doc_batch_code}>
+                            {it.doc_batch_code}
+                          </div>
+
+                          <div className="col-span-2 truncate" title={it.sku_name}>
+                            {it.sku_name}
+                          </div>
+
+                          <div className="col-span-2">
+                            {labelClassification(it.classification as any)}
+                          </div>
+
+                          <div className="col-span-1 text-right tabular-nums">
+                            {it.qty}
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  ))
-                )}
+                  )}
+                </div>
+
+                {/* Total Qty bottom-right (outside table) */}
+                <div className="flex justify-end text-sm text-muted-foreground">
+                  Total Qty: <span className="ml-1 font-medium text-foreground">{totalQty}</span>
+                </div>
               </div>
 
-              <div className="text-sm text-muted-foreground">
-                Total Qty: <span className="font-medium">{totalQty}</span>
-              </div>
-
+              {/* Remarks (below table like screenshot) */}
               <div className="space-y-1">
                 <Label>Remarks</Label>
                 <Textarea
                   value={form.remarks}
                   onChange={(e) => setField("remarks", e.target.value)}
                   placeholder=""
-                  className="border-2"
+                  className="min-h-30"
                   disabled={saving}
                 />
               </div>

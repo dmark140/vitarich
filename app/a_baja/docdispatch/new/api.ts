@@ -1,6 +1,6 @@
 import { db } from "@/lib/Supabase/supabaseClient"
 
-export type SkuClassification = "SALEABLE" | "BY_PRODUCT"
+export type SkuClassification = "SALEABLE" | "BY_PRODUCT" | "DISPOSAL"
 export type UomType = "PCS" | "TRAY" | "BOX" | "CRATE"
 
 export type DispatchDoc = {
@@ -199,4 +199,62 @@ export async function listDistinctPlates() {
     if (r?.hauler_plate_no) set.add(String(r.hauler_plate_no))
   })
   return Array.from(set).sort()
+} 
+
+// ✅ DR generator via RPC
+export async function generateNextDrNo(doc_date_ymd: string): Promise<string> {
+  // doc_date_ymd: "YYYY-MM-DD"
+  const { data, error } = await db.rpc("next_dr_no", { p_date: doc_date_ymd })
+  if (error) throw error
+  return data as string
+}
+
+// ✅ DOC Batch Code dropdown source
+export async function listDocBatchCodes(): Promise<string[]> {
+  const { data, error } = await db
+    .from("chick_grading_process")
+    .select("batch_code")
+    .order("batch_code", { ascending: false })
+
+  if (error) throw error
+
+  const set = new Set<string>()
+  for (const r of data ?? []) {
+    if (r?.batch_code) set.add(r.batch_code)
+  }
+  return Array.from(set)
+}
+ 
+export type ChickGradingQtyRow = {
+  batch_code: string
+  class_a: number | null
+  class_b: number | null
+  class_a_junior: number | null
+  class_c: number | null
+  cull_chicks: number | null
+  dead_chicks: number | null
+  infertile: number | null
+  dead_germ: number | null
+  live_pip: number | null
+  dead_pip: number | null
+  unhatched: number | null
+  rotten: number | null
+}
+
+export async function getChickGradingQtyByBatchCode(batch_code: string) {
+  const { data, error } = await db
+    .from("chick_grading_process")
+    .select(
+      `
+      batch_code,
+      class_a, class_b, class_a_junior, class_c,
+      cull_chicks, dead_chicks, infertile, dead_germ,
+      live_pip, dead_pip, unhatched, rotten
+    `
+    )
+    .eq("batch_code", batch_code)
+    .maybeSingle()
+
+  if (error) throw error
+  return (data ?? null) as ChickGradingQtyRow | null
 }

@@ -23,10 +23,11 @@ import {
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Plus, RefreshCw, Search } from "lucide-react"
+import { Plus, RefreshCw, Search, Pencil } from "lucide-react"
 
 import Breadcrumb from "@/lib/Breadcrumb"
 import { listHatchClassification, type HatchClassificationRow } from "./new/api"
+import EditActionButton from "@/components/EditActionButton"
 
 export default function HatchTable() {
   const router = useRouter()
@@ -66,6 +67,18 @@ export default function HatchTable() {
         cell: ({ row }) => row.index + 1,
       },
       {
+        id: "action",
+        header: "Action",
+        cell: ({ row }) => (
+          <div className="flex items-center gap-2">
+            <EditActionButton
+              id={row.original?.id}
+              href={(id) => `/a_baja/hatcheryclassi/new?id=${id}`}
+            /> 
+          </div>
+        ),
+      },
+      {
         accessorKey: "date_classify",
         header: "Date Classified",
         cell: ({ row }) => row.original.date_classify ?? "",
@@ -87,7 +100,7 @@ export default function HatchTable() {
       { accessorKey: "d_yolk", header: "Double Yolk" },
       { accessorKey: "ttl_count", header: "Total Count" },
     ],
-    []
+    [router]
   )
 
   const table = useReactTable({
@@ -110,7 +123,6 @@ export default function HatchTable() {
   })
 
   return (
-   
     <div className="rounded-md p-4">
       <br />
       <Breadcrumb
@@ -119,8 +131,8 @@ export default function HatchTable() {
       />
 
       {/* Top Controls */}
-        <div className="flex items-center justify-between mb-4 gap-3">
-          <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between mb-4 gap-3">
+        <div className="flex items-center gap-3">
           <div className="relative w-72">
             <Input
               placeholder="Filter Breeder Ref. No."
@@ -142,7 +154,7 @@ export default function HatchTable() {
           >
             <RefreshCw className={`size-4 ${isLoading ? "animate-spin" : ""}`} />
             {isLoading ? "Refreshing..." : "Refresh"}
-          </Button> 
+          </Button>
         </div>
 
         <Button
@@ -184,10 +196,7 @@ export default function HatchTable() {
                 <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
                 </TableRow>
@@ -200,7 +209,7 @@ export default function HatchTable() {
               </TableRow>
             )}
           </TableBody>
-        </Table>
+        </Table> 
       </div>
 
       {/* Pagination */}

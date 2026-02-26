@@ -236,7 +236,7 @@ export default function CheckPulloutForm() {
                   <SelectTrigger>
                     <SelectValue
                       placeholder={
-                        eggRefsLoading ? "Loading..." : "Select egg reference..."
+                        eggRefsLoading ? "Loading..." : "Select Egg Reference No."
                       }
                     />
                   </SelectTrigger>

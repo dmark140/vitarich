@@ -104,3 +104,13 @@ export async function deleteHatchClassification(id: number) {
   if (error) throw new Error(error.message);
   return true;
 }
+ 
+
+ 
+
+export type HatchClassificationUpdate = Partial<Omit<HatchClassificationInsert, "created_at">> & {
+  updated_at?: string
+}
+
+ 
+ 

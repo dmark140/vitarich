@@ -93,10 +93,78 @@ export async function deleteChickGradingProcess(id: number) {
 /** Egg reference dropdown source */
 export async function listEggReferences() {
   const { data, error } = await db
-    .from("egg_hatchery_process")
-    .select("egg_ref")
-    .order("egg_ref", { ascending: true })
+    .from("chick_pullout_process")
+    .select("egg_ref_no")
+    .order("egg_ref_no", { ascending: true })
 
   if (error) throw error
-  return (data ?? []).map((r) => r.egg_ref).filter(Boolean) as string[]
+  return (data ?? []).map((r: any) => r.egg_ref_no).filter(Boolean) as string[]
+}
+
+// -------------------------------
+// ✅ Batch Code Generator
+// Format: EggRefNo-BMMDDYY-0001
+// Autoincrement per MMDDYY based on latest batch saved that day.
+// -------------------------------
+
+function pad2(n: number) {
+  return String(n).padStart(2, "0")
+}
+function mmddyyFromDate(d: Date) {
+  const mm = pad2(d.getMonth() + 1)
+  const dd = pad2(d.getDate())
+  const yy = String(d.getFullYear()).slice(-2)
+  return `${mm}${dd}${yy}`
+}
+function pad4(n: number) {
+  return String(n).padStart(4, "0")
+}
+
+/**
+ * Get next batch code for a given egg_ref_no.
+ * Sequence is per MMDDYY across ALL transactions.
+ */
+export async function generateNextBatchCode(eggRefNo: string, when: Date = new Date()) {
+  const egg = (eggRefNo ?? "").trim()
+  if (!egg) return ""
+
+  const mmddyy = mmddyyFromDate(when)
+  const needle = `-B${mmddyy}-`
+
+  // get latest batch_code for this day (ends with -0001, -0002, etc)
+  const { data, error } = await db
+    .from(TABLE)
+    .select("batch_code")
+    .ilike("batch_code", `%${needle}%`)
+    .order("batch_code", { ascending: false }) // lexicographic works with fixed 4-digit suffix
+    .limit(1)
+
+  if (error) throw error
+
+  let nextSeq = 1
+  const last = (data?.[0] as any)?.batch_code as string | undefined
+  if (last && last.includes(needle)) {
+    const lastPart = last.split("-").pop() // "0007"
+    const lastNum = Number(lastPart)
+    if (Number.isFinite(lastNum) && lastNum >= 1) nextSeq = lastNum + 1
+  }
+
+  return `${egg}-B${mmddyy}-${pad4(nextSeq)}`
+}
+export async function getChicksHatchedByEggRef(eggRefNo: string) {
+  const egg = (eggRefNo ?? "").trim()
+  if (!egg) return 0
+
+  const { data, error } = await db
+    .from("chick_pullout_process")
+    .select("chicks_hatched")
+    .eq("egg_ref_no", egg)
+    .order("id", { ascending: false })
+    .limit(1)
+
+  if (error) throw error
+
+  const v = (data?.[0] as any)?.chicks_hatched
+  const n = Number(v)
+  return Number.isFinite(n) ? Math.max(0, n) : 0
 }

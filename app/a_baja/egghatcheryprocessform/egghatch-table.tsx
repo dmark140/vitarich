@@ -107,7 +107,7 @@ function fmtDurationHHMM(mins: number | string | null | undefined) {
       },
       {
         accessorKey: "egg_ref",
-        header: "Egg Ref",
+        header: "Egg Reference No.",
         cell: ({ row }) => row.original.egg_ref ?? "",
       },
       {
@@ -187,7 +187,7 @@ function fmtDurationHHMM(mins: number | string | null | undefined) {
             <Search className="h-4 w-4 absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <Input
               className="pl-8 w-70"
-              placeholder="Search egg ref..."
+              placeholder="Search Egg Reference No."
               value={(table.getColumn("egg_ref")?.getFilterValue() as string) ?? ""}
               onChange={(e) => table.getColumn("egg_ref")?.setFilterValue(e.target.value)}
             />

@@ -84,7 +84,7 @@ export default function EggTable() {
   },
     {
       accessorKey: "classi_ref_no",
-      header: "Reference No.",
+      header: "Egg Reference No.",
     },
     {
       accessorKey: "stor_temp",
@@ -155,7 +155,7 @@ export default function EggTable() {
         <div className="flex items-center gap-4">
           <div className="relative w-72">
             <Input
-              placeholder="Filter Reference No."
+              placeholder="Filter Egg Reference No."
               className="pl-10"
               value={(table.getColumn("classi_ref_no")?.getFilterValue() as string) ?? ""}
               onChange={(e) =>

@@ -221,7 +221,7 @@ export default function EggTransferForm() {
             <>
               {/* ONE COLUMN UI */}
               <div className="space-y-2">
-                <Label>Reference Number</Label>
+                <Label>Egg Reference Number</Label>
                 <Select
                   value={form.ref_no}
                   onValueChange={(v) => setForm((p) => ({ ...p, ref_no: v }))}
@@ -229,7 +229,7 @@ export default function EggTransferForm() {
                 >
                   <SelectTrigger>
                     <SelectValue
-                      placeholder={refLoading ? "Loading..." : "Select Reference No."}
+                      placeholder={refLoading ? "Loading..." : "Select Egg Reference No."}
                     />
                   </SelectTrigger>
                   <SelectContent>

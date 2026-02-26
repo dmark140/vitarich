@@ -84,7 +84,7 @@ export default function EggsetterTable() {
     },
     {
       accessorKey: "ref_no",
-      header: "Reference Number",
+      header: "Egg Reference No.",
     },
     {
       accessorKey: "setting_date",
@@ -169,7 +169,7 @@ export default function EggsetterTable() {
         <div className="flex items-center gap-4"> 
           <div className="relative w-72">
             <Input
-              placeholder="Filter Reference Number"
+              placeholder="Filter Egg Reference Number"
               className="pl-10"
               value={(table.getColumn("ref_no")?.getFilterValue() as string) ?? ""}
               onChange={(e) => table.getColumn("ref_no")?.setFilterValue(e.target.value)}

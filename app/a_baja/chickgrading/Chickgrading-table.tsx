@@ -99,7 +99,7 @@ export default function ChickgradingTable() {
           </div>
         ),
       },
-      { accessorKey: "egg_ref_no", header: "Egg Ref. No." },
+      { accessorKey: "egg_ref_no", header: "Egg Reference No." },
       { accessorKey: "batch_code", header: "Batch code" },
       {
         accessorKey: "grading_datetime",
@@ -142,7 +142,7 @@ export default function ChickgradingTable() {
         <div className="flex items-center gap-3">
           <div className="relative w-72">
             <Input
-              placeholder="Filter Egg Ref. No."
+              placeholder="Filter Egg Reference No."
               className="pl-10"
               value={
                 (table.getColumn("egg_ref_no")?.getFilterValue() as string) ?? ""
@@ -172,7 +172,7 @@ export default function ChickgradingTable() {
           className="flex items-center gap-2 w-full md:w-auto h-full md:h-auto"
         >
           <Plus className="size-4" />
-          New Chick Grading
+          New DOC Classification
         </Button>
       </div>
 

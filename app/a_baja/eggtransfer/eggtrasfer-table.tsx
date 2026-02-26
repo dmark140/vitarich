@@ -118,7 +118,7 @@ function fmtDurationHHMM(mins: number | string | null | undefined) {
     }, 
     {
       accessorKey: "ref_no",
-      header: "Reference No.",
+      header: "Egg Reference No.",
     },
     {
       accessorKey: "farm_source",
@@ -183,7 +183,7 @@ function fmtDurationHHMM(mins: number | string | null | undefined) {
 
           <div className="relative w-72">
             <Input
-              placeholder="Filter Reference No."
+              placeholder="Filter Egg Reference No."
               className="pl-10"
               value={
                 (table.getColumn("ref_no")?.getFilterValue() as string) ?? ""
@@ -212,7 +212,7 @@ function fmtDurationHHMM(mins: number | string | null | undefined) {
           onClick={() => router.push("/a_baja/eggtransfer/new")}
           className="flex items-center gap-2 w-full md:w-auto h-full md:h-auto"
         >
-          <Plus className="size-4" /> Egg Transfer
+          <Plus className="size-4" /> New Egg Transfer
         </Button>
       </div>
 

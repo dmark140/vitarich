@@ -249,7 +249,7 @@ export default function EggHatchform() {
             <div className="space-y-4">
               <div className="space-y-4"> 
                 <div className="space-y-1">
-                  <Label>Reference No.</Label>
+                  <Label>Egg Reference No.</Label>
                   <Select
                     value={form.egg_ref}
                     onValueChange={(v) => setField("egg_ref", v)}
@@ -258,7 +258,7 @@ export default function EggHatchform() {
                     <SelectTrigger>
                       <SelectValue
                         placeholder={
-                          eggRefsLoading ? "Loading..." : "Select egg reference..."
+                          eggRefsLoading ? "Loading..." : "Select Egg Reference No."
                         }
                       />
                     </SelectTrigger>

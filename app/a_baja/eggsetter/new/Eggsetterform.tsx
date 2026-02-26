@@ -278,7 +278,7 @@ export default function Eggsetterform() {
           {/* SECTION 1 */}
           <div className="rounded-md border p-4 space-y-4">
             <div className="space-y-2">
-              <Label>Reference Number</Label>
+              <Label>Egg Reference Number</Label>
               <Select
                 value={form.ref_no}
                 onValueChange={handleSelectRef}
@@ -287,7 +287,7 @@ export default function Eggsetterform() {
                 <SelectTrigger>
                   <SelectValue
                     placeholder={
-                      loadingRefs ? "Loading..." : "Select Reference Number"
+                      loadingRefs ? "Loading..." : "Select EggReference Number"
                     }
                   />
                 </SelectTrigger>

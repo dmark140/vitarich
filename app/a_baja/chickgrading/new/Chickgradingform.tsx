@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState, type ChangeEvent } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
@@ -21,6 +21,8 @@ import {
   getChickGradingProcessById,
   listEggReferences,
   updateChickGradingProcess,
+  generateNextBatchCode,
+   getChicksHatchedByEggRef,
 } from "./api"
 
 import Breadcrumb from "@/lib/Breadcrumb"
@@ -63,9 +65,10 @@ export default function Chickgradingform() {
   const [eggRefs, setEggRefs] = useState<string[]>([])
   const [eggRefsLoading, setEggRefsLoading] = useState(false)
 
-  // NOTE:
-  // - keep computed fields NULL initially so previews show until DB value exists
-  // - include class_c
+  const [batchLoading, setBatchLoading] = useState(false)
+  const [totalLoading, setTotalLoading] = useState(false)
+
+  // include class_c
   const [form, setForm] = useState<Partial<ChickGradingProcess> & { class_c?: any }>({
     egg_ref_no: "",
     batch_code: "",
@@ -88,7 +91,6 @@ export default function Chickgradingform() {
 
     chick_room_temperature: null,
 
-    // generated/read-only -> NULL initially
     total_chicks: null,
     good_quality_chicks: null,
     quality_grade_rate: null,
@@ -114,7 +116,7 @@ export default function Chickgradingform() {
     }
   }
 
-  // ✅ load dropdown (like EggHatchform)
+  // ✅ load dropdown
   useEffect(() => {
     let alive = true
     ;(async () => {
@@ -136,7 +138,7 @@ export default function Chickgradingform() {
     }
   }, [])
 
-  // ✅ load edit record (like EggHatchform)
+  // ✅ load edit record
   useEffect(() => {
     if (!editId) return
     setLoading(true)
@@ -165,7 +167,6 @@ export default function Chickgradingform() {
           unhatched: n(rec.unhatched),
           rotten: n(rec.rotten),
 
-          // keep computed fields from DB if present
           total_chicks: rec.total_chicks ?? null,
           good_quality_chicks: rec.good_quality_chicks ?? null,
           quality_grade_rate: rec.quality_grade_rate ?? null,
@@ -184,40 +185,120 @@ export default function Chickgradingform() {
     })()
   }, [editId])
 
-  // ---- PREVIEWS (UI computed) ----
-  const totalChicksPreview = useMemo(() => {
-    return (
-      n(form.class_a) +
-      n(form.class_b) +
-      n(form.class_a_junior) +
-      n((form as any).class_c) +
-      n(form.cull_chicks) +
-      n(form.dead_chicks) +
-      n(form.infertile) +
-      n(form.dead_germ) +
-      n(form.live_pip) +
-      n(form.dead_pip) +
-      n(form.unhatched) +
-      n(form.rotten)
-    )
-  }, [
-    form.class_a,
-    form.class_b,
-    form.class_a_junior,
-    (form as any).class_c,
-    form.cull_chicks,
-    form.dead_chicks,
-    form.infertile,
-    form.dead_germ,
-    form.live_pip,
-    form.dead_pip,
-    form.unhatched,
-    form.rotten,
-  ])
+  // ✅ Auto-generate Batch Code when Egg Ref changes (NEW only)
+useEffect(() => {
+  const egg = (form.egg_ref_no ?? "").trim()
 
-  const goodQualityPreview = useMemo(() => {
-    return n(form.class_a) + n(form.class_b) + n(form.class_a_junior) + n((form as any).class_c)
-  }, [form.class_a, form.class_b, form.class_a_junior, (form as any).class_c])
+  if (!egg) {
+    setForm((p) => ({
+      ...p,
+      batch_code: isEdit ? p.batch_code : "",
+      total_chicks: null, // clear total chicks when egg cleared
+    }))
+    return
+  }
+
+  let alive = true
+
+  ;(async () => {
+    try {
+      setTotalLoading(true)
+
+      // ✅ 1) Total chicks from chick_pullout_process
+      const chicks = await getChicksHatchedByEggRef(egg)
+      if (!alive) return
+
+      setForm((p) => ({
+        ...p,
+        total_chicks: chicks, // ✅ Total chicks field will "play"
+      }))
+
+      // ✅ 2) Auto batch code (NEW only, do not overwrite edit)
+      if (!isEdit) {
+        setBatchLoading(true)
+        const code = await generateNextBatchCode(egg, new Date())
+        if (!alive) return
+        setForm((p) => ({ ...p, batch_code: code }))
+      }
+    } catch (e: any) {
+      console.error(e)
+      if (!alive) return
+      alert(e?.message ?? "Failed to load total chicks / batch code.")
+      setForm((p) => ({ ...p, total_chicks: null, ...(isEdit ? {} : { batch_code: "" }) }))
+    } finally {
+      if (alive) {
+        setTotalLoading(false)
+        setBatchLoading(false)
+      }
+    }
+  })()
+
+  return () => {
+    alive = false
+  }
+}, [form.egg_ref_no, isEdit])
+
+// ✅ Total of By Product and for Dispose
+const totalByProductPreview = useMemo(() => {
+  return (
+    n(form.infertile) +
+    n(form.dead_germ) +
+    n(form.dead_chicks) +
+    n(form.live_pip) +
+    n(form.dead_pip) +
+    n(form.unhatched) +
+    n(form.rotten) +
+    n(form.cull_chicks)
+  )
+}, [
+  form.infertile,
+  form.dead_germ,
+  form.dead_chicks,
+  form.live_pip,
+  form.dead_pip,
+  form.unhatched,
+  form.rotten,
+  form.cull_chicks,
+])
+
+const totalFromInputsPreview = useMemo(() => {
+  return (
+    n(form.class_a) +
+    n(form.class_b) +
+    n(form.class_a_junior) +
+    n((form as any).class_c) +
+    n(form.cull_chicks) +
+    n(form.dead_chicks) +
+    n(form.infertile) +
+    n(form.dead_germ) +
+    n(form.live_pip) +
+    n(form.dead_pip) +
+    n(form.unhatched) +
+    n(form.rotten)
+  )
+}, [
+  form.class_a,
+  form.class_b,
+  form.class_a_junior,
+  (form as any).class_c,
+  form.cull_chicks,
+  form.dead_chicks,
+  form.infertile,
+  form.dead_germ,
+  form.live_pip,
+  form.dead_pip,
+  form.unhatched,
+  form.rotten,
+])
+
+  // ---- PREVIEWS (UI computed) ----
+  const totalChicksPreview = useMemo(() => { 
+     return n(form.total_chicks)
+  },  [form.total_chicks])
+
+const goodQualityPreview = useMemo(() => {
+  return n(form.class_a) + n(form.class_b) + n(form.class_a_junior) + n((form as any).class_c)
+}, [form.class_a, form.class_b, form.class_a_junior, (form as any).class_c])
 
   const qualityRatePreview = useMemo(() => {
     const t = totalChicksPreview
@@ -231,9 +312,31 @@ export default function Chickgradingform() {
     return ((n(form.cull_chicks) / t) * 100).toFixed(2)
   }, [totalChicksPreview, form.cull_chicks])
 
+  function eqInt(a: number, b: number) { 
+  return Math.round(a) === Math.round(b)
+}
+
   async function onSave() {
     if (!(form.egg_ref_no ?? "").trim()) {
       alert("Egg Reference No. is required.")
+      return
+    }
+    if (!(form.batch_code ?? "").trim()) {
+      alert("Batch code is required.")
+      return
+    }
+    const totalChicks = n(form.total_chicks) // from pullout (chicks_hatched)
+    const totalInputs = totalFromInputsPreview
+
+    if (totalChicks <= 0) {
+      alert("Total chicks is empty or 0. Please select a valid Egg Reference No.")
+      return
+    }
+
+    if (Math.round(totalInputs) !== Math.round(totalChicks)) {
+      alert(
+        `Cannot save.\n\nTotal of Class A to Rotten = ${totalInputs}\nTotal Chicks = ${totalChicks}\n\nPlease make them equal before saving.`
+      )
       return
     }
 
@@ -283,6 +386,8 @@ export default function Chickgradingform() {
     }
   }
 
+  const disabledAll = saving || loading
+
   return (
     <div className="space-y-4 mt-8">
       <Breadcrumb
@@ -291,21 +396,21 @@ export default function Chickgradingform() {
         CurrentPageName={isEdit ? "Edit Entry" : "New DOC Classification"}
       />
 
-      <Card className="max-w-5xl ml-0 p-6">  
+      <Card className="max-w-5xl ml-0 p-6">
         <CardContent className="px-0 pt-4">
           {loading ? (
             <div className="text-sm text-muted-foreground">Loading...</div>
           ) : (
             <div className="space-y-4">
               {/* Top row */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
                 <div className="space-y-3">
                   <div className="space-y-1">
                     <Label>Egg Reference No.</Label>
                     <Select
                       value={form.egg_ref_no ?? ""}
                       onValueChange={(v) => setField("egg_ref_no", v)}
-                      disabled={eggRefsLoading || saving}
+                       disabled={eggRefsLoading || saving}
                     >
                       <SelectTrigger>
                         <SelectValue
@@ -323,31 +428,35 @@ export default function Chickgradingform() {
                   </div>
 
                   <div className="space-y-1">
-                    <Label>Batch code</Label>
+                    <Label>Batch Code</Label>
                     <Input
-                      value={form.batch_code ?? ""}
+                      value={batchLoading ? "Generating..." : (form.batch_code ?? "")}
                       onChange={(e) => setField("batch_code", e.target.value)}
-                      placeholder="Enter batch code"
-                      disabled={saving}
+                      disabled
                     />
                   </div>
                 </div>
 
                 <div className="space-y-3">
                   <div className="space-y-1">
-                    <Label>Grading date & time</Label>
+                    <Label>Grading Date & Time</Label>
                     <Input value={fmtDT(form.grading_datetime)} disabled />
                   </div>
 
                   <div className="space-y-1">
                     <Label>Total Chicks</Label>
                     <Input
-                      value={
-                        form.total_chicks !== null && form.total_chicks !== undefined
-                          ? String(form.total_chicks)
-                          : String(totalChicksPreview)
-                      }
+                      value={totalLoading ? "Loading..." : String(totalChicksPreview)}
                       disabled
+                    />
+                  </div>
+                   <div className="space-y-1">
+                    <Label>Grading Personnel</Label>
+                    <Input
+                      value={form.grading_personnel ?? ""}
+                      onChange={(e) => setField("grading_personnel", e.target.value)}
+                      placeholder="Enter name"
+                      disabled={disabledAll}
                     />
                   </div>
                 </div>
@@ -513,20 +622,32 @@ export default function Chickgradingform() {
               {/* Bottom section */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-3">
-                  <div className="space-y-1">
-                    <Label>Good quality chicks</Label>
+                   <div className="space-y-1">
+                    <Label>Good Quality Chicks</Label>
                     <Input
-                      value={
-                        form.good_quality_chicks !== null && form.good_quality_chicks !== undefined
-                          ? String(form.good_quality_chicks)
-                          : String(goodQualityPreview)
-                      }
+                    value={String(goodQualityPreview)}
+                      // value={
+                      //   form.good_quality_chicks !== null && form.good_quality_chicks !== undefined
+                      //     ? String(form.good_quality_chicks)
+                      //     : String(goodQualityPreview)
+                      // }
                       disabled
                     />
                   </div>
+                   
+                    <div className="space-y-1">
+                      <Label>Total By Product and For Dispose</Label>
+                      <Input
+                        value={String(totalByProductPreview)}
+                        disabled
+                      />
+                    </div> 
+ 
+                </div>
 
-                  <div className="space-y-1">
-                    <Label>Quality grade rate %</Label>
+                <div className="space-y-3"> 
+                 <div className="space-y-1">
+                    <Label>Quality Grade Rate %</Label>
                     <Input
                       value={
                         form.quality_grade_rate !== null && form.quality_grade_rate !== undefined
@@ -536,21 +657,8 @@ export default function Chickgradingform() {
                       disabled
                     />
                   </div>
-                </div>
-
-                <div className="space-y-3">
                   <div className="space-y-1">
-                    <Label>Grading personnel</Label>
-                    <Input
-                      value={form.grading_personnel ?? ""}
-                      onChange={(e) => setField("grading_personnel", e.target.value)}
-                      placeholder="Enter name"
-                      disabled={saving}
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <Label>Cull rate %</Label>
+                    <Label>Cull Rate %</Label>
                     <Input
                       value={
                         form.cull_rate !== null && form.cull_rate !== undefined
