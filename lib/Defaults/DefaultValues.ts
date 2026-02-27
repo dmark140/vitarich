@@ -50,7 +50,7 @@ export const NavFolders = [
           { type: "Module", title: "Chick Pullout Process", url: "/a_baja/chickpullout" },
           { type: "Module", title: "Doc Classification", url: "/a_baja/chickgrading" },
           { type: "Module", title: "Doc Dispatch", url: "/a_baja/docdispatch" },
-          { type: "Module", title: "Disposal", url: "/a_baja/disposal" },
+          { type: "Module", title: "Disposal", url: "/a_dean/disposal" },
         ],
       },
       {

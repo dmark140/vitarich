@@ -31,6 +31,7 @@ export async function getInventoryPostings(filters?: Filters) {
       .from('inventory_postings')
       .select('*')
       .order('created_at', { ascending: false })
+      .order('transfer_type', { ascending: true })
 
     if (filters?.from) {
       query = query.gte('created_at', filters.from)

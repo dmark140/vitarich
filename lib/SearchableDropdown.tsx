@@ -36,7 +36,7 @@ export default function SearchableDropdown<T extends Record<string, any>>({
   value,
   placeholder = '',
   showNameOnly = false,
-  width = 260,
+  width = 400,
   onChange,
 }: Props<T>) {
   const [open, setOpen] = useState(false)
@@ -81,7 +81,7 @@ export default function SearchableDropdown<T extends Record<string, any>>({
   }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={setOpen} >
       <Tooltip>
         {/* PopoverTrigger wraps TooltipTrigger OR vice-versa — both asChild */}
         <PopoverTrigger asChild>
@@ -114,11 +114,12 @@ export default function SearchableDropdown<T extends Record<string, any>>({
 
           <CommandEmpty>No results found.</CommandEmpty>
 
-          <CommandGroup>
+          <CommandGroup className=''>
             {filtered.map((item, idx) => (
               <CommandItem
                 key={idx}
                 onSelect={() => selectItem(item)}
+                className='w-full whitespace-nowrap px-4'
               >
                 {/* {nameLabel
                   ? `${item[codeLabel]} — ${item[nameLabel]}`

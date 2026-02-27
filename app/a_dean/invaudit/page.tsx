@@ -121,7 +121,7 @@ export default function Page() {
               <th className='p-2 text-left'>Item</th>
               <th className='p-2 text-left'>Type</th>
               <th className='p-2 text-left'>Warehouse</th>
-              <th className='p-2 text-left'>Bin</th>
+              {/* <th className='p-2 text-left'>Bin</th> */}
               <th className='p-2 text-left'>Qty</th>
               <th className='p-2 text-left'>Reference</th>
               <th className='p-2 text-left'>Reference Type</th>
@@ -141,11 +141,11 @@ export default function Page() {
                 <td className='p-2'>{row.item_code}</td>
                 <td className='p-2'>{row.transfer_type}</td>
                 <td className='p-2'>{row.warehouse_code}</td>
-                <td className='p-2'>{row.bin_code}</td>
+                {/* <td className='p-2'>{row.bin_code}</td> */}
                 <td className='p-2 '>{row.qty}</td>
                 <td className='p-2 '>{row.ref}</td>
                 <td className='p-2 '>{row.ref_type}</td>
-                <td className='p-2 '>{row.ref}</td>
+                <td className='p-2 '>{row.ref2}</td>
                 <td className='p-2 '>{row.ref_type2}</td>
               </tr>
             ))}

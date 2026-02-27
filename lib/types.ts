@@ -1,5 +1,6 @@
 import { ColumnDef } from '@tanstack/react-table';
 import { UUID } from 'crypto';
+import React from "react"
 
 export type HatchClassification = {
   id: number;
@@ -126,19 +127,19 @@ export interface DataRecordApproval {
   posting_date: string;
   email: string;
   soldTo: string;
-  doc_date : string;
-  address : string;
-  tin : string;
-  shipped_via : string;
-  shipped_to  : string;
-  dr_num  : string;
-  po_no  : string;
-  Attention  : string;
-  voyage_no  : string;
+  doc_date: string;
+  address: string;
+  tin: string;
+  shipped_via: string;
+  shipped_to: string;
+  dr_num: string;
+  po_no: string;
+  Attention: string;
+  voyage_no: string;
   status: DraftStatus
   checked: boolean;
   docentry: number;
-  
+
 
 }
 
@@ -172,7 +173,7 @@ export interface WarehouseData {
   id?: number;
   created_at?: string;
   created_by?: string | null;
-  whse_code?: string | null;     
+  whse_code?: string | null;
   whse_name?: string | null;
   full_location_code?: string | null;
   warehouse_type?: string | null;
@@ -272,4 +273,39 @@ export type Farms = {
   barangay: string
   city: string
   province: string
+}
+
+// DMF - 27022026
+
+export type DataTableColumn = {
+  code: string
+  name: string
+
+
+  type:
+  | "text"
+  | "input"
+  | "number"
+  | "date"
+  | "checkbox"
+  | "search"
+  | "button"
+
+
+  disabled?: boolean
+  list?: any[]
+
+  // 🔥 Custom renderer
+  render?: (
+    row: Record<string, any>,
+    rowIndex: number
+  ) => React.ReactNode
+}
+
+
+export type ChickGradingInventory = {
+  SKU: string
+  qty: number
+  ref: string
+  UoM: string
 }
