@@ -4,7 +4,7 @@ import { ChickGradingInventory } from "@/lib/types"
 export async function get_chick_grading_inventory(batchcode: string) {
   try {
     const { data, error } = await db.rpc(
-      "get_chick_disposal_balance2",
+      "get_chick_disposal_balance3",
       { p_batchcode: batchcode }
     )
 

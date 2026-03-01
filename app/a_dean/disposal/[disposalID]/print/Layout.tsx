@@ -19,7 +19,7 @@ export default function Layout() {
   return (
     <div>
       <div className='flex items-center justify-between px-4'>
-        <div className='mt-8'>
+        <div className='my-8'>
           <Breadcrumb
             FirstPreviewsPageName='Harchery'
             SecondPreviewPageName='Disposal'
@@ -31,7 +31,7 @@ export default function Layout() {
         </div>
 
       </div>
-      <div className='max-h-[calc(100vh-11rem)] overflow-y-auto '>
+      <div className='max-h-[calc(100vh-13rem)] overflow-y-auto '>
         <div className=' bg-white mx-4 rounded-2xl shadow w-fit'>
           <div ref={printRef} className="a4-page  ">
             {/* Header Information */}
