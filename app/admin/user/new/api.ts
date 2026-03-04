@@ -57,3 +57,15 @@ export async function getUserPermissions(userId: string) {
     throw err;
   }
 }
+export async function getvwdmf_get_farmlist_code_name_farmtype() {
+  try {
+    const { data, error } = await db
+      .from("vwdmf_get_farmlist_code_name_farmtype")
+      .select("*")
+    if (error) throw error;
+    return data || [];
+  } catch (err) {
+    console.log(err);
+    throw err;
+  }
+}

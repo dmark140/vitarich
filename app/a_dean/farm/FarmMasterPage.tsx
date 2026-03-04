@@ -1,3 +1,4 @@
+// app/a_dean/farm/FarmMasterPage.tsx
 
 'use client'
 
@@ -38,7 +39,7 @@ export default function FarmMasterPage() {
       { key: 'id', label: 'ID', type: 'text', disabled: true },
       { key: 'code', label: 'Code', type: 'text', disabled: true },
       { key: 'name', label: 'Name', type: 'text', disabled: true },
-      { key: 'status', label: 'Status', type: 'text', disabled: true },
+      { key: 'farm_type', label: 'Type', type: 'text', disabled: true },
       { key: 'remarks', label: 'Remarks', type: 'text', disabled: true },
       { key: 'action', label: 'Action', type: 'button', disabled: false },
     ],
@@ -73,7 +74,7 @@ export default function FarmMasterPage() {
         </div>
       </div>
 
-      {!loading && (
+      {!loading ? (
         <DynamicTable
           columns={tableColumnsx.map((col) => ({
             key: col.key,
@@ -88,7 +89,7 @@ export default function FarmMasterPage() {
                       className='bg-background border hover:bg-foreground/10 border-green-400 text-green-400 p-1 rounded-xs   '
 
                       onClick={() => {
-
+                        router.push(`/a_dean/farm/${row.id}/edit`)
                       }}
                     >
                       <Edit />
@@ -110,7 +111,11 @@ export default function FarmMasterPage() {
           data={initialRows}
 
         />
-      )}
+      ) :
+      <>
+      <div className='w-fit mx-auto flex gap-2 mt-2'><span><RefreshCcw className='animate-spin'/></span>Loading...</div>
+      </>
+      }
     </div>
   )
 }

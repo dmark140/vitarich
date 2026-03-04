@@ -22,11 +22,17 @@ import { ColumnsYesOrNoCodeOnly } from '@/lib/Defaults/DefaultColumns'
 import { db } from '@/lib/Supabase/supabaseClient'
 import { InputDropDown } from '@/components/ui/InputDropDown'
 import { DefaultGenders } from '@/lib/Defaults/DefaultValues'
+import { getvwdmf_get_farmlist_code_name_farmtype } from './api'
+import SearchableDropdown from '@/lib/SearchableDropdown'
 
 type authProps = {
   email: string;
   id: string;
   auth_id: string;
+}
+type farm_defaults = {
+  code: string;
+  name: string;
 }
 
 export default function Layout() {
@@ -37,7 +43,7 @@ export default function Layout() {
   const [loggedInUser, setLoggedInUser] = useState<User | null>(null)
   const [form, setForm] = useState<Partial<UserRow>>({})
   const [authSelected, setauthSelected] = useState<authProps | undefined>()
-
+  const [defaultfarmlist, setdefaultfarmlist] = useState<farm_defaults[]>([])
   const fields = [
     { tabIndex: 1, required: true, key: 'firstname', label: 'First Name' },
     { tabIndex: 2, required: false, key: 'middlename', label: 'Middle Name' },
@@ -47,7 +53,8 @@ export default function Layout() {
     { tabIndex: 7, required: false, key: 'gender', label: 'Gender' },
     { tabIndex: 8, required: false, key: 'phone', label: 'Phone' },
     { tabIndex: 9, required: false, key: 'location', label: 'Address' },
-    { tabIndex: 10, required: false, key: 'remarks', label: 'Remarks', component: 'textarea' },
+    { tabIndex: 10, required: false, key: 'default_farm', label: 'Default Farm', type: "list", list: defaultfarmlist },
+    { tabIndex: 11, required: false, key: 'remarks', label: 'Remarks', component: 'textarea' },
   ]
 
   const handleTabChange = (e: number) => {
@@ -93,8 +100,15 @@ export default function Layout() {
     }
   }
 
+  const getDefaultFarms = async () => {
+    const data = await getvwdmf_get_farmlist_code_name_farmtype()
+    console.log({ data })
+    setdefaultfarmlist(data)
+  }
+
   // Get logged-in user
   useEffect(() => {
+    getDefaultFarms()
     const getSessionUser = async () => {
       const { data: { session } } = await db.auth.getSession()
       setLoggedInUser(session?.user ?? null)
@@ -218,9 +232,10 @@ export default function Layout() {
             </>
           )}
 
-          <Button disabled={isInitialLoading || !authSelected?.id} variant='secondary'>
+          {/* <Button disabled={isInitialLoading || !authSelected?.id} variant='secondary'>
             Change Password
-          </Button>
+          </Button> */}
+          {/* <Button onClick={getDefaultFarms}>getDefaultFarms</Button> */}
           <Button onClick={() => handleSubmit()} disabled={isDisabled}>
             {saveButtonText}
           </Button>
@@ -281,29 +296,39 @@ export default function Layout() {
                       value={(form[field.key as keyof UserInsert]) || ''}
                       onChange={(e) => handleChange(field.key as keyof UserInsert, e.target.value)}
                     />
-                  ) : (
-                    <Input
-                      className='date-input'
-                      tabIndex={field.tabIndex}
-                      required={field.required}
-                      type={field.type || 'text'}
-                      value={
-                        field.type === 'date'
-                          ? form[field.key as keyof UserInsert]
-                            ? (form[field.key as keyof UserInsert] as string).split('T')[0]
-                            : ''
-                          : (form[field.key as keyof UserInsert] as string) || ''
-                      }
-                      onChange={(e) =>
-                        handleChange(
-                          field.key as keyof UserInsert,
-                          field.type === 'date'
-                            ? new Date(e.target.value).toISOString()
-                            : e.target.value
-                        )
+                  ) : field.type === "list" ?
+                    <SearchableDropdown
+                      list={field.list || []}
+                      codeLabel="code"
+                      nameLabel="name"
+                      value={(form[field.key as keyof UserInsert] as string) || ''}
+                      onChange={(val) =>
+                        handleChange(field.key as keyof UserInsert, val)
                       }
                     />
-                  )}
+                    : (
+                      <Input
+                        className='date-input'
+                        tabIndex={field.tabIndex}
+                        required={field.required}
+                        type={field.type || 'text'}
+                        value={
+                          field.type === 'date'
+                            ? form[field.key as keyof UserInsert]
+                              ? (form[field.key as keyof UserInsert] as string).split('T')[0]
+                              : ''
+                            : (form[field.key as keyof UserInsert] as string) || ''
+                        }
+                        onChange={(e) =>
+                          handleChange(
+                            field.key as keyof UserInsert,
+                            field.type === 'date'
+                              ? new Date(e.target.value).toISOString()
+                              : e.target.value
+                          )
+                        }
+                      />
+                    )}
                 </div>
               ))}
             </div>

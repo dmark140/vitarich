@@ -784,7 +784,7 @@ export function AppSidebar() {
               onClick={() => setMobileOpen(false)}
             />
 
-            <aside className="relative h-full w-72 bg-sidebar  shadow-lg p-3 overflow-y-auto">
+            <aside className="relative h-full w-72 bg-sidebar  shadow-lg p-3 ">
 
               {/* <VersionSwitcher versions={versions} defaultVersion={versions[0]} /> */}
               <GlobalSearch collapsed={false} />
@@ -880,7 +880,7 @@ export function AppSidebar() {
 
       <nav className="flex-1 overflow-y-auto   mt-9 space-y-2  ">
 
-        <div className="bg-white shadow rounded-r-2xl h-[calc(100vh-6rem)] ">
+        <div className="bg-white shadow rounded-r-2xl min-h-[calc(100vh-7rem)] ">
           <div className="text-sm px-3 text-muted-foreground py-4">{!collapsed && "Main"} </div>
           {filteredNavFolders.map(folder => (
             <div key={folder.id} className="text-foreground/60">

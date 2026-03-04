@@ -4,7 +4,7 @@ import { ChickGradingInventory } from "@/lib/types"
 export async function get_chick_grading_inventory(batchcode: string) {
   try {
     const { data, error } = await db.rpc(
-      "get_chick_disposal_balance3",
+      "get_chick_disposal_balance3", // list of item with batch -> LINE items
       { p_batchcode: batchcode }
     )
 
@@ -24,7 +24,7 @@ export async function get_chick_grading_inventory(batchcode: string) {
 export async function get_available_chick_grading_batch_refs() {
   try {
     const { data, error } = await db.rpc(
-      "fndmf_get_available_chick_grading_batch_refs"
+      "fndmf_get_available_chick_grading_batch_refs" // list of batch base on inventory posting
     )
 
     if (error) throw error
@@ -84,7 +84,7 @@ export async function create_disposal(
         ref: r.ref,
         sku: r.SKU,
         uom: r.UoM,
-        from_whs: r.SKU,
+        from_whs: r.warehouse_code,
         qty: Number(r.qty) || 0,
       }))
 

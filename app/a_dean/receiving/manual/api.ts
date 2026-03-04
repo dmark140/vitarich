@@ -1,5 +1,5 @@
 import { db } from '@/lib/Supabase/supabaseClient'
-import { DocumentApproval, Farms } from '@/lib/types'
+import { DocumentApproval, Farms, Users } from '@/lib/types'
 
 
 
@@ -7,16 +7,35 @@ import { DocumentApproval, Farms } from '@/lib/types'
 
 
 export async function getFarmDB() {
-    const { data, error } = await db
-        .from('vwdmf_get_farmlist')
-        .select('*')
-        // .order('posting_date', { ascending: false })
+  const { data, error } = await db
+    .from('vwdmf_get_farmlist')
+    .select('*')
+  // .order('posting_date', { ascending: false })
 
-    if (error) {
-        throw error
-    }
+  if (error) {
+    throw error
+  }
 
-    return data as Farms[]
+  return data as Farms[]
+}
+
+
+
+
+export async function getUserInfo() {
+  const { data: { session } } = await db.auth.getSession()
+  console.log(session?.user.id)
+  const { data, error } = await db
+    .from('users')
+    .select('*')
+    .eq('auth_id', session?.user.id)
+
+  console.log({ data, error })
+  if (error) {
+    throw error
+  }
+
+  return data as Users[]
 }
 
 
@@ -80,3 +99,5 @@ export async function createReceiving(payload: any) {
 }
 
 // dmf_trg_post_inventory_from_recieving_items
+
+

@@ -9,13 +9,14 @@ import {
 } from '@/components/ui/table'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { DataRecordApproval, DraftItem, Farms } from '@/lib/types'
+import { DataRecordApproval, DraftItem, Farms, Users } from '@/lib/types'
 import { today } from '@/lib/Defaults/DefaultValues'
 import Breadcrumb from '@/lib/Breadcrumb'
 import SearchableDropdown from '@/lib/SearchableDropdown'
-import { createReceiving } from './api'
+import { createReceiving, getUserInfo } from './api'
 import { Plus, Save } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import UploadFile from '@/app/api/upload-onedrive/UploadFile'
 
 
 
@@ -62,6 +63,7 @@ export default function ApprovalDecisionForm() {
   const [postingDate, setPostingDate] = useState(today)
   const [temperature, setTemperature] = useState('')
   const [humidity, sethumidity] = useState('')
+  const [users, setusers] = useState<Users>()
 
   const [footer, setFooter] = useState({
     crates: '',
@@ -72,6 +74,15 @@ export default function ApprovalDecisionForm() {
   })
 
   // ---------- INIT
+  const getgetuserInfo = async () => {
+    const data = await getUserInfo()
+    console.log(data[0])
+    setusers(data[0])
+    setHeader(h => h ? { ...h, delivered_to: data[0].default_farm } : h)
+  }
+  useEffect(() => {
+    getgetuserInfo()
+  }, [])
 
   useEffect(() => {
     router.prefetch("/a_dean/receiving/") // prefetch the receiving list page for faster navigation after form submission
@@ -128,6 +139,7 @@ export default function ApprovalDecisionForm() {
   // ---------- HEADER FIELDS (EXCLUDING SOLD TO)
 
   const headerFields = [
+    { code: "", label: 'Delivered To', type: 'text', value: header?.delivered_to || "", onChange: setPostingDate },
     { code: "", label: 'Date', type: 'date', value: header?.doc_date || '', onChange: (v: string) => setHeader(h => h ? { ...h, doc_date: v } : h) },
     { code: "", label: 'Posting Date', type: 'date', value: postingDate, onChange: setPostingDate },
     { code: "", label: 'Address', value: header?.address || '', onChange: (v: string) => setHeader(h => h ? { ...h, address: v } : h) },
@@ -145,81 +157,6 @@ export default function ApprovalDecisionForm() {
 
 
 
-  // const insertMe = async () => {
-  //   const payload = {
-  //     doc_date: header?.doc_date,
-  //     temperature,
-  //     humidity,
-
-  //     soldTo: header?.soldTo,
-  //     Attention: header?.Attention,
-  //     po_no: header?.po_no,
-  //     voyage_no: header?.voyage_no,
-  //     shipped_via: header?.shipped_via,
-  //     dr_num: header?.dr_num,
-
-  //     no_of_crates: footer.crates,
-  //     no_of_tray: footer.trays,
-  //     plate_no: footer.van_plate,
-  //     driver: footer.driver,
-  //     serial_no: footer.serial,
-
-  //     items,
-  //   }
-
-  //   const res = await createReceiving(payload)
-
-  //   if (res.success) {
-  //     alert(`Saved! DocEntry: ${res.docentry}`)
-  //   } else {
-  //     alert(res.error)
-  //   }
-  // }
-  // const insertMe = async () => {
-
-  //   const transformedItems = items.map(i => {
-  //     const actualTotal = (i.actual_jr || 0) + (i.actual_he || 0)
-
-  //     return {
-  //       ...i,
-
-  //       // ✅ overwrite values as requested
-  //       jr: i.actual_jr ?? 0,
-  //       he: i.actual_he ?? 0,
-  //       actual_count: actualTotal,
-  //     }
-  //   })
-
-  //   const payload = {
-  //     doc_date: header?.doc_date,
-  //     temperature,
-  //     humidity,
-
-  //     soldTo: header?.soldTo,
-  //     Attention: header?.Attention,
-  //     po_no: header?.po_no,
-  //     voyage_no: header?.voyage_no,
-  //     shipped_via: header?.shipped_via,
-  //     dr_num: header?.dr_num,
-
-  //     no_of_crates: footer.crates,
-  //     no_of_tray: footer.trays,
-  //     plate_no: footer.van_plate,
-  //     driver: footer.driver,
-  //     serial_no: footer.serial,
-
-  //     // ✅ send transformed items
-  //     items: transformedItems,
-  //   }
-
-  //   const res = await createReceiving(payload)
-  //   router.push("/a_dean/receiving/")
-  //   if (res.success) {
-  //     alert(`Saved! DocEntry: ${res.docentry}`)
-  //   } else {
-  //     alert(res.error)
-  //   }
-  // }
   const insertMe = async () => {
 
     const transformedItems = items.map(i => ({
@@ -272,11 +209,18 @@ export default function ApprovalDecisionForm() {
               CurrentPageName='Manual Receiving'
             />
           </div>
+          {/* <Button
+            onClick={}
+          >
+            <Save />  Save Record
+          </Button> */}
+          {/* <UploadFile/> */}
           <Button
             onClick={insertMe}
           >
-            <Save />  Add Record
+            <Save />  Save Record
           </Button>
+
 
         </div>
       </CardHeader>
@@ -285,7 +229,7 @@ export default function ApprovalDecisionForm() {
 
         {/* HEADER */}
 
-        <div className="grid grid-cols-3 gap-6">
+        <div className="sm:grid md:grid-cols-3 sm:grid-cools-2 gap-6">
           {/*  */}
           {/* ✅ SOLD TO DROPDOWN */}
 
@@ -305,8 +249,8 @@ export default function ApprovalDecisionForm() {
           {/* OTHER HEADER FIELDS */}
 
           {headerFields.map((field, i) => (
-            <div key={i}>
-              <Label className='pb-2'>{field.label}</Label>
+            <div key={i} className='mt-1'>
+              <Label className='pb-2 mt-1'>{field.label}</Label>
               <Input
                 type={field.type || 'text'}
                 value={field.value}

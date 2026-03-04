@@ -16,6 +16,7 @@ import { useGlobalContext } from '@/lib/context/GlobalContext'
 import { NewUser } from './NewUser'
 import { DataTable } from '@/components/ui/DataTable'
 import { ColumnConfig, RowDataKey } from '@/lib/Defaults/DefaultTypes'
+import DynamicTable from '@/components/ui/DataTableV2'
 
 export default function Layout() {
   const { setValue, getValue } = useGlobalContext()
@@ -33,6 +34,8 @@ export default function Layout() {
     () => [
       { key: 'id', label: 'ID', type: 'text', disabled: true },
       { key: 'email', label: 'Email', type: 'text', disabled: true },
+      { key: 'firstname', label: 'First name', type: 'text', disabled: true },
+      { key: 'lastname', label: 'Last name', type: 'text', disabled: true },
       { key: 'update', label: 'Update', type: 'button', disabled: false },
     ],
     [/*sourceList, itemListSource*/]
@@ -127,7 +130,7 @@ export default function Layout() {
       </div>
 
       {/* Table */}
-      <div className='px-4'>
+      {/* <div className='px-4'>
         <DataTable
           columns={tableColumnsx}
           rows={data}
@@ -138,8 +141,43 @@ export default function Layout() {
             route.push(`/admin/user/new`)
           }}
         />
-      </div>
+      </div> */}
+      <div className="px-4">
+        <DynamicTable
+          initialFilters={[]} // show all records
+          columns={tableColumnsx.map((col) => ({
+            key: col.key,
+            label: col.label,
+            align: 'left',
 
+            render: (row: RowDataKey) => {
+              if (col.key === 'update') {
+                return (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className='border-2  '
+                    onClick={() => {
+                      setValue("selectedUser", row)
+                      route.push(`/admin/user/new`)
+                    }}
+                  >
+                    Update
+                  </Button>
+                )
+              }
+
+              const value = row[col.key]
+
+              if (value === null || value === undefined || value === '') return '-'
+
+              return String(value)
+            },
+          }))}
+
+          data={data}
+        />
+      </div>
     </div >
   )
 }

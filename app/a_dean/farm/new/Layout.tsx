@@ -10,15 +10,26 @@ import React, { useEffect, useState } from 'react'
 import { addFarmFull, formatCode, generateNextCode, getLastCode } from './api'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
+import SearchableDropdown from '@/lib/SearchableDropdown'
 
 export default function Layout() {
+
   const router = useRouter()
+
   const [buildingCounter, setBuildingCounter] = useState<number | null>(null)
   const [penCounter, setPenCounter] = useState<number | null>(null)
+  const [machineCounter, setMachineCounter] = useState<number | null>(null)
 
   const farmObj = [
     { code: "code", name: "Farm Code", type: "text", required: true },
     { code: "name", name: "Farm Name", type: "text", required: true },
+    {
+      code: "farm_type", name: "Farm Type", type: "search", list: [
+        { code: "BE", name: "Breeder Farm" },
+        { code: "HA", name: "Hatcher" },
+        { code: "BR", name: "Broiler" },
+      ]
+    },
     { code: "tin", name: "TIN No.", type: "text", required: true },
     { code: "tel", name: "Telephone No.", type: "text", required: true },
     { code: "contact_person", name: "Contact Person", type: "text", required: true },
@@ -45,9 +56,23 @@ export default function Layout() {
     { code: "status", name: "Status", type: "text" },
   ]
 
+  const machineObj = [
+    { code: "code", name: "Machine Code", type: "text" },
+    { code: "name", name: "Machine Name", type: "text" },
+    {
+      code: "type", name: "Type", type: "search", list: [
+        { code: "S", name: "Setter" },
+        { code: "H", name: "Hatcher" },
+      ]
+    },
+    { code: "capacity", name: "Capacity", type: "number" },
+    { code: "remarks", name: "Remarks", type: "text", isLong: true },
+  ]
+
   const [farmData, setFarmData] = useState<any>({})
   const [addressData, setAddressData] = useState<any>({})
   const [buildings, setBuildings] = useState<any[]>([])
+  const [machines, setMachines] = useState<any[]>([])
 
   const updateFarm = (code: string, value: any) => {
     setFarmData((prev: any) => ({ ...prev, [code]: value }))
@@ -77,7 +102,6 @@ export default function Layout() {
         expanded: true
       }
     ])
-
   }
 
   const updateBuilding = (id: number, code: string, value: any) => {
@@ -117,12 +141,13 @@ export default function Layout() {
           : b
       )
     )
-
   }
 
   const updatePen = (buildingId: number, penId: number, code: string, value: any) => {
+
     setBuildings(prev =>
       prev.map(b => {
+
         if (b.id !== buildingId) return b
 
         return {
@@ -131,9 +156,40 @@ export default function Layout() {
             p.id === penId ? { ...p, data: { ...p.data, [code]: value } } : p
           )
         }
+
       })
     )
+  }
 
+  // ================= MACHINE =================
+
+  const addMachine = () => {
+
+    if (machineCounter === null) return
+
+    const next = machineCounter + 1
+    setMachineCounter(next)
+
+    const code = formatCode("MAC", next)
+
+    setMachines(prev => [
+      ...prev,
+      {
+        id: Date.now(),
+        data: { code }
+      }
+    ])
+  }
+
+  const updateMachine = (id: number, code: string, value: any) => {
+
+    setMachines(prev =>
+      prev.map(m =>
+        m.id === id
+          ? { ...m, data: { ...m.data, [code]: value } }
+          : m
+      )
+    )
   }
 
   // ================= SUBMIT =================
@@ -143,73 +199,119 @@ export default function Layout() {
     const output = {
       farm: farmData,
       address: addressData,
-      buildings
+      buildings,
+      machines
     }
-
     const id = await addFarmFull(output)
-    toast("Farm added with ID of " + id +"")
+
+    toast("Farm added with ID of " + id)
+
     router.push("/a_dean/farm")
   }
 
   // ================= LOAD FARM CODE =================
 
   useEffect(() => {
+
     router.prefetch("/a_dean/farm")
+
     async function loadFarmCode() {
+
       const code = await generateNextCode("v_last_farm_code", "FRM", 6)
+
       setFarmData((prev: any) => ({ ...prev, code }))
     }
+
     loadFarmCode()
+
   }, [])
 
   // ================= LOAD COUNTERS =================
 
   useEffect(() => {
+
     async function loadCounters() {
+
       const bLast = await getLastCode("v_last_building_code")
       const pLast = await getLastCode("v_last_pen_code")
+      const mLast = await getLastCode("v_last_machine_code")
 
       setBuildingCounter(bLast)
       setPenCounter(pLast)
-    }
-    loadCounters()
+      setMachineCounter(mLast)
 
+    }
+
+    loadCounters()
 
   }, [])
 
   // ================= UI =================
 
   return (
-    <div> <div className='mt-5 mx-4 flex justify-between items-center'> <Breadcrumb
-      SecondPreviewPageName='Settings'
-      FirstPreviewsPageName='Farm Management'
-      CurrentPageName='New Farm'
-    /> <Button onClick={handleAddFarm}> <Plus /> Add Farm </Button> </div>
+    <div>
+
+      <div className='mt-5 mx-4 flex justify-between items-center'>
+
+        <Breadcrumb
+          SecondPreviewPageName='Settings'
+          FirstPreviewsPageName='Farm Management'
+          CurrentPageName='New Farm'
+        />
+
+        <Button onClick={handleAddFarm}>
+          <Plus /> Add Farm
+        </Button>
+
+      </div>
 
       <div className='bg-white shadow w-full mt-4 rounded'>
 
         {/* FARM DETAILS */}
 
         <div className='pt-4 px-4 font-semibold text-xl'>Details</div>
+
         <div className='grid grid-cols-2 gap-4 m-4'>
+
           {farmObj.map((i, x) => (
+
             <div key={x} className='space-y-2'>
+
               <Label required={i.required}>{i.name}</Label>
 
               {i.code === "code" ? (
+
                 <Input
                   value={farmData.code || ""}
                   readOnly
                   className="bg-gray-100"
                 />
-              ) : (
-                <Input
-                  type={i.type}
-                  onChange={e => updateFarm(i.code, e.target.value)}
+
+              ) : i.type === "search" ?
+                <SearchableDropdown
+                  list={i.list || []}
+                  codeLabel="code"
+                  nameLabel="name"
+                  value={farmData.farm_type || ''}
+                  onChange={(val) => {
+                    console.log({ farmData })
+                    console.log({ val })
+                    updateFarm(i.code, val)
+                  }}
                 />
-              )}
+                : (
+
+                  <Input
+                    type={i.type}
+                    onChange={e => updateFarm(i.code, e.target.value)}
+                  />
+
+                )}
+
             </div>
+
           ))}
+
         </div>
 
         <Separator />
@@ -217,16 +319,24 @@ export default function Layout() {
         {/* LOCATION */}
 
         <div className='pt-4 px-4 font-semibold text-xl'>Location</div>
+
         <div className='grid grid-cols-2 gap-4 m-4'>
+
           {addressObj.map((i, x) => (
+
             <div key={x} className='space-y-2'>
+
               <Label required={i.required}>{i.name}</Label>
+
               <Input
                 type={i.type}
                 onChange={e => updateAddress(i.code, e.target.value)}
               />
+
             </div>
+
           ))}
+
         </div>
 
         <Separator />
@@ -234,7 +344,9 @@ export default function Layout() {
         {/* BUILDINGS */}
 
         <div className='py-4 px-4 font-semibold text-xl flex justify-between items-center'>
+
           Buildings
+
           <Button
             size="sm"
             onClick={addBuilding}
@@ -242,6 +354,7 @@ export default function Layout() {
           >
             <Plus className="mr-1 h-4 w-4" /> Add Building
           </Button>
+
         </div>
 
         <div className='space-y-3 m-4'>
@@ -254,11 +367,15 @@ export default function Layout() {
                 className='flex items-center justify-between px-3 py-2 bg-gray-50 cursor-pointer'
                 onClick={() => toggleBuilding(b.id)}
               >
+
                 <div className='font-medium text-sm flex items-center'>
+
                   Building {idx + 1}
+
                   {b.expanded
                     ? <ArrowDown className='size-4 mx-1' />
                     : <ArrowUp className='size-4 mx-1' />}
+
                 </div>
 
                 <Button
@@ -272,23 +389,31 @@ export default function Layout() {
                 >
                   <Plus className="mr-1 h-4 w-4" /> Pen
                 </Button>
+
               </div>
 
               {b.expanded && (
+
                 <div className='p-3 space-y-3'>
 
                   <div className='grid grid-cols-4 gap-3'>
+
                     {buildingObj.map((i, x) => (
+
                       <div key={x} className={i.isLong ? 'col-span-4' : ''}>
+
                         <Label className='text-xs'>{i.name}</Label>
 
                         {i.code === "code" ? (
+
                           <Input
                             value={b.data.code || ""}
                             readOnly
                             className="h-8 text-sm bg-gray-100"
                           />
+
                         ) : (
+
                           <Input
                             className='h-8 text-sm'
                             type={i.type}
@@ -296,12 +421,17 @@ export default function Layout() {
                               updateBuilding(b.id, i.code, e.target.value)
                             }
                           />
+
                         )}
+
                       </div>
+
                     ))}
+
                   </div>
 
                   {b.pens.length > 0 && (
+
                     <div className='border rounded'>
 
                       <div className='grid grid-cols-4 bg-gray-100 px-2 py-1 text-xs font-medium'>
@@ -312,48 +442,137 @@ export default function Layout() {
                       </div>
 
                       {b.pens.map((p: any, pIdx: number) => (
+
                         <div
                           key={p.id}
                           className='grid grid-cols-4 gap-2 px-2 py-2 border-t'
                         >
+
                           <div className='text-xs flex items-center'>
                             {pIdx + 1}
                           </div>
 
                           {penObj.map((i, x) =>
-                            i.code === "code" ? (
-                              <Input
-                                key={x}
-                                value={p.data.code || ""}
-                                readOnly
-                                className='h-8 text-sm bg-gray-100'
-                              />
-                            ) : (
-                              <Input
-                                key={x}
-                                className='h-8 text-sm'
-                                type={i.type}
-                                onChange={e =>
-                                  updatePen(b.id, p.id, i.code, e.target.value)
-                                }
-                              />
-                            )
+                            i.code === "code"
+                              ? (
+                                <Input
+                                  key={x}
+                                  value={p.data.code || ""}
+                                  readOnly
+                                  className='h-8 text-sm bg-gray-100'
+                                />
+                              )
+                              : (
+                                <Input
+                                  key={x}
+                                  className='h-8 text-sm'
+                                  type={i.type}
+                                  onChange={e =>
+                                    updatePen(b.id, p.id, i.code, e.target.value)
+                                  }
+                                />
+                              )
                           )}
+
                         </div>
+
                       ))}
 
                     </div>
+
                   )}
 
                 </div>
+
               )}
 
             </div>
+
+          ))}
+
+        </div>
+
+        <Separator />
+
+        {/* MACHINES */}
+
+        <div className='py-4 px-4 font-semibold text-xl flex justify-between items-center'>
+
+          Machines
+
+          <Button
+            size="sm"
+            onClick={addMachine}
+            disabled={machineCounter === null}
+          >
+            <Plus className="mr-1 h-4 w-4" /> Add Machine
+          </Button>
+
+        </div>
+
+        <div className='space-y-3 m-4'>
+
+          {machines.map((m, idx) => (
+
+            <div key={m.id} className='border rounded p-3'>
+
+              <div className='text-sm font-medium mb-2'>
+                Machine {idx + 1}
+              </div>
+
+              <div className='grid grid-cols-4 gap-3'>
+
+                {machineObj.map((i, x) => (
+
+                  <div key={x} className={i.isLong ? 'col-span-4' : ''}>
+
+                    <Label className='text-xs'>{i.name}</Label>
+
+                    {i.code === "code"
+                      ? (
+                        <Input
+                          value={m.data.code || ""}
+                          readOnly
+                          className='h-8 text-sm bg-gray-100'
+                        />
+                      )
+                      : i.type === "search"
+                        ? (
+                          <SearchableDropdown
+                            list={i.list || []}
+                            codeLabel="code"
+                            nameLabel="name"
+                            value={m.data[i.code] || ''}
+                            onChange={(val) =>
+                              updateMachine(m.id, i.code, val)
+                            }
+                          />
+                        )
+                        : (
+                          <Input
+                            className='h-8 text-sm'
+                            type={i.type}
+                            onChange={e =>
+                              updateMachine(m.id, i.code, e.target.value)
+                            }
+                          />
+                        )
+                    }
+
+                  </div>
+
+                ))}
+
+              </div>
+
+            </div>
+
           ))}
 
         </div>
 
       </div>
+
     </div>
   )
 }

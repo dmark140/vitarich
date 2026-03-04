@@ -25,8 +25,8 @@ type Props<T> = {
   showNameOnly?: boolean
   placeholder?: string
   width?: number
+  disabled?: boolean
   onChange: (value: string, item: T) => void
-
 }
 
 export default function SearchableDropdown<T extends Record<string, any>>({
@@ -37,6 +37,7 @@ export default function SearchableDropdown<T extends Record<string, any>>({
   placeholder = '',
   showNameOnly = false,
   width = 400,
+  disabled = false,
   onChange,
 }: Props<T>) {
   const [open, setOpen] = useState(false)
@@ -81,13 +82,14 @@ export default function SearchableDropdown<T extends Record<string, any>>({
   }
 
   return (
-    <Popover open={open} onOpenChange={setOpen} >
+    <Popover open={open} onOpenChange={(o) => !disabled && setOpen(o)} >
       <Tooltip>
         {/* PopoverTrigger wraps TooltipTrigger OR vice-versa — both asChild */}
         <PopoverTrigger asChild>
           <TooltipTrigger asChild>
             <Button
-              className=" bg-background text-foreground hover:bg-white/50 h-9 w-full justify-start overflow-hidden whitespace-nowrap border border-primary"
+              disabled={disabled}
+              className="bg-background text-foreground hover:bg-white/50 h-9 w-full justify-start overflow-hidden whitespace-nowrap border border-primary disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span className="truncate flex items-center gap-2">
                 {displayText === "" || undefined ? <><Search /> Search... </> : displayText}

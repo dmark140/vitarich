@@ -139,7 +139,7 @@ export interface DataRecordApproval {
   status: DraftStatus
   checked: boolean;
   docentry: number;
-
+  delivered_to: string | null;
 
 }
 
@@ -308,6 +308,7 @@ export type ChickGradingInventory = {
   qty: number
   ref: string
   UoM: string
+  warehouse_code: string
 }
 
 
@@ -380,4 +381,35 @@ export type DraftItem = {
   actual_total?: number // user input
 
   isNew?: boolean
+}
+
+
+export const machineObj = [
+  { code: "code", name: "Machine Code", type: "text" },
+  { code: "name", name: "Machine Name", type: "text" },
+  { code: "type", name: "Type", type: "text" },
+  { code: "capacity", name: "Capacity", type: "number" },
+  { code: "remarks", name: "Remarks", type: "text", isLong: true },
+]
+
+export type Users = {
+  id: number
+  created_at: string
+  created_by: string | null
+  updated_at: string | null
+  updated_by: string | null
+  docStatus: string | null
+  email: string | null
+  firstname: string | null
+  middlename: string | null
+  lastname: string | null
+  gender: string | null
+  phone: string | null
+  mobile: string | null
+  birthdate: string | null
+  location: string | null
+  remarks: string | null
+  auth_id: string | null
+  issuper: string
+  default_farm: string | null
 }

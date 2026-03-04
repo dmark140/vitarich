@@ -1,14 +1,17 @@
 import { db } from '@/lib/Supabase/supabaseClient'
 
 export async function addFarmFull(payload: any) {
-
-  const { data, error } = await db
-    .rpc('insert_farm_full', { payload })
+  const { data, error } = await db.rpc(
+    "insert_farm_full",
+    { payload: payload }
+  )
 
   if (error) {
-    throw error
+    console.error("insert_farm_full error:", error)
+    throw new Error(error.message)
   }
-  return data // returns new farm id
+
+  return data // returns farm id
 }
 
 
@@ -25,7 +28,7 @@ export async function getLastCode(viewName: string): Promise<number> {
     .from(viewName)
     .select("last_number")
     .single()
-
+  console.log({ data, error })
   if (error) throw error
 
   return data?.last_number ?? 0

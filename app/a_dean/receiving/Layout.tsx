@@ -146,9 +146,9 @@ export default function Layout() {
                     CurrentPageName='Receiving List'
                 />
                 <div className='flex gap-4'>
-                    <Button
+                    {/* <Button
                         onClick={() => setIsScanning(true)}
-                    ><QrCode />Scan Search</Button>
+                    ><QrCode />Scan Search</Button> */}
 
                     <Button
                         // onClick={() => setIsScanning(true)}
