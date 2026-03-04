@@ -126,25 +126,25 @@ export async function insertUserProfile(userProfileData: UserInsert): Promise<Us
   return data as UserRow;
 }
 
-export async function updateUserProfile(userProfileData: UserInsert): Promise<UserRow> {
+export async function updateUserProfile(userProfileData: UserInsert) {
   const payload = {
     ...userProfileData,
     updated_at: new Date().toISOString(),
   };
-
+  console.log(payload)
   const { data, error } = await db
     .from('users')
     .update(payload)
-    .eq('auth_id', userProfileData.auth_id) // Targets the specific user
+    .eq('auth_id', userProfileData.auth_id)
     .select()
     .single();
-
+  console.log({ data, error })
   if (error) {
     console.error('Supabase Update Error:', error);
     throw new Error(error.message);
   }
 
-  return data as UserRow;
+  // return data as UserRow;
 }
 
 export async function getProfileByAuthId(authId: string): Promise<UserRow | null> {

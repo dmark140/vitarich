@@ -8,7 +8,7 @@ import { db } from "../Supabase/supabaseClient";
 import { Button } from "@/components/ui/button";
 import { CloudDownload, RefreshCcw } from "lucide-react";
 import { getItemById, getItems } from "@/app/a_dean/items/api";
-import { getFarmDB } from "@/app/a_dean/receiving/manual/api";
+import { getFarmDB, getFarmDB_breeder } from "@/app/a_dean/receiving/manual/api";
 export function useGlobalDefaults() {
   const { setValue } = useGlobalContext();
   const [loading, setLoading] = useState(false);
@@ -43,6 +43,22 @@ export function useGlobalDefaults() {
       console.log(error, "getFarmDB");
     }
   };
+
+
+  const setFarms_breeder = async (): Promise<any> => {
+    try {
+      const {
+        data: { session },
+      } = await db.auth.getSession();
+      if (!session) return;
+      const data = await getFarmDB_breeder();
+      setValue("getFarmDB_breeder", data);
+      return data;
+    } catch (error) {
+      console.log(error, "getFarmDB_breeder");
+    }
+  };
+
   const setUserPermissions = async (): Promise<any> => {
     try {
       const {
@@ -68,6 +84,7 @@ export function useGlobalDefaults() {
         setUserPermissions(),
         setItems(),
         setFarms(),
+        setFarms_breeder(),
       ]);
     } catch (error) {
       console.log(error, "setGlobals");
@@ -82,6 +99,7 @@ export function useGlobalDefaults() {
     setUserPermissions,
     setItems,
     setFarms,
+    setFarms_breeder
   };
 }
 

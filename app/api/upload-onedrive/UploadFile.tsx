@@ -31,7 +31,7 @@ export default function UploadFile() {
 
   return (
     <div className="flex justify-center items-center p-10">
-      <Card className="w-[420px]">
+      <Card className="w-105">
         <CardHeader>
           <CardTitle>Upload File</CardTitle>
           <CardDescription>

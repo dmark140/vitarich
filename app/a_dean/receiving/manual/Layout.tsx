@@ -9,16 +9,14 @@ import {
 } from '@/components/ui/table'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { DataRecordApproval, DraftItem, Farms, Users } from '@/lib/types'
+import { DataRecordApproval, DataTableColumn, DefaultFarm, DraftItem } from '@/lib/types'
 import { today } from '@/lib/Defaults/DefaultValues'
 import Breadcrumb from '@/lib/Breadcrumb'
 import SearchableDropdown from '@/lib/SearchableDropdown'
 import { createReceiving, getUserInfo } from './api'
 import { Plus, Save } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import UploadFile from '@/app/api/upload-onedrive/UploadFile'
-
-
+import { Separator } from '@/components/ui/separator'
 
 type ItemMasterType = {
   id: number
@@ -26,7 +24,6 @@ type ItemMasterType = {
   item_name: string
   unit_measure: string
 }
-
 
 const emptyApprovalRecord: DataRecordApproval = {
   uid: 0,
@@ -43,18 +40,18 @@ const emptyApprovalRecord: DataRecordApproval = {
   po_no: '',
   Attention: '',
   voyage_no: '',
-  status: 'pending', // ⚠️ must match your DraftStatus type
+  status: 'pending',
   checked: false,
-  docentry: 0
+  docentry: 0,
+  delivered_to: ''
 }
 
-
-
 export default function ApprovalDecisionForm() {
+
   const router = useRouter()
   const { getValue } = useGlobalContext()
 
-  const [farms, setfarms] = useState<Farms[]>([])
+  const [farms, setfarms] = useState<DataTableColumn[]>([])
   const [header, setHeader] = useState<DataRecordApproval | null>(null)
   const [items, setItems] = useState<DraftItem[]>([])
   const [ItemMaster, setItemMaster] = useState<ItemMasterType[]>([])
@@ -63,7 +60,7 @@ export default function ApprovalDecisionForm() {
   const [postingDate, setPostingDate] = useState(today)
   const [temperature, setTemperature] = useState('')
   const [humidity, sethumidity] = useState('')
-  const [users, setusers] = useState<Users>()
+  const [defaultFarm, setdefaultFarm] = useState<DefaultFarm>()
 
   const [footer, setFooter] = useState({
     crates: '',
@@ -73,33 +70,27 @@ export default function ApprovalDecisionForm() {
     serial: ''
   })
 
-  // ---------- INIT
-  const getgetuserInfo = async () => {
+  const getDefaultFarm = async () => {
     const data = await getUserInfo()
-    console.log(data[0])
-    setusers(data[0])
-    setHeader(h => h ? { ...h, delivered_to: data[0].default_farm } : h)
+    setdefaultFarm(data[0])
+    setHeader(h => h ? { ...h, delivered_to: data[0].code } : h)
   }
+
   useEffect(() => {
-    getgetuserInfo()
+    getDefaultFarm()
   }, [])
 
   useEffect(() => {
-    router.prefetch("/a_dean/receiving/") // prefetch the receiving list page for faster navigation after form submission
+    router.prefetch("/a_dean/receiving/")
     const init = () => {
       setItemMaster(getValue("itemmaster") || [])
-      setfarms(getValue("getFarmDB") || [])
-
-      const ctx = getValue('forApproval')
-      // if (!ctx?.row) return
+      setfarms(getValue("getFarmDB_breeder") || [])
 
       setHeader(emptyApprovalRecord)
       setPostingDate(today)
     }
     init()
   }, [getValue])
-
-  // ---------- ROW FUNCTIONS
 
   const updateItem = (id: number, changes: Partial<DraftItem>) =>
     setItems(p => p.map(i => i.id === id ? { ...i, ...changes } : i))
@@ -134,35 +125,56 @@ export default function ApprovalDecisionForm() {
     setSelectedRows([])
   }
 
-  // if (!header) return null
-
-  // ---------- HEADER FIELDS (EXCLUDING SOLD TO)
-
-  const headerFields = [
-    { code: "", label: 'Delivered To', type: 'text', value: header?.delivered_to || "", onChange: setPostingDate },
-    { code: "", label: 'Date', type: 'date', value: header?.doc_date || '', onChange: (v: string) => setHeader(h => h ? { ...h, doc_date: v } : h) },
-    { code: "", label: 'Posting Date', type: 'date', value: postingDate, onChange: setPostingDate },
-    { code: "", label: 'Address', value: header?.address || '', onChange: (v: string) => setHeader(h => h ? { ...h, address: v } : h) },
-    { code: "", label: 'P.O No', value: header?.po_no || '', onChange: (v: string) => setHeader(h => h ? { ...h, po_no: v } : h) },
-    { code: "", label: 'DR No', value: header?.dr_num || '', onChange: (v: string) => setHeader(h => h ? { ...h, dr_num: v } : h) },
-    { code: "", label: 'Attention To', value: header?.Attention || '', onChange: (v: string) => setHeader(h => h ? { ...h, Attention: v } : h) },
-    { code: "", label: 'Voyage No', value: header?.voyage_no || '', onChange: (v: string) => setHeader(h => h ? { ...h, voyage_no: v } : h) },
-    { code: "", label: 'Temperature', value: temperature, onChange: setTemperature },
-    { code: "", label: 'Humidity', value: humidity, onChange: sethumidity },
-    { code: "tin", label: 'Tin', value: header?.tin || '', onChange: (v: string) => setHeader(h => h ? { ...h, tin: v } : h) },
-    { code: "", label: 'Shipped Via', value: header?.shipped_via || '', onChange: (v: string) => setHeader(h => h ? { ...h, shipped_via: v } : h) },
-    { code: "", label: 'Shipped To', value: header?.shipped_to || '', onChange: (v: string) => setHeader(h => h ? { ...h, shipped_to: v } : h) },
+  const headerFieldsLeft = [
+    { required: true, disabled: false, code: "", label: 'Deliver Date', type: 'date', value: header?.doc_date || '', onChange: (v: string) => setHeader(h => h ? { ...h, doc_date: v } : h) },
+    { required: true, disabled: false, code: "", label: 'Address', value: header?.address || '', onChange: (v: string) => setHeader(h => h ? { ...h, address: v } : h) },
+    { required: true, disabled: false, code: "tin", label: 'Tin', value: header?.tin || '', onChange: (v: string) => setHeader(h => h ? { ...h, tin: v } : h) },
   ]
 
+  const headerFieldsRight = [
+    { disabled: true, code: "", label: 'Delivered To', type: 'text', value: defaultFarm?.code + ' - ' + defaultFarm?.name, onChange: setPostingDate },
+    { required: true, disabled: false, code: "", label: 'Posting Date', type: 'date', value: postingDate, onChange: setPostingDate },
+    { required: true, disabled: false, code: "", label: 'P.O No', value: header?.po_no || '', onChange: (v: string) => setHeader(h => h ? { ...h, po_no: v } : h) },
+    { required: true, disabled: false, code: "", label: 'DR No', value: header?.dr_num || '', onChange: (v: string) => setHeader(h => h ? { ...h, dr_num: v } : h) },
+    { required: true, disabled: false, code: "", label: 'Attention To', value: header?.Attention || '', onChange: (v: string) => setHeader(h => h ? { ...h, Attention: v } : h) },
+    { required: true, disabled: false, code: "", label: 'Voyage No', value: header?.voyage_no || '', onChange: (v: string) => setHeader(h => h ? { ...h, voyage_no: v } : h) },
+    { required: true, disabled: false, code: "", label: 'Temperature', type: 'number', value: temperature, onChange: setTemperature },
+    { required: true, disabled: false, code: "", label: 'Humidity', type: 'number', value: humidity, onChange: sethumidity },
+    { required: true, disabled: false, code: "", label: 'Shipped Via', value: header?.shipped_via || '', onChange: (v: string) => setHeader(h => h ? { ...h, shipped_via: v } : h) },
+    { required: true, disabled: false, code: "", label: 'Shipped To', value: header?.shipped_to || '', onChange: (v: string) => setHeader(h => h ? { ...h, shipped_to: v } : h) },
+  ]
 
+  const validateLineItems = () => {
 
+    if (items.length === 0) {
+      alert("Add at least one line item")
+      return false
+    }
+
+    for (const row of items) {
+
+      if (
+        !row.brdr_ref_no ||
+        !row.sku ||
+        !row.lot_no ||
+        !row.breed ||
+        !row.prod_date ||
+        !row.age ||
+        !row.house_no ||
+        row.actual_total === undefined
+      ) {
+        alert("All line item fields are required.")
+        return false
+      }
+    }
+
+    return true
+  }
 
   const insertMe = async () => {
 
     const transformedItems = items.map(i => ({
       ...i,
-
-      // DB mapping
       total_api: i.total ?? 0,
       actual_count: i.actual_total ?? 0,
     }))
@@ -171,20 +183,18 @@ export default function ApprovalDecisionForm() {
       doc_date: header?.doc_date,
       temperature,
       humidity,
-
       soldTo: header?.soldTo,
       Attention: header?.Attention,
       po_no: header?.po_no,
       voyage_no: header?.voyage_no,
       shipped_via: header?.shipped_via,
       dr_num: header?.dr_num,
-
       no_of_crates: footer.crates,
       no_of_tray: footer.trays,
       plate_no: footer.van_plate,
       driver: footer.driver,
       serial_no: footer.serial,
-
+      delivered_to: defaultFarm?.code,
       items: transformedItems,
     }
 
@@ -198,116 +208,153 @@ export default function ApprovalDecisionForm() {
     }
   }
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!validateLineItems()) return
+
+    await insertMe()
+  }
+
   return (
-    <Card className="w-full border-none shadow-none bg-background p-0">
-      <CardHeader className="border-b">
-        <div className="flex justify-between items-center">
-          <div className='mt-8'>
-            <Breadcrumb
-              FirstPreviewsPageName='Receiving'
-              SecondPreviewPageName='Hatchery'
-              CurrentPageName='Manual Receiving'
-            />
-          </div>
-          {/* <Button
-            onClick={}
-          >
-            <Save />  Save Record
-          </Button> */}
-          {/* <UploadFile/> */}
-          <Button
-            onClick={insertMe}
-          >
-            <Save />  Save Record
-          </Button>
 
+    <form onSubmit={handleSubmit}>
 
-        </div>
-      </CardHeader>
+      <Card className="w-full border-none shadow-none bg-background p-0">
 
-      <CardContent className='bg-white rounded-2xl p-4 space-y-6'>
+        <CardHeader className="border-b">
 
-        {/* HEADER */}
+          <div className="flex justify-between items-center">
 
-        <div className="sm:grid md:grid-cols-3 sm:grid-cools-2 gap-6">
-          {/*  */}
-          {/* ✅ SOLD TO DROPDOWN */}
+            <div className='mt-8'>
+              <Breadcrumb
+                FirstPreviewsPageName='Receiving'
+                SecondPreviewPageName='Hatchery'
+                CurrentPageName='Manual Receiving'
+              />
+            </div>
 
-          <div>
-            <Label className='pb-2'>Delivered From</Label>
-            <SearchableDropdown
-              list={farms}
-              codeLabel="code"
-              nameLabel="name"
-              value={header?.soldTo || ''}
-              onChange={(val) =>
-                setHeader(h => h ? { ...h, soldTo: val } : h)
-              }
-            />
+            <Button type="submit">
+              <Save /> Save Record
+            </Button>
+
           </div>
 
-          {/* OTHER HEADER FIELDS */}
+        </CardHeader>
 
-          {headerFields.map((field, i) => (
-            <div key={i} className='mt-1'>
-              <Label className='pb-2 mt-1'>{field.label}</Label>
-              <Input
-                type={field.type || 'text'}
-                value={field.value}
-                // readOnly disabled ={field.readOnly disabled }
-                onChange={
-                  // field.readOnly disabled 
-                    // ? undefined
-                    /*:*/ e => field.onChange?.(e.target.value)
+        <CardContent className='bg-white rounded-2xl p-4 space-y-6'>
+
+          <div className="sm:grid md:grid-cols-3 sm:grid-cools-2 gap-6">
+
+            <div className='mt-2'>
+              <Label className='pb-2'>Delivered From</Label>
+              <SearchableDropdown
+                list={farms}
+                codeLabel="code"
+                nameLabel="name"
+                value={header?.soldTo || ''}
+                onChange={(val) =>
+                  setHeader(h => h ? { ...h, soldTo: val } : h)
                 }
               />
             </div>
-          ))}
-        </div>
 
-        {/* LINE ITEMS */}
+            {headerFieldsLeft.map((field, i) => (
 
-        <div>
-          <div className="flex justify-between items-center mb-2">
-            <Label className="text-green-700">Line Items</Label>
+              <div key={i} className='mt-1'>
 
-            <div className="flex gap-2">
-              {selectedRows.length > 0 && (
-                <Button variant="destructive" onClick={removeSelectedRows}>
-                  Remove Selected
-                </Button>
-              )}
-              <Button onClick={addRow}>
-                <Plus />
-                Add Row</Button>
-            </div>
+                <Label className='pb-2 mt-1'>{field.label}</Label>
+
+                <Input
+                  required={field.required}
+                  disabled={field.disabled}
+                  type={field.type || 'text'}
+                  value={field.value}
+                  onChange={e => field.onChange?.(e.target.value)}
+                />
+
+              </div>
+
+            ))}
+
           </div>
 
-          <div className="rounded-md border overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className=''></TableHead>
-                  <TableHead className=''>Line No</TableHead>
-                  <TableHead className='min-w-25'>BREEDER REF. NO.</TableHead>
-                  <TableHead className=''>EGG SKU</TableHead>
-                  <TableHead className=''>UoM</TableHead>
-                  <TableHead className='min-w-25'>Lot No.</TableHead>
-                  <TableHead className='min-w-25'>Breed</TableHead>
-                  <TableHead className='min-w-25'>Production Date</TableHead>
-                  <TableHead className='min-w-25'>Age</TableHead>
-                  <TableHead className='min-w-25'>House No.</TableHead>
-                  <TableHead className='min-w-25'>Total</TableHead>
-                  <TableHead className='min-w-25'>Actual Total</TableHead>
-                </TableRow>
-              </TableHeader>
+          <Separator className='my-2' />
 
-              <TableBody>
-                {items.map((item, index) => {
+          <div className="sm:grid md:grid-cols-3 sm:grid-cools-2 gap-6">
 
-                  return (
+            {headerFieldsRight.map((field, i) => (
+
+              <div key={i} className='mt-1'>
+
+                <Label className='pb-2 mt-1'>{field.label}</Label>
+
+                <Input
+                  required={field.required}
+                  disabled={field.disabled}
+                  type={field.type || 'text'}
+                  value={field.value}
+                  onChange={e => field.onChange?.(e.target.value)}
+                />
+
+              </div>
+
+            ))}
+
+          </div>
+
+          <div>
+
+            <div className="flex justify-between items-center mb-2">
+
+              <Label className="text-green-700">Line Items</Label>
+
+              <div className="flex gap-2">
+
+                {selectedRows.length > 0 && (
+                  <Button variant="destructive" onClick={removeSelectedRows}>
+                    Remove Selected
+                  </Button>
+                )}
+
+                <Button type="button" onClick={addRow}>
+                  <Plus />
+                  Add Row
+                </Button>
+
+              </div>
+
+            </div>
+
+            <div className="rounded-md border overflow-x-auto">
+
+              <Table>
+
+                <TableHeader>
+                  <TableRow>
+                    <TableHead></TableHead>
+                    <TableHead>Line No</TableHead>
+                    <TableHead>BREEDER REF. NO.</TableHead>
+                    <TableHead>EGG SKU</TableHead>
+                    <TableHead>UoM</TableHead>
+                    <TableHead>Lot No.</TableHead>
+                    <TableHead>Breed</TableHead>
+                    <TableHead>Production Date</TableHead>
+                    <TableHead>Age</TableHead>
+                    <TableHead>House No.</TableHead>
+                    <TableHead>Total</TableHead>
+                    <TableHead>Actual Total</TableHead>
+                  </TableRow>
+                </TableHeader>
+
+                <TableBody>
+
+                  {items.map((item, index) => (
+
                     <TableRow key={item.id}>
+
                       <TableCell>
+
                         {item.isNew && (
                           <input
                             type="checkbox"
@@ -315,12 +362,14 @@ export default function ApprovalDecisionForm() {
                             onChange={() => toggleRow(item.id)}
                           />
                         )}
+
                       </TableCell>
 
                       <TableCell>{index + 1}</TableCell>
 
                       <TableCell>
                         <Input
+                          required
                           value={item.brdr_ref_no || ''}
                           onChange={e =>
                             updateItem(item.id, { brdr_ref_no: e.target.value })
@@ -329,6 +378,7 @@ export default function ApprovalDecisionForm() {
                       </TableCell>
 
                       <TableCell>
+
                         <SearchableDropdown
                           list={ItemMaster}
                           codeLabel="item_code"
@@ -341,12 +391,14 @@ export default function ApprovalDecisionForm() {
                             })
                           }
                         />
+
                       </TableCell>
 
                       <TableCell>{item.UoM}</TableCell>
 
                       <TableCell>
                         <Input
+                          required
                           value={item.lot_no || ''}
                           onChange={e =>
                             updateItem(item.id, { lot_no: e.target.value })
@@ -356,6 +408,7 @@ export default function ApprovalDecisionForm() {
 
                       <TableCell>
                         <Input
+                          required
                           value={item.breed || ''}
                           onChange={e =>
                             updateItem(item.id, { breed: e.target.value })
@@ -365,6 +418,7 @@ export default function ApprovalDecisionForm() {
 
                       <TableCell>
                         <Input
+                          required
                           type="date"
                           value={item.prod_date || ''}
                           onChange={e =>
@@ -375,6 +429,7 @@ export default function ApprovalDecisionForm() {
 
                       <TableCell>
                         <Input
+                          required
                           value={item.age || ''}
                           onChange={e =>
                             updateItem(item.id, { age: e.target.value })
@@ -384,6 +439,7 @@ export default function ApprovalDecisionForm() {
 
                       <TableCell>
                         <Input
+                          required
                           value={item.house_no || ''}
                           onChange={e =>
                             updateItem(item.id, { house_no: e.target.value })
@@ -391,7 +447,6 @@ export default function ApprovalDecisionForm() {
                         />
                       </TableCell>
 
-                      {/* ✅ TOTAL (FROM API / EXPECTED) */}
                       <TableCell>
                         <Input
                           type="number"
@@ -401,9 +456,9 @@ export default function ApprovalDecisionForm() {
                         />
                       </TableCell>
 
-                      {/* ✅ ACTUAL TOTAL (USER INPUT) */}
                       <TableCell>
                         <Input
+                          required
                           type="number"
                           value={item.actual_total ?? 0}
                           onChange={e =>
@@ -415,58 +470,71 @@ export default function ApprovalDecisionForm() {
                       </TableCell>
 
                     </TableRow>
-                  )
-                })}
-              </TableBody>
-            </Table>
-          </div>
-        </div>
 
-        {/* FOOTER */}
+                  ))}
 
-        <div className="grid grid-cols-5 gap-6">
-          <div>
-            <Label className='pb-2'>No Of Crates</Label>
-            <Input
-              value={footer.crates}
-              onChange={e => setFooter(f => ({ ...f, crates: e.target.value }))}
-            />
+                </TableBody>
+
+              </Table>
+
+            </div>
+
           </div>
 
-          <div>
-            <Label className='pb-2'>No. of Tray</Label>
-            <Input
-              value={footer.trays}
-              onChange={e => setFooter(f => ({ ...f, trays: e.target.value }))}
-            />
+          <div className="grid grid-cols-5 gap-6">
+
+            <div>
+              <Label className='pb-2'>No Of Crates</Label>
+              <Input
+                required
+                value={footer.crates}
+                onChange={e => setFooter(f => ({ ...f, crates: e.target.value }))}
+              />
+            </div>
+
+            <div>
+              <Label className='pb-2'>No. of Tray</Label>
+              <Input
+                required
+                value={footer.trays}
+                onChange={e => setFooter(f => ({ ...f, trays: e.target.value }))}
+              />
+            </div>
+
+            <div>
+              <Label className='pb-2'>Van Plate No.</Label>
+              <Input
+                required
+                value={footer.van_plate}
+                onChange={e => setFooter(f => ({ ...f, van_plate: e.target.value }))}
+              />
+            </div>
+
+            <div>
+              <Label className='pb-2'>Driver</Label>
+              <Input
+                required
+                value={footer.driver}
+                onChange={e => setFooter(f => ({ ...f, driver: e.target.value }))}
+              />
+            </div>
+
+            <div>
+              <Label className='pb-2'>Serial Number</Label>
+              <Input
+                required
+                value={footer.serial}
+                onChange={e => setFooter(f => ({ ...f, serial: e.target.value }))}
+              />
+            </div>
+
           </div>
 
-          <div>
-            <Label className='pb-2'>Van Plate No.</Label>
-            <Input
-              value={footer.van_plate}
-              onChange={e => setFooter(f => ({ ...f, van_plate: e.target.value }))}
-            />
-          </div>
+        </CardContent>
 
-          <div>
-            <Label className='pb-2'>Driver</Label>
-            <Input
-              value={footer.driver}
-              onChange={e => setFooter(f => ({ ...f, driver: e.target.value }))}
-            />
-          </div>
+      </Card>
 
-          <div>
-            <Label className='pb-2'>Serial Number</Label>
-            <Input
-              value={footer.serial}
-              onChange={e => setFooter(f => ({ ...f, serial: e.target.value }))}
-            />
-          </div>
-        </div>
+    </form>
 
-      </CardContent>
-    </Card>
   )
 }

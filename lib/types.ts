@@ -413,3 +413,9 @@ export type Users = {
   issuper: string
   default_farm: string | null
 }
+
+export type DefaultFarm = {
+  code: string;
+  name: string;
+
+}

@@ -104,7 +104,7 @@ export default function SearchableDropdown<T extends Record<string, any>>({
       </Tooltip>
 
       <PopoverContent
-        className="p-0"
+        className="p-0 max-h-[50vh]"
         style={{ width }}
       >
         <Command onKeyDown={handleKeyDown}>

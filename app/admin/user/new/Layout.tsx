@@ -90,7 +90,7 @@ export default function Layout() {
         auth_id: authSelected.auth_id,
         created_by: loggedInUser.id,
       } as UserInsert
-
+      console.log(dataToUpsert)
       await updateUserProfile(dataToUpsert)
       toast.success(`Profile for ${authSelected.email} saved successfully!`)
     } catch (error: any) {
@@ -268,7 +268,7 @@ export default function Layout() {
 
       {tab === 1 && (
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* <SuperUser /> */}
+          <SuperUser />
           <div>
             <div className="md:grid md:grid-cols-3 gap-4 px-4">
               {fields.map((field) => (

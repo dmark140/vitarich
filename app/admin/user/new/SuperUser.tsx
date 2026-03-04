@@ -49,7 +49,6 @@ export default function SuperUser() {
                 name='issuper'
             />
             <label htmlFor='issuper' className='whitespace-nowrap mx-2'>Super User</label>
-            <Button type='button' onClick={() => console.log({ usersInfo })} >check usersInfo</Button>
         </div>
     )
 }
