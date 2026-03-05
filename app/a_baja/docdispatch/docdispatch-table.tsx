@@ -226,7 +226,7 @@ export default function DocdispatchTable() {
         <Button
           type="button"
           className="w-full md:w-auto h-full md:h-auto"
-          onClick={() => router.push("/a_baja/docdispatch/new")}
+          onClick={() => router.push("/a_baja/docdispatch/newv2")}
         >
           <Plus className="h-4 w-4 mr-2" />
           New Dispatch Doc
