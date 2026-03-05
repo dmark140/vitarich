@@ -83,20 +83,28 @@
 "use client";
 
 import Breadcrumb from "@/lib/Breadcrumb";
+import { useGlobalContext } from "@/lib/context/GlobalContext";
 import { db } from "@/lib/Supabase/supabaseClient";
 import { RefreshCcw } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function TraceTimeline() {
+    const { setValue, getValue } = useGlobalContext()
+    const [ref, setref] = useState("")
     const [loading, setLoading] = useState(false)
-    const { ref } = useParams();
+    // const { ref } = useParams();
     const [items, setItems] = useState<any[]>([]);
 
     useEffect(() => {
-        loadTrace();
+        setref(getValue("traceBreederRef"))
+    }, []);
+    useEffect(() => {
+        if (ref === '') return
+        if (ref === "") return
+        console.log({ ref })
+        loadTrace()
     }, [ref]);
-
     async function loadTrace() {
         setLoading(true)
         const { data } = await db.rpc(

@@ -256,7 +256,8 @@ export default function Layout() {
                                                     }
                                                     // console.log({})
                                                     // setValue("forApproval", { row })
-                                                    route.push("/a_dean/trace/" + row.brdr_ref_no)
+                                                    setValue("traceBreederRef", row.brdr_ref_no)
+                                                    route.push("/a_dean/trace/" )
                                                 }}
                                             >
                                                 <Map />
