@@ -71,7 +71,7 @@ export async function listDispatchDocs() {
   return (data ?? []) as Partial<DispatchDoc>[]
 }
 
-export async function getDispatchDocById(id: number) {
+export async function getDispatchDocById(id: number) { 
   const { data: header, error: hErr } = await db
     .from("dispatch_doc")
     .select("*")
