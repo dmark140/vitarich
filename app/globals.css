@@ -193,3 +193,12 @@
   padding: 8mm;
   box-sizing: border-box;
 }
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}

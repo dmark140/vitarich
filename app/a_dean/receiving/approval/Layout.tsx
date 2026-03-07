@@ -20,6 +20,7 @@ import { useRouter } from 'next/navigation'
 import Breadcrumb from '@/lib/Breadcrumb'
 import SearchableDropdown from '@/lib/SearchableDropdown'
 import { toast } from 'sonner'
+import { refreshSessionx } from '@/app/admin/user/RefreshSession'
 
 type DraftItem = {
   id: number
@@ -67,6 +68,10 @@ export default function ApprovalDecisionForm() {
     driver: '',
     serial: ''
   })
+
+  useEffect(() => {
+       refreshSessionx(route)
+  }, [])
 
   useEffect(() => {
     const init = async () => {

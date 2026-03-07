@@ -376,7 +376,7 @@ export type DraftItem = {
   prod_date?: string
   age?: string
   house_no?: string
-
+  prod_date_to?: string
   total?: number        // from API
   actual_total?: number // user input
 

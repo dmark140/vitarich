@@ -14,6 +14,8 @@ import Breadcrumb from '@/lib/Breadcrumb'
 import DataTableV2 from '@/components/ui/DataTableV2'
 import DynamicTable from '@/components/ui/DataTableV2'
 import { EditIcon, HandCoins, Map, Plus, QrCode, RefreshCcw } from 'lucide-react'
+import { db } from '@/lib/Supabase/supabaseClient'
+import { refreshSessionx } from '@/app/admin/user/RefreshSession'
 
 
 
@@ -113,6 +115,10 @@ export default function Layout() {
     }
 
     useEffect(() => {
+        refreshSessionx(route);
+    }, [])
+
+    useEffect(() => {
         get()
         getData()
         route.prefetch("/a_dean/receiving/approval")
@@ -149,76 +155,88 @@ export default function Layout() {
                     {/* <Button
                         onClick={() => setIsScanning(true)}
                     ><QrCode />Scan Search</Button> */}
+                    <Button
+                        onClick={async () => {
+                            const { data: { session } } = await db.auth.getSession();
+                            console.log({ session })
+                        }}
+                    >
+                        check session
 
+                    </Button>
                     <Button
                         // onClick={() => setIsScanning(true)}
                         onClick={() => route.push("/a_dean/receiving/manual")}
-                    ><Plus /> Recieve Manually</Button>
+                    ><Plus /> Receive Manually</Button>
                 </div>
             </div>
             <div className='my-4'></div>
 
-            {loading && (
-                <RefreshCcw className='animate-spin clasm  mx-auto' />
-            )}
+            {
+                loading && (
+                    <RefreshCcw className='animate-spin clasm  mx-auto' />
+                )
+            }
             <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold mx-4">For Receiving Items</h2>
             </div>
-            {!loading && (
-                <DynamicTable
-                    initialFilters={[
-                        {
-                            id: "",
-                            columnKey: 'status',
-                            operator: 'equals',
-                            value: 'Pending',
-                            joiner: 'and',
-                        },
-                    ]}
-                    columns={tableColumnsx.map((col) => ({
-                        key: col.key,
-                        label: col.label,
-                        align: col.key === 'action' ? 'right' : 'left',
+            {
+                !loading && (
+                    <DynamicTable
+                        initialFilters={[
+                            {
+                                id: "",
+                                columnKey: 'status',
+                                operator: 'equals',
+                                value: 'Pending',
+                                joiner: 'and',
+                            },
+                        ]}
+                        columns={tableColumnsx.map((col) => ({
+                            key: col.key,
+                            label: col.label,
+                            align: col.key === 'action' ? 'right' : 'left',
 
-                        render: (row: RowDataKey) => {
-                            if (col.key === 'action') {
-                                return (
-                                    <div className="flex justify-end gap-2">
-                                        <Button
-                                            className='bg-background border hover:bg-foreground/10 border-green-400 text-green-400 p-1 rounded-xs   '
+                            render: (row: RowDataKey) => {
+                                if (col.key === 'action') {
+                                    return (
+                                        <div className="flex justify-end gap-2">
+                                            <Button
+                                                className='bg-background border hover:bg-foreground/10 border-green-400 text-green-400 p-1 rounded-xs   '
 
-                                            onClick={() => {
-                                                if (row.status === "Approved") {
-                                                    toast.warning(
-                                                        "Only pending documents are allowed to be edited on this module"
-                                                    )
-                                                    return
-                                                }
-                                                // console.log({})
-                                                setValue("forApproval", { row })
-                                                route.push("/a_dean/receiving/approval")
-                                            }}
-                                        >
-                                            <HandCoins />
-                                            Receive
-                                        </Button>
-                                    </div>
-                                )
-                            }
+                                                onClick={() => {
+                                                    if (row.status === "Approved") {
+                                                        toast.warning(
+                                                            "Only pending documents are allowed to be edited on this module"
+                                                        )
+                                                        return
+                                                    }
+                                                    // console.log({})
+                                                    setValue("forApproval", { row })
+                                                    route.push("/a_dean/receiving/approval")
+                                                }}
+                                            >
+                                                <HandCoins />
+                                                Receive
+                                            </Button>
+                                        </div>
+                                    )
+                                }
 
-                            // 📝 Default rendering
-                            const value = row[col.key]
+                                // 📝 Default rendering
+                                const value = row[col.key]
 
-                            if (!value) return "-"
+                                if (!value) return "-"
 
-                            return String(value)
-                        },
-                    }))}
+                                return String(value)
+                            },
+                        }))}
 
-                    data={initialRows}
+                        data={initialRows}
 
-                />
-            )}
+                    />
+                )
+            }
 
 
             <div className="mt-10">
@@ -257,7 +275,7 @@ export default function Layout() {
                                                     // console.log({})
                                                     // setValue("forApproval", { row })
                                                     setValue("traceBreederRef", row.brdr_ref_no)
-                                                    route.push("/a_dean/trace/" )
+                                                    route.push("/a_dean/trace/")
                                                 }}
                                             >
                                                 <Map />
@@ -282,6 +300,6 @@ export default function Layout() {
             </div>
 
             {/* <Button onClick={() => console.log({ initialRows })}>check initialRows</Button> */}
-        </div>
+        </div >
     )
 }

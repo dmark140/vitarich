@@ -9,14 +9,24 @@ import {
 } from '@/components/ui/table'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { DataRecordApproval, DataTableColumn, DefaultFarm, DraftItem } from '@/lib/types'
+import { DataRecordApproval, DefaultFarm, DraftItem, Farms } from '@/lib/types'
 import { today } from '@/lib/Defaults/DefaultValues'
 import Breadcrumb from '@/lib/Breadcrumb'
 import SearchableDropdown from '@/lib/SearchableDropdown'
 import { createReceiving, getUserInfo } from './api'
-import { Plus, Save } from 'lucide-react'
+import { Plus, Save, CalendarDays } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { Separator } from '@/components/ui/separator'
+import { DateRangePicker } from '@/components/ui/DateRangePicker'
+import { toast } from 'sonner'
+import { VerticalRuler } from '@/components/VerticalRuler'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import { useConfirm } from '@/lib/ConfirmProvider'
+import { refreshSessionx } from '@/app/admin/user/RefreshSession'
 
 type ItemMasterType = {
   id: number
@@ -47,11 +57,11 @@ const emptyApprovalRecord: DataRecordApproval = {
 }
 
 export default function ApprovalDecisionForm() {
-
+  const confirm = useConfirm();
   const router = useRouter()
   const { getValue } = useGlobalContext()
-
-  const [farms, setfarms] = useState<DataTableColumn[]>([])
+  const [loading, setloading] = useState(false)
+  const [farms, setfarms] = useState<Farms[]>([])
   const [header, setHeader] = useState<DataRecordApproval | null>(null)
   const [items, setItems] = useState<DraftItem[]>([])
   const [ItemMaster, setItemMaster] = useState<ItemMasterType[]>([])
@@ -60,15 +70,20 @@ export default function ApprovalDecisionForm() {
   const [postingDate, setPostingDate] = useState(today)
   const [temperature, setTemperature] = useState('')
   const [humidity, sethumidity] = useState('')
+  const [brdr_ref_no, setbrdr_ref_no] = useState('')
   const [defaultFarm, setdefaultFarm] = useState<DefaultFarm>()
 
-  const [footer, setFooter] = useState({
-    crates: '',
-    trays: '',
-    van_plate: '',
-    driver: '',
-    serial: ''
-  })
+  const [activeWeeks, setActiveWeeks] = useState(26)
+  const [activeDays, setActiveDays] = useState(0)
+
+  const parseAge = (ageString: string) => {
+    if (!ageString) return { w: 26, d: 0 }
+    const match = ageString.match(/(\d+)\s+Weeks,\s+(\d+)\s+Day(s)/)
+    if (match) {
+      return { w: parseInt(match[1]), d: parseInt(match[2]) }
+    }
+    return { w: 26, d: 0 }
+  }
 
   const getDefaultFarm = async () => {
     const data = await getUserInfo()
@@ -81,11 +96,18 @@ export default function ApprovalDecisionForm() {
   }, [])
 
   useEffect(() => {
+    refreshSessionx(router)
+  }, [])
+
+  useEffect(() => {
     router.prefetch("/a_dean/receiving/")
     const init = () => {
-      setItemMaster(getValue("itemmaster") || [])
-      setfarms(getValue("getFarmDB_breeder") || [])
 
+      const items = getValue("itemmaster")
+      const filterd = items.filter((items: any) => items.item_group === 'receiving_egg')
+      console.log({ filterd })
+      setItemMaster(filterd)
+      setfarms(getValue("getFarmDB_breeder") || [])
       setHeader(emptyApprovalRecord)
       setPostingDate(today)
     }
@@ -106,6 +128,7 @@ export default function ApprovalDecisionForm() {
       actual_jr: 0,
       actual_he: 0,
       isNew: true,
+      age: '26 Weeks, 0 Day(s)'
     },
   ])
 
@@ -126,55 +149,103 @@ export default function ApprovalDecisionForm() {
   }
 
   const headerFieldsLeft = [
-    { required: true, disabled: false, code: "", label: 'Deliver Date', type: 'date', value: header?.doc_date || '', onChange: (v: string) => setHeader(h => h ? { ...h, doc_date: v } : h) },
-    { required: true, disabled: false, code: "", label: 'Address', value: header?.address || '', onChange: (v: string) => setHeader(h => h ? { ...h, address: v } : h) },
-    { required: true, disabled: false, code: "tin", label: 'Tin', value: header?.tin || '', onChange: (v: string) => setHeader(h => h ? { ...h, tin: v } : h) },
+    { required: true, disabled: false, code: "", label: 'Delivered Date', type: 'date', value: header?.doc_date || '', onChange: (v: string) => setHeader(h => h ? { ...h, doc_date: v } : h) },
+    { required: true, disabled: true, code: "", label: 'Address', value: header?.address || '', onChange: (v: string) => setHeader(h => h ? { ...h, address: v } : h) },
+    { required: false, disabled: true, code: "tin", label: 'Tin', value: header?.tin || '', onChange: (v: string) => setHeader(h => h ? { ...h, tin: v } : h) },
   ]
 
   const headerFieldsRight = [
-    { disabled: true, code: "", label: 'Delivered To', type: 'text', value: defaultFarm?.code + ' - ' + defaultFarm?.name, onChange: setPostingDate },
+    { disabled: true, code: "", label: 'Shipped To', type: 'text', value: defaultFarm?.code + ' - ' + defaultFarm?.name, onChange: setPostingDate },
+    { required: false, disabled: false, code: "", label: 'Shipped Via', value: header?.shipped_via || '', onChange: (v: string) => setHeader(h => h ? { ...h, shipped_via: v } : h) },
     { required: true, disabled: false, code: "", label: 'Posting Date', type: 'date', value: postingDate, onChange: setPostingDate },
-    { required: true, disabled: false, code: "", label: 'P.O No', value: header?.po_no || '', onChange: (v: string) => setHeader(h => h ? { ...h, po_no: v } : h) },
+    { required: false, disabled: false, code: "", label: 'P.O No', value: header?.po_no || '', onChange: (v: string) => setHeader(h => h ? { ...h, po_no: v } : h) },
     { required: true, disabled: false, code: "", label: 'DR No', value: header?.dr_num || '', onChange: (v: string) => setHeader(h => h ? { ...h, dr_num: v } : h) },
-    { required: true, disabled: false, code: "", label: 'Attention To', value: header?.Attention || '', onChange: (v: string) => setHeader(h => h ? { ...h, Attention: v } : h) },
-    { required: true, disabled: false, code: "", label: 'Voyage No', value: header?.voyage_no || '', onChange: (v: string) => setHeader(h => h ? { ...h, voyage_no: v } : h) },
-    { required: true, disabled: false, code: "", label: 'Temperature', type: 'number', value: temperature, onChange: setTemperature },
-    { required: true, disabled: false, code: "", label: 'Humidity', type: 'number', value: humidity, onChange: sethumidity },
-    { required: true, disabled: false, code: "", label: 'Shipped Via', value: header?.shipped_via || '', onChange: (v: string) => setHeader(h => h ? { ...h, shipped_via: v } : h) },
-    { required: true, disabled: false, code: "", label: 'Shipped To', value: header?.shipped_to || '', onChange: (v: string) => setHeader(h => h ? { ...h, shipped_to: v } : h) },
+    { required: false, disabled: false, code: "", label: 'Attention To', value: header?.Attention || '', onChange: (v: string) => setHeader(h => h ? { ...h, Attention: v } : h) },
+    { required: false, disabled: false, code: "", label: 'Voyage No', value: header?.voyage_no || '', onChange: (v: string) => setHeader(h => h ? { ...h, voyage_no: v } : h) },
+    { required: false, disabled: false, code: "", label: 'Temperature', type: 'number', value: temperature, onChange: setTemperature },
+    { required: false, disabled: false, code: "", label: 'Humidity', type: 'number', value: humidity, onChange: sethumidity },
+    { required: true, disabled: false, code: "", label: 'Breeder Ref. No.', type: 'text', value: brdr_ref_no, onChange: setbrdr_ref_no },
   ]
 
   const validateLineItems = () => {
-
     if (items.length === 0) {
-      alert("Add at least one line item")
+      toast("Add at least one line item")
       return false
     }
-
     for (const row of items) {
+      const missingFields: string[] = []
+      if (!row.brdr_ref_no) missingFields.push("brdr_ref_no")
+      if (!row.sku) missingFields.push("sku")
+      if (!row.lot_no) missingFields.push("lot_no")
+      if (!row.breed) missingFields.push("breed")
+      if (!row.prod_date) missingFields.push("prod_date")
+      if (!row.age) missingFields.push("age")
+      if (!row.house_no) missingFields.push("house_no")
+      if (row.actual_total === undefined) missingFields.push("actual_total")
 
-      if (
-        !row.brdr_ref_no ||
-        !row.sku ||
-        !row.lot_no ||
-        !row.breed ||
-        !row.prod_date ||
-        !row.age ||
-        !row.house_no ||
-        row.actual_total === undefined
-      ) {
-        alert("All line item fields are required.")
+      if (missingFields.length > 0) {
+        alert(`Missing fields: ${missingFields.join(", ")}`)
         return false
       }
     }
-
     return true
   }
 
-  const insertMe = async () => {
+  // const insertMe = async () => {
+  //   setloading(true)
+  //   const transformedItems = items.map(i => ({
+  //     ...i,
+  //     total_api: i.total ?? 0,
+  //     actual_count: i.actual_total ?? 0,
+  //   }))
 
+  //   const payload = {
+  //     doc_date: header?.doc_date,
+  //     temperature,
+  //     humidity,
+  //     soldTo: header?.soldTo,
+  //     Attention: header?.Attention,
+  //     po_no: header?.po_no,
+  //     voyage_no: header?.voyage_no,
+  //     shipped_via: header?.shipped_via,
+  //     dr_num: header?.dr_num,
+  //     no_of_crates: footer.crates,
+  //     no_of_tray: footer.trays,
+  //     plate_no: footer.van_plate,
+  //     driver: footer.driver,
+  //     serial_no: footer.serial,
+  //     delivered_to: defaultFarm?.code,
+  //     brdr_ref_no: brdr_ref_no,
+  //     items: transformedItems,
+  //   }
+  //   const res = await createReceiving(payload)
+  //   router.push("/a_dean/receiving/")
+  //   setloading(false)
+
+  //   if (res.success) {
+  //     alert(`Saved! DocEntry: ${res.docentry}`)
+  //   } else {
+  //     alert(res.error)
+  //   }
+  //   setloading(false)
+
+  // }
+
+  const insertMe = async () => {
+    setloading(true)
+
+    const confirmed = await confirm({
+      title: "Receive items?",
+      description: "Are you sure you want to record these items as received?",
+      confirmText: "Confirm receipt",
+      cancelText: "Cancel",
+    });
+
+    setloading(confirmed)
+    if (!confirmed) return;
     const transformedItems = items.map(i => ({
       ...i,
+      brdr_ref_no: `${brdr_ref_no}-${i.house_no}`, // auto generate
       total_api: i.total ?? 0,
       actual_count: i.actual_total ?? 0,
     }))
@@ -195,57 +266,61 @@ export default function ApprovalDecisionForm() {
       driver: footer.driver,
       serial_no: footer.serial,
       delivered_to: defaultFarm?.code,
+      brdr_ref_no: brdr_ref_no, // header value
       items: transformedItems,
     }
-
+    // console.log({ payload })
+    // return
     const res = await createReceiving(payload)
-    router.push("/a_dean/receiving/")
 
     if (res.success) {
       alert(`Saved! DocEntry: ${res.docentry}`)
+      router.push("/a_dean/receiving/")
     } else {
       alert(res.error)
     }
-  }
 
+    setloading(false)
+  }
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
     if (!validateLineItems()) return
-
     await insertMe()
   }
 
+  const [footer, setFooter] = useState({
+    crates: '',
+    trays: '',
+    van_plate: '',
+    driver: '',
+    serial: ''
+  })
+
   return (
-
     <form onSubmit={handleSubmit}>
-
       <Card className="w-full border-none shadow-none bg-background p-0">
-
         <CardHeader className="border-b">
-
-          <div className="flex justify-between items-center">
-
-            <div className='mt-8'>
+          <div className="flex justify-between items-center mt-8">
+            <div>
               <Breadcrumb
                 FirstPreviewsPageName='Receiving'
                 SecondPreviewPageName='Hatchery'
                 CurrentPageName='Manual Receiving'
               />
             </div>
-
-            <Button type="submit">
-              <Save /> Save Record
-            </Button>
-
+            <div className="flex gap-2">
+              <Button type="button" variant="outline" onClick={() => setloading(false)}>
+                Check farms
+              </Button>
+              <Button type="submit" disabled={loading}>
+                <Save className="mr-2 h-4 w-4" /> Save Record
+              </Button>
+            </div>
           </div>
-
         </CardHeader>
 
         <CardContent className='bg-white rounded-2xl p-4 space-y-6'>
-
-          <div className="sm:grid md:grid-cols-3 sm:grid-cools-2 gap-6">
-
+          <div className="sm:grid md:grid-cols-3 sm:grid-cols-2 gap-6">
             <div className='mt-2'>
               <Label className='pb-2'>Delivered From</Label>
               <SearchableDropdown
@@ -253,42 +328,39 @@ export default function ApprovalDecisionForm() {
                 codeLabel="code"
                 nameLabel="name"
                 value={header?.soldTo || ''}
-                onChange={(val) =>
-                  setHeader(h => h ? { ...h, soldTo: val } : h)
-                }
+                onChange={(val) => {
+                  const selectedFarm = farms.find((f: any) => f.code === val)
+                  setHeader(h =>
+                    h ? {
+                      ...h,
+                      soldTo: val,
+                      tin: selectedFarm?.tin || '',
+                      address: selectedFarm?.address || '',
+                    } : h
+                  )
+                }}
               />
             </div>
-
             {headerFieldsLeft.map((field, i) => (
-
               <div key={i} className='mt-1'>
-
-                <Label className='pb-2 mt-1'>{field.label}</Label>
-
+                <Label required={field.required} className='pb-2 mt-1'>{field.label}</Label>
                 <Input
                   required={field.required}
-                  disabled={field.disabled}
+                  readOnly={field.disabled}
                   type={field.type || 'text'}
                   value={field.value}
                   onChange={e => field.onChange?.(e.target.value)}
                 />
-
               </div>
-
             ))}
-
           </div>
 
           <Separator className='my-2' />
 
-          <div className="sm:grid md:grid-cols-3 sm:grid-cools-2 gap-6">
-
+          <div className="sm:grid md:grid-cols-3 sm:grid-cols-2 gap-6">
             {headerFieldsRight.map((field, i) => (
-
               <div key={i} className='mt-1'>
-
-                <Label className='pb-2 mt-1'>{field.label}</Label>
-
+                <Label required={field.required} className='pb-2 mt-1'>{field.label}</Label>
                 <Input
                   required={field.required}
                   disabled={field.disabled}
@@ -296,45 +368,32 @@ export default function ApprovalDecisionForm() {
                   value={field.value}
                   onChange={e => field.onChange?.(e.target.value)}
                 />
-
               </div>
-
             ))}
-
           </div>
 
           <div>
-
             <div className="flex justify-between items-center mb-2">
-
               <Label className="text-green-700">Line Items</Label>
-
               <div className="flex gap-2">
-
                 {selectedRows.length > 0 && (
                   <Button variant="destructive" onClick={removeSelectedRows}>
                     Remove Selected
                   </Button>
                 )}
-
                 <Button type="button" onClick={addRow}>
-                  <Plus />
-                  Add Row
+                  <Plus className="mr-2 h-4 w-4" /> Add Row
                 </Button>
-
               </div>
-
             </div>
 
             <div className="rounded-md border overflow-x-auto">
-
               <Table>
-
                 <TableHeader>
                   <TableRow>
                     <TableHead></TableHead>
                     <TableHead>Line No</TableHead>
-                    <TableHead>BREEDER REF. NO.</TableHead>
+                    {/* <TableHead>BREEDER REF. NO.</TableHead> */}
                     <TableHead>EGG SKU</TableHead>
                     <TableHead>UoM</TableHead>
                     <TableHead>Lot No.</TableHead>
@@ -346,15 +405,10 @@ export default function ApprovalDecisionForm() {
                     <TableHead>Actual Total</TableHead>
                   </TableRow>
                 </TableHeader>
-
                 <TableBody>
-
                   {items.map((item, index) => (
-
                     <TableRow key={item.id}>
-
                       <TableCell>
-
                         {item.isNew && (
                           <input
                             type="checkbox"
@@ -362,23 +416,16 @@ export default function ApprovalDecisionForm() {
                             onChange={() => toggleRow(item.id)}
                           />
                         )}
-
                       </TableCell>
-
                       <TableCell>{index + 1}</TableCell>
-
-                      <TableCell>
+                      {/* <TableCell>
                         <Input
                           required
                           value={item.brdr_ref_no || ''}
-                          onChange={e =>
-                            updateItem(item.id, { brdr_ref_no: e.target.value })
-                          }
+                          onChange={e => updateItem(item.id, { brdr_ref_no: e.target.value })}
                         />
-                      </TableCell>
-
+                      </TableCell> */}
                       <TableCell>
-
                         <SearchableDropdown
                           list={ItemMaster}
                           codeLabel="item_code"
@@ -391,62 +438,93 @@ export default function ApprovalDecisionForm() {
                             })
                           }
                         />
-
                       </TableCell>
-
                       <TableCell>{item.UoM}</TableCell>
-
                       <TableCell>
                         <Input
                           required
                           value={item.lot_no || ''}
-                          onChange={e =>
-                            updateItem(item.id, { lot_no: e.target.value })
-                          }
+                          onChange={e => updateItem(item.id, { lot_no: e.target.value })}
                         />
                       </TableCell>
-
                       <TableCell>
                         <Input
                           required
                           value={item.breed || ''}
-                          onChange={e =>
-                            updateItem(item.id, { breed: e.target.value })
-                          }
+                          onChange={e => updateItem(item.id, { breed: e.target.value })}
                         />
                       </TableCell>
-
                       <TableCell>
-                        <Input
-                          required
-                          type="date"
-                          value={item.prod_date || ''}
-                          onChange={e =>
-                            updateItem(item.id, { prod_date: e.target.value })
-                          }
+                        <DateRangePicker
+                          onChange={(e) => {
+                            updateItem(item.id, { prod_date: e.from })
+                            updateItem(item.id, { prod_date_to: e.to })
+                          }}
                         />
                       </TableCell>
-
                       <TableCell>
-                        <Input
-                          required
-                          value={item.age || ''}
-                          onChange={e =>
-                            updateItem(item.id, { age: e.target.value })
+                        <Popover onOpenChange={(open) => {
+                          if (open) {
+                            const { w, d } = parseAge(item.age || '26 Weeks, 0 Day(s)')
+                            setActiveWeeks(w)
+                            setActiveDays(d)
+                          } else {
+                            updateItem(item.id, { age: `${activeWeeks} Weeks, ${activeDays} Day(s)` })
                           }
-                        />
+                        }}>
+                          <PopoverTrigger asChild>
+                            <Button variant="outline" className="w-[180px] justify-start text-left font-normal">
+                              <CalendarDays className="mr-2 h-4 w-4" />
+                              {item.age || '26 Weeks, 0 Day(s)'}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-4" align="start">
+                            <div className="flex gap-4 items-center justify-center">
+                              <VerticalRuler
+                                label="Weeks"
+                                min={26}
+                                max={65}
+                                value={activeWeeks}
+                                onChange={setActiveWeeks}
+                              />
+                              <VerticalRuler
+                                label="Days"
+                                min={0}
+                                max={6}
+                                value={activeDays}
+                                onChange={setActiveDays}
+                              />
+                            </div>
+                            <div className="mt-4 text-center font-bold text-sm text-primary">
+                              {activeWeeks} Weeks, {activeDays} Day(s)
+                            </div>
+                          </PopoverContent>
+                        </Popover>
                       </TableCell>
-
-                      <TableCell>
+                      {/* <TableCell>
                         <Input
                           required
                           value={item.house_no || ''}
-                          onChange={e =>
-                            updateItem(item.id, { house_no: e.target.value })
-                          }
+                          onChange={e => updateItem(item.id, { house_no: e.target.value })}
+                        />
+                      </TableCell> */}
+                      <TableCell>
+                        <Input
+                          required
+                          maxLength={3}
+                          value={item.house_no || ''}
+                          onChange={e => {
+                            const houseNo = e.target.value.slice(0, 3)
+                            console.log(`${brdr_ref_no}-${houseNo}`)
+                            updateItem(item.id, {
+                              house_no: houseNo,
+                            })
+                            updateItem(item.id, {
+                              brdr_ref_no: `${brdr_ref_no}-${houseNo}`
+                            })
+                          }}
                         />
                       </TableCell>
-
                       <TableCell>
                         <Input
                           type="number"
@@ -455,7 +533,6 @@ export default function ApprovalDecisionForm() {
                           disabled
                         />
                       </TableCell>
-
                       <TableCell>
                         <Input
                           required
@@ -468,21 +545,14 @@ export default function ApprovalDecisionForm() {
                           }
                         />
                       </TableCell>
-
                     </TableRow>
-
                   ))}
-
                 </TableBody>
-
               </Table>
-
             </div>
-
           </div>
 
           <div className="grid grid-cols-5 gap-6">
-
             <div>
               <Label className='pb-2'>No Of Crates</Label>
               <Input
@@ -491,7 +561,6 @@ export default function ApprovalDecisionForm() {
                 onChange={e => setFooter(f => ({ ...f, crates: e.target.value }))}
               />
             </div>
-
             <div>
               <Label className='pb-2'>No. of Tray</Label>
               <Input
@@ -500,7 +569,6 @@ export default function ApprovalDecisionForm() {
                 onChange={e => setFooter(f => ({ ...f, trays: e.target.value }))}
               />
             </div>
-
             <div>
               <Label className='pb-2'>Van Plate No.</Label>
               <Input
@@ -509,7 +577,6 @@ export default function ApprovalDecisionForm() {
                 onChange={e => setFooter(f => ({ ...f, van_plate: e.target.value }))}
               />
             </div>
-
             <div>
               <Label className='pb-2'>Driver</Label>
               <Input
@@ -518,7 +585,6 @@ export default function ApprovalDecisionForm() {
                 onChange={e => setFooter(f => ({ ...f, driver: e.target.value }))}
               />
             </div>
-
             <div>
               <Label className='pb-2'>Serial Number</Label>
               <Input
@@ -527,14 +593,9 @@ export default function ApprovalDecisionForm() {
                 onChange={e => setFooter(f => ({ ...f, serial: e.target.value }))}
               />
             </div>
-
           </div>
-
         </CardContent>
-
       </Card>
-
     </form>
-
   )
 }

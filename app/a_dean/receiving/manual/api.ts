@@ -75,11 +75,12 @@ export async function createReceiving(payload: any) {
       driver,
       serial_no,
       delivered_to,
+      brdr_ref_no,
 
       items,
     } = payload
 
-    const { data, error } = await db.rpc('fndmf_create_manual_recieving', {
+    const { data, error } = await db.rpc('insert_receiving', {
       p_doc_date: doc_date,
       p_temperature: temperature,
       p_humidity: humidity,
@@ -98,6 +99,7 @@ export async function createReceiving(payload: any) {
       p_serial_no: serial_no,
 
       p_delivered_to: delivered_to,
+      p_brdr_ref_no: brdr_ref_no,
 
       p_items: items,
     })
