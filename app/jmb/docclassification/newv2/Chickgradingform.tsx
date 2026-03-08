@@ -31,6 +31,7 @@ import { db } from "@/lib/Supabase/supabaseClient";
 import { getProfileByAuthId } from "@/app/admin/user/api";
 import type { User } from "@supabase/supabase-js";
 import type { UserRow } from "@/lib/types";
+import { refreshSessionx } from "@/app/admin/user/RefreshSession";
 
 // non-negative number helper (handles NaN, null, undefined)
 function n(v: any) {
@@ -238,6 +239,10 @@ export default function Chickgradingform() {
       }
     })();
   }, [editId]);
+
+  useEffect(() => {
+    refreshSessionx(router);
+  }, []);
 
   // ✅ Auto-generate Batch Code when Egg Ref changes (NEW only)
   useEffect(() => {

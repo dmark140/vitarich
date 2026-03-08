@@ -32,6 +32,7 @@ import {
 
 import Breadcrumb from "@/lib/Breadcrumb";
 import EditActionButton from "@/components/EditActionButton";
+import { refreshSessionx } from "@/app/admin/user/RefreshSession";
 
 function fmtDateTime(v: string | null | undefined) {
   if (!v) return "";
@@ -66,6 +67,10 @@ export default function ChickgradingTable() {
     } finally {
       setIsLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    refreshSessionx(router);
   }, []);
 
   useEffect(() => {

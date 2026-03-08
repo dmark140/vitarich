@@ -26,6 +26,7 @@ import {
 
 import Breadcrumb from "@/lib/Breadcrumb";
 import FormActionButtons from "@/components/FormActionButtons";
+import { refreshSessionx } from "@/app/admin/user/RefreshSession";
 
 function num(v: any) {
   const n = Number(v);
@@ -78,6 +79,9 @@ export default function CheckPulloutForm() {
     };
   }
 
+  useEffect(() => {
+    refreshSessionx(router);
+  }, []);
   // ✅ load dropdown options
   useEffect(() => {
     let alive = true;

@@ -28,6 +28,7 @@ import { Plus, RefreshCw, Search, Pencil } from "lucide-react";
 import { EggTransferProcess, listEggTransfers } from "./newv2/api";
 import Breadcrumb from "@/lib/Breadcrumb";
 import EditActionButton from "@/components/EditActionButton";
+import { refreshSessionx } from "@/app/admin/user/RefreshSession";
 
 function formatDateTime(v?: string | null) {
   if (!v) return "";
@@ -89,6 +90,9 @@ export default function EggTransferTable() {
     }
   }
 
+  useEffect(() => {
+    refreshSessionx(router);
+  }, []);
   useEffect(() => {
     (async () => {
       router.prefetch("/jmb/eggtransferv2/newv2");

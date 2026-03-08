@@ -28,6 +28,7 @@ import { Plus, RefreshCw, Search } from "lucide-react";
 import Breadcrumb from "@/lib/Breadcrumb";
 import EditActionButton from "@/components/EditActionButton";
 import { listEggPreWarming, type EggPreWarming } from "./new2/api";
+import { refreshSessionx } from "@/app/admin/user/RefreshSession";
 
 function fmtDuration(mins: number | null) {
   if (mins == null) return "";
@@ -60,6 +61,10 @@ export default function PrewarmTable() {
     } finally {
       setIsLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    refreshSessionx(router);
   }, []);
 
   useEffect(() => {

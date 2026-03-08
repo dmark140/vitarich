@@ -36,6 +36,7 @@ import {
 import { Trash2 } from "lucide-react";
 import type { ChickGradingQtyRow } from "./api";
 import { getChickGradingQtyByBatchCode } from "./api";
+import { refreshSessionx } from "@/app/admin/user/RefreshSession";
 
 type FormState = {
   doc_date: string; // YYYY-MM-DD
@@ -201,6 +202,11 @@ export default function DocdispatchForm() {
     setGradingCache((p) => ({ ...p, [code]: row }));
     return row;
   }
+
+  useEffect(() => {
+    refreshSessionx(router);
+  }, []);
+
   // ✅ load dropdowns
   useEffect(() => {
     let alive = true;

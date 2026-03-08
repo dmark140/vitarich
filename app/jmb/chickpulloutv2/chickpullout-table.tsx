@@ -31,6 +31,7 @@ import {
   listChickPulloutProcess,
   deleteChickPulloutProcess,
 } from "./newv2/api";
+import { refreshSessionx } from "@/app/admin/user/RefreshSession";
 
 export default function ChickPulloutTable() {
   const router = useRouter();
@@ -53,7 +54,9 @@ export default function ChickPulloutTable() {
       setIsLoading(false);
     }
   }, []);
-
+  useEffect(() => {
+    refreshSessionx(router);
+  }, []);
   useEffect(() => {
     router.prefetch("/jmb/chickpulloutv2/newv2");
     load();

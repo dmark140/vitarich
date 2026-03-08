@@ -26,6 +26,7 @@ import {
 } from "./api";
 import { Save, Pencil, Loader2, X } from "lucide-react";
 import FormActionButtons from "@/components/FormActionButtons";
+import { refreshSessionx } from "@/app/admin/user/RefreshSession";
 type FormState = {
   ref_no: string;
   setting_date: string; // datetime-local
@@ -124,6 +125,9 @@ export default function Eggsetterform() {
     turning_angle: "",
   });
 
+  useEffect(() => {
+    refreshSessionx(router);
+  }, []);
   // Load Reference No. options
   useEffect(() => {
     let mounted = true;

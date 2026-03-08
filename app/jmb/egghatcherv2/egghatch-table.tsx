@@ -28,6 +28,7 @@ import { Pencil, Plus, RefreshCw, Search } from "lucide-react";
 import { listEggHatcheryProcess, type EggHatcheryProcess } from "./newv2/api";
 import Breadcrumb from "@/lib/Breadcrumb";
 import EditActionButton from "@/components/EditActionButton";
+import { refreshSessionx } from "@/app/admin/user/RefreshSession";
 
 function fmtDateTime(v: string | null | undefined) {
   if (!v) return "";
@@ -81,6 +82,10 @@ export default function EggHatchTable() {
       setLoading(false);
     }
   }
+
+  useEffect(() => {
+    refreshSessionx(router);
+  }, []);
 
   useEffect(() => {
     load();

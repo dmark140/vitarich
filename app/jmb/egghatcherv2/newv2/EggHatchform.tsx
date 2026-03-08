@@ -25,6 +25,7 @@ import {
 import Breadcrumb from "@/lib/Breadcrumb";
 import { Separator } from "@/components/ui/separator";
 import FormActionButtons from "@/components/FormActionButtons";
+import { refreshSessionx } from "@/app/admin/user/RefreshSession";
 
 function toDatetimeLocalValue(v: string | null | undefined) {
   if (!v) return "";
@@ -103,6 +104,10 @@ export default function EggHatchform() {
   ) {
     setForm((p) => ({ ...p, [key]: value }));
   }
+
+  useEffect(() => {
+    refreshSessionx(router);
+  }, []);
 
   // ✅ load ref dropdown options
   useEffect(() => {

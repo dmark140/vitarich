@@ -18,6 +18,7 @@ import FormActionButtons from "@/components/FormActionButtons";
 import SearchableDropdown from "@/lib/SearchableDropdown";
 import Breadcrumb from "@/lib/Breadcrumb";
 import RequiredLabel from "@/components/RequiredLabel";
+import { refreshSessionx } from "@/app/admin/user/RefreshSession";
 
 type ViewForHatcheryClassi = {
   id: string | null;
@@ -159,6 +160,9 @@ export default function Hatchform() {
     loadBreeders();
   }, []);
 
+  useEffect(() => {
+    refreshSessionx(router);
+  }, []);
   // load record when editing
   useEffect(() => {
     const run = async () => {

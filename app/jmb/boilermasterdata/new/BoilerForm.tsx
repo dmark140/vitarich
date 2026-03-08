@@ -22,6 +22,7 @@ import {
 } from "./api";
 import FormActionButtons from "@/components/FormActionButtons";
 import RequiredLabel from "@/components/RequiredLabel";
+import { refreshSessionx } from "@/app/admin/user/RefreshSession";
 
 type FormState = {
   boiler_name: string;
@@ -69,7 +70,9 @@ export default function BoilerForm() {
     if (!address) return "Address is required.";
     return null;
   }
-
+  useEffect(() => {
+    refreshSessionx(router);
+  }, []);
   useEffect(() => {
     let mounted = true;
     async function load() {

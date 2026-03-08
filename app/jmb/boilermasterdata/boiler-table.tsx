@@ -29,6 +29,7 @@ import Breadcrumb from "@/lib/Breadcrumb";
 import EditActionButton from "@/components/EditActionButton";
 
 import { BoilerMasterdata, listBoilerMasterdata } from "./new/api";
+import { refreshSessionx } from "@/app/admin/user/RefreshSession";
 
 export default function BoilerTable() {
   const [items, setItems] = useState<BoilerMasterdata[]>([]);
@@ -52,7 +53,9 @@ export default function BoilerTable() {
       setLoading(false);
     }
   };
-
+  useEffect(() => {
+    refreshSessionx(router);
+  }, []);
   useEffect(() => {
     (async () => {
       router.prefetch("/jmb/boilermasterdata/new");

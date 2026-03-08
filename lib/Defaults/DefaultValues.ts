@@ -70,7 +70,7 @@ export const NavFolders = [
             url: "/jmb/docclassification",
           },
           { type: "Module", title: "Doc Dispatch", url: "/jmb/docdispatchv2" },
-          { type: "Module", title: "Disposal", url: "/jmb/disposal" },
+          { type: "Module", title: "Disposal", url: "/a_dean/disposal" },
         ],
       },
       {

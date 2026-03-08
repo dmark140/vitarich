@@ -27,6 +27,7 @@ import {
 } from "./api";
 import FormActionButtons from "@/components/FormActionButtons";
 import SearchableDropdown from "@/lib/SearchableDropdown";
+import { refreshSessionx } from "@/app/admin/user/RefreshSession";
 
 type FormState = {
   egg_ref_no: string;
@@ -92,6 +93,9 @@ export default function Prewarmingform() {
     remarks: "",
   });
 
+  useEffect(() => {
+    refreshSessionx(router);
+  }, []);
   // Load dropdown options
   useEffect(() => {
     let mounted = true;

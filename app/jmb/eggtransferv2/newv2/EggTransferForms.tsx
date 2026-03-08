@@ -25,6 +25,7 @@ import {
   listClassiRefNos,
 } from "./api";
 import FormActionButtons from "@/components/FormActionButtons";
+import { refreshSessionx } from "@/app/admin/user/RefreshSession";
 
 type FormState = {
   ref_no: string;
@@ -87,6 +88,9 @@ export default function EggTransferForm() {
     total_egg_transfer: "",
   });
 
+  useEffect(() => {
+    refreshSessionx(router);
+  }, []);
   // load dropdown options (hatch_classification.classi_ref_no)
   useEffect(() => {
     let alive = true;

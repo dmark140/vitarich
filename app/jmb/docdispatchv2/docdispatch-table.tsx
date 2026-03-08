@@ -38,6 +38,7 @@ import {
 import { listDispatchDocs, softDeleteDispatchDoc } from "./newv2/api";
 import Breadcrumb from "@/lib/Breadcrumb";
 import EditActionButton from "@/components/EditActionButton";
+import { refreshSessionx } from "@/app/admin/user/RefreshSession";
 
 type Row = {
   id: number;
@@ -75,6 +76,10 @@ export default function DocdispatchTable() {
       setLoading(false);
     }
   }
+
+  useEffect(() => {
+    refreshSessionx(router);
+  }, []);
 
   useEffect(() => {
     load();

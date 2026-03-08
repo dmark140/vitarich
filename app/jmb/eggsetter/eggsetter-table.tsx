@@ -28,6 +28,7 @@ import { Search, Plus, RefreshCw, Pencil } from "lucide-react";
 import { SetterIncubation, listSetterIncubations } from "./new/api";
 import Breadcrumb from "@/lib/Breadcrumb";
 import EditActionButton from "@/components/EditActionButton";
+import { refreshSessionx } from "@/app/admin/user/RefreshSession";
 
 export default function EggsetterTable() {
   const [items, setItems] = useState<SetterIncubation[]>([]);
@@ -51,6 +52,9 @@ export default function EggsetterTable() {
     }
   };
 
+  useEffect(() => {
+    refreshSessionx(router);
+  }, []);
   useEffect(() => {
     (async () => {
       router.prefetch("/jmb/eggsetter/new");

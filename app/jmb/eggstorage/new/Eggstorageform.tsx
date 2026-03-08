@@ -27,6 +27,7 @@ import {
 } from "./api";
 import FormActionButtons from "@/components/FormActionButtons";
 import RequiredLabel from "@/components/RequiredLabel";
+import { refreshSessionx } from "@/app/admin/user/RefreshSession";
 
 type HatchClassiRefOption = {
   classi_ref_no: string;
@@ -93,6 +94,9 @@ export default function Eggstorageform() {
     loadClassiRefs();
   }, []);
 
+  useEffect(() => {
+    refreshSessionx(router);
+  }, []);
   // load record if edit
   useEffect(() => {
     if (!isEdit) return;

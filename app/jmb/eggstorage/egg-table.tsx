@@ -28,6 +28,7 @@ import { Search, Plus, Pencil, Trash2, RefreshCw } from "lucide-react";
 import { EggStorageMngt, listEggStorage, deleteEggStorage } from "./new/api";
 import Breadcrumb from "@/lib/Breadcrumb";
 import EditActionButton from "@/components/EditActionButton";
+import { refreshSessionx } from "@/app/admin/user/RefreshSession";
 
 function fmtDuration(sec: number | null) {
   if (sec == null) return "";
@@ -60,6 +61,9 @@ export default function EggTable() {
     }
   };
 
+  useEffect(() => {
+    refreshSessionx(router);
+  }, []);
   useEffect(() => {
     router.prefetch("/jmb/eggstorage/new");
     fetchItems();

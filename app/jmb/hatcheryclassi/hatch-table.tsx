@@ -31,6 +31,7 @@ import {
   type HatchClassificationRow,
 } from "./new/api";
 import EditActionButton from "@/components/EditActionButton";
+import { refreshSessionx } from "@/app/admin/user/RefreshSession";
 
 export default function HatchTable() {
   const router = useRouter();
@@ -57,6 +58,9 @@ export default function HatchTable() {
     }
   }, []);
 
+  useEffect(() => {
+    refreshSessionx(router);
+  }, []);
   useEffect(() => {
     router.prefetch("/jmb/hatcheryclassi/new");
     load();
