@@ -5,7 +5,7 @@ import Breadcrumb from '@/lib/Breadcrumb'
 import { ColumnConfig, RowDataKey } from '@/lib/Defaults/DefaultTypes'
 import { ThumbsDown, ThumbsUp } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
-import { approvePasswordReset, getApprovalRequests, rejectApproval } from './api'
+import {  getApprovalRequests, rejectApproval } from './api'
 import { getAuthId } from '@/lib/getAuthId'
 import { getProfileByAuthId } from '../user/api'
 import { toast } from 'sonner'
@@ -116,7 +116,7 @@ export default function Layout() {
             )
 
             toast("Selected requests approved successfully")
-            await loadApprovals()
+            loadApprovals()
 
         } catch (error) {
             console.error(error)

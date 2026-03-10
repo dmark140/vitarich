@@ -3,25 +3,54 @@ import { db } from "@/lib/Supabase/supabaseClient"
 import { decryptValue } from "@/lib/decrypt"
 
 
-export async function getApprovalRequests() {
-  const { data, error } = await db
-    .from("approval_requests")
-    .select(`
-      id,
-      created_at,
-      user_email,
-      request_type,
-      remarks,
-      status
-    `)
-    .eq("status", "pending")
-    .order("created_at", { ascending: false })
+// export async function getApprovalRequests() {
+//   const { data, error } = await db
+//     .from("approval_requests")
+//     .select(`
+//       id,
+//       created_at,
+//       user_email,
+//       request_type,
+//       remarks,
+//       status
+//     `)
+//     .eq("status", "pending")
+//     .order("created_at", { ascending: false })
 
-  if (error) throw error
+//   if (error) throw error
+
+//   return data
+// }
+
+ 
+
+export async function getApprovalRequests() {
+  const {
+    data: { session },
+    error: sessionError,
+  } = await db.auth.getSession()
+
+  if (sessionError || !session) {
+    console.error("No active session")
+    return []
+  }
+
+  const authId = session.user.id
+
+  const { data, error } = await db.rpc(
+    "dmffn_get_subordinate_approval_requests",
+    {
+      auth_uuid: authId,
+    }
+  )
+
+  if (error) {
+    console.error({error})
+    return []
+  }
 
   return data
 }
-
 
 
 

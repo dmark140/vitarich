@@ -200,8 +200,8 @@ export default function Layout() {
           <Button disabled={disabled} onClick={handleSubmit}>
             {initialLoading ? 'Loading...' : loading ? 'Saving...' : 'Save'}
           </Button>
-          <Button onClick={getSuperUser}>check getSuperUser</Button>
-          <Button onClick={() => console.log({ form })}>check form</Button>
+          {/* <Button onClick={getSuperUser}>check getSuperUser</Button> */}
+          {/* <Button onClick={() => console.log({ form })}>check form</Button> */}
         </div>
       </div>
 

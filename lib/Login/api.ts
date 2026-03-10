@@ -1,18 +1,14 @@
 import { db } from "@/lib/Supabase/supabaseClient"
-import { ApprovalRequestCreate, ApprovalRequest } from "@/lib/types/approval"
+import { ApprovalRequest, ApprovalRequestCreate } from "../types"
 
 const TABLE = "approval_requests"
 
 export async function createApprovalRequest(
   payload: ApprovalRequestCreate
 ) {
-  const { data, error } = await db
+  const { error } = await db
     .from(TABLE)
     .insert([payload])
-    .select("*")
-    .single()
 
   if (error) throw error
-
-  return data as ApprovalRequest
 }

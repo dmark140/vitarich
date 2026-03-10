@@ -64,13 +64,13 @@ export function LoginForm({
       // console.log({ payload, session })
 
       // return
-      await createApprovalRequest(payload)
+      await createApprovalRequest(payload)  
       toast("Password reset request submitted")
       setOpenModal(false)
       setResetPassword("")
       setReason("")
     } catch (error) {
-      toast("Request error")
+      toast("Incorrect email")
       console.log({ error })
     }
   }
