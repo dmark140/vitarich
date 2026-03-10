@@ -426,3 +426,23 @@ export type DefaultFarm = {
   name: string;
 
 }
+export interface ApprovalRequestCreate {
+  created_by: string
+  user_email: string
+  request_type: string
+  value_encrypted: string
+  remarks?: string
+}
+
+export interface ApprovalRequest {
+  id: number
+  created_at: string
+  created_by: string
+  user_email: string
+  request_type: string
+  value_encrypted: string
+  remarks: string
+  status: string
+  approved_by?: string
+  approved_at?: string
+}

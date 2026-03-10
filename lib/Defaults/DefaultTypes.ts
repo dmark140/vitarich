@@ -39,7 +39,7 @@ export type ColumnConfig = {
     codeKey?: string | null;
     nameKey?: string | null;
     filterWith?: string | null;
-    type: "text" | "number" | "currency" | "date" | "search" | "button";
+    type: "status" | "text" | "number" | "currency" | "date" | "search" | "button" | "checkbox";
     data?: any[];
     required?: boolean;
     disabled?: boolean;
