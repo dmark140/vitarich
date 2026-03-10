@@ -28,6 +28,7 @@ import {
 import FormActionButtons from "@/components/FormActionButtons";
 import RequiredLabel from "@/components/RequiredLabel";
 import { refreshSessionx } from "@/app/admin/user/RefreshSession";
+import SearchableDropdown from "@/lib/SearchableDropdown";
 
 type HatchClassiRefOption = {
   classi_ref_no: string;
@@ -187,7 +188,16 @@ export default function Eggstorageform() {
               {/* Reference No. */}
               <div className="grid grid-cols-1 gap-2">
                 <RequiredLabel>Egg Reference No.</RequiredLabel>
-                <Select value={classiRefNo} onValueChange={setClassiRefNo}>
+                <SearchableDropdown
+                  list={classiRefs}
+                  codeLabel="classi_ref_no"
+                  nameLabel="classi_ref_no"
+                  showNameOnly
+                  value={classiRefNo}
+                  onChange={(val) => setClassiRefNo(val)}
+                  disabled={saving || classiRefLoading}
+                />
+                {/* <Select value={classiRefNo} onValueChange={setClassiRefNo}>
                   <SelectTrigger disabled={classiRefLoading || saving}>
                     <SelectValue
                       placeholder={
@@ -204,13 +214,13 @@ export default function Eggstorageform() {
                       </SelectItem>
                     ))}
                   </SelectContent>
-                </Select>
+                </Select> */}
               </div>
               <Separator />
               {/* TEMPS / HUMI */}
               <div className="grid grid-cols-1 md:grid-cols-1 gap-2">
                 <div className="grid grid-cols-1 gap-2">
-                  <RequiredLabel>Storage Temperature</RequiredLabel>
+                  <RequiredLabel>Storage Temperature ℃</RequiredLabel>
                   <Input
                     value={stor_temp}
                     onChange={(e) => setStorTemp(e.target.value)}
@@ -219,7 +229,7 @@ export default function Eggstorageform() {
                 </div>
 
                 <div className="grid grid-cols-1 gap-2">
-                  <RequiredLabel>Room Temperature</RequiredLabel>
+                  <RequiredLabel>Room Temperature ℃</RequiredLabel>
                   <Input
                     value={room_temp}
                     onChange={(e) => setRoomTemp(e.target.value)}
@@ -228,7 +238,7 @@ export default function Eggstorageform() {
                 </div>
 
                 <div className="grid grid-cols-1 gap-2">
-                  <RequiredLabel>Storage Humidity</RequiredLabel>
+                  <RequiredLabel>Storage Humidity %</RequiredLabel>
                   <Input
                     value={stor_humi}
                     onChange={(e) => setStorHumi(e.target.value)}

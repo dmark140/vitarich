@@ -19,6 +19,7 @@ export type HatchClassification = {
   classi_ref_no: string | null;
   date_classify: string | null;
   misshapen: number | null;
+  leakers: number | null;
 };
 
 export type HatchClassificationInsert = {
@@ -39,6 +40,7 @@ export type HatchClassificationInsert = {
   classi_ref_no: string | null;
   date_classify: string | null;
   misshapen: number | null;
+  leakers: number | null;
 };
 
 export type HatchClassificationRow = HatchClassificationInsert & {

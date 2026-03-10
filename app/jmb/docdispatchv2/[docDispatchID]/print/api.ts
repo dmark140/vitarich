@@ -7,7 +7,7 @@ export type DocDispatchPrintHeader = {
   dr_no: string;
   doc_date: string;
   farm_name: string | null;
-
+  address: string | null;
   hauler_name: string | null;
   hauler_plate_no: string | null;
   truck_seal_no: string | null;
@@ -26,6 +26,7 @@ export type DocDispatchPrintHeader = {
 
   // fallback display
   created_by_display: string | null;
+  farmname: string | null;
 };
 
 export type DocDispatchPrintItem = {
@@ -87,7 +88,7 @@ export async function getDocDispatchPrint(
     dr_no: r0.dr_no,
     doc_date: r0.doc_date,
     farm_name: r0.farm_name,
-
+    address: r0.address,
     hauler_name: r0.hauler_name,
     hauler_plate_no: r0.hauler_plate_no,
     truck_seal_no: r0.truck_seal_no,
@@ -104,6 +105,7 @@ export async function getDocDispatchPrint(
     fullname: r0.fullname,
 
     created_by_display: r0.created_by_display,
+    farmname: r0.farmname,
   };
 
   const items: DocDispatchPrintItem[] = rows.map((r) => ({

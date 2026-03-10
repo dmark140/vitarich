@@ -114,7 +114,7 @@ export default function EggsetterTable() {
     },
     {
       accessorKey: "setter_temp",
-      header: "Temp (°C)",
+      header: "Temp (°F)",
     },
     {
       accessorKey: "setter_humidity",
@@ -130,7 +130,7 @@ export default function EggsetterTable() {
     },
     {
       accessorKey: "egg_shell_temp",
-      header: "Egg Shell Temp (°C)",
+      header: "Egg Shell Temp (°F)",
     },
     {
       accessorKey: "egg_shell_temp_dt",

@@ -188,12 +188,17 @@ export default function Layout() {
 
               <div className="flex">
                 <div className="w-40 font-bold">ADDRESS :</div>
-                <div className="w-full border-b-2 border-black px-2">{""}</div>
+                <div className="w-full border-b-2 border-black px-2">
+                  {header?.address ?? ""}
+                </div>
               </div>
 
               <div className="flex mt-5">
                 <div className="w-40 font-bold">FROM :</div>
-                <div className="w-full border-b-2 border-black px-2">{""}</div>
+                <div className="w-full border-b-2 border-black px-2">
+                  {" "}
+                  {header?.farmname ?? ""}
+                </div>
               </div>
             </div>
 

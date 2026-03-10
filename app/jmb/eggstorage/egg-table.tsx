@@ -92,15 +92,15 @@ export default function EggTable() {
     },
     {
       accessorKey: "stor_temp",
-      header: "Storage Temperature",
+      header: "Storage Temperature ℃",
     },
     {
       accessorKey: "room_temp",
-      header: "Room Temperature",
+      header: "Room Temperature ℃",
     },
     {
       accessorKey: "stor_humi",
-      header: "Storage Humidity",
+      header: "Storage Humidity %",
     },
     {
       accessorKey: "shell_start",

@@ -96,12 +96,12 @@ export default function PrewarmTable() {
       },
       {
         accessorKey: "pre_temp",
-        header: "Pre-Warming Temp",
+        header: "Pre-Warming Temp ℃",
         cell: ({ row }) => row.original.pre_temp ?? "",
       },
       {
         accessorKey: "egg_temp",
-        header: "Egg Shell Temp",
+        header: "Egg Shell Temp ℃",
         cell: ({ row }) => row.original.egg_temp ?? "",
       },
       {

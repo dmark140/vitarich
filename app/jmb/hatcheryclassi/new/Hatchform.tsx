@@ -58,6 +58,7 @@ type FormState = {
   d_yolk: number;
   jumbo: number;
   misshapen: number;
+  leakers: number;
   ttl_count: number;
   discrepancy: number;
   percentage_egg_recovery: number;
@@ -86,6 +87,7 @@ const emptyForm: FormState = {
   d_yolk: 0,
   jumbo: 0,
   misshapen: 0,
+  leakers: 0,
   ttl_count: 0,
   discrepancy: 0,
   percentage_egg_recovery: 0,
@@ -118,6 +120,7 @@ export default function Hatchform() {
       { label: "Double Yolk", name: "d_yolk" },
       { label: "Jumbo", name: "jumbo" },
       { label: "Misshapen", name: "misshapen" },
+      { label: "Leakers", name: "leakers" },
     ],
     [],
   );
@@ -192,6 +195,7 @@ export default function Hatchform() {
         base.d_yolk = Number(row.d_yolk ?? 0);
         base.jumbo = Number(row.jumbo ?? 0);
         base.misshapen = Number(row.misshapen ?? 0);
+        base.leakers = Number(row.leakers ?? 0);
 
         // Try to populate "view" fields from the breeders view by br_no
         const selected = breeders.find((b) => b.brdr_ref_no === base.br_no);
@@ -384,7 +388,7 @@ export default function Hatchform() {
           d_yolk: form.d_yolk,
           jumbo: form.jumbo,
           misshapen: form.misshapen,
-
+          leakers: form.leakers,
           ttl_count: form.ttl_count,
           is_active: true,
         };
@@ -411,7 +415,7 @@ export default function Hatchform() {
         d_yolk: form.d_yolk,
         jumbo: form.jumbo,
         misshapen: form.misshapen,
-
+        leakers: form.leakers,
         ttl_count: form.ttl_count,
         is_active: true,
       };
@@ -590,6 +594,16 @@ export default function Hatchform() {
                 disabled={disabledAll}
               />
             </div>
+            <div className="md:col-span-1">
+              <NumberField
+                label="Leakers"
+                name="leakers"
+                placeholder="0"
+                form={form}
+                onChange={handleChange}
+                disabled={disabledAll}
+              />
+            </div>
             <div className="md:col-span-2" />
           </div>
 
@@ -620,7 +634,7 @@ export default function Hatchform() {
             saving={saving}
             isEdit={isEdit}
             disabled={disabledAll}
-            cancelPath="/a_baja/hatcheryclassi"
+            cancelPath="/jmb/hatcheryclassi"
             onSave={handleSave}
           />
         </CardContent>

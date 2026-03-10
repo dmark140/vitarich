@@ -28,6 +28,7 @@ import {
 import FormActionButtons from "@/components/FormActionButtons";
 import SearchableDropdown from "@/lib/SearchableDropdown";
 import { refreshSessionx } from "@/app/admin/user/RefreshSession";
+import RequiredLabel from "@/components/RequiredLabel";
 
 type FormState = {
   egg_ref_no: string;
@@ -222,8 +223,20 @@ export default function Prewarmingform() {
           {/* Row 1 */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Egg Reference No.</Label>
-              <Select
+              <RequiredLabel>Egg Reference No.</RequiredLabel>
+              <SearchableDropdown
+                list={eggRefs}
+                codeLabel="classi_ref_no"
+                nameLabel="classi_ref_no"
+                showNameOnly
+                value={form.egg_ref_no}
+                // onChange={(val) => handleFarmChange(val)}
+
+                onChange={(v) => setForm((p) => ({ ...p, egg_ref_no: v }))}
+                disabled={saving || refLoading}
+              />
+
+              {/* <Select
                 value={form.egg_ref_no}
                 onValueChange={(v) => setForm((p) => ({ ...p, egg_ref_no: v }))}
                 disabled={saving || refLoading}
@@ -242,14 +255,14 @@ export default function Prewarmingform() {
                     </SelectItem>
                   ))}
                 </SelectContent>
-              </Select>
+              </Select> */}
             </div>
           </div>
           <Separator />
           {/* Row 2 */}
           <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
             <div className="space-y-2">
-              <Label>Pre-Warming Temp</Label>
+              <Label>Pre-Warming Temp ℃</Label>
               <Input
                 value={form.pre_temp}
                 onChange={(e) =>
@@ -259,7 +272,7 @@ export default function Prewarmingform() {
               />
             </div>
             <div className="space-y-2">
-              <Label>Egg Shell Temp</Label>
+              <Label>Egg Shell Temp ℃</Label>
               <Input
                 value={form.egg_temp}
                 onChange={(e) =>

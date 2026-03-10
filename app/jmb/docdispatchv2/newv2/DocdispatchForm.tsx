@@ -29,19 +29,23 @@ import {
   type DispatchDocItemInsert,
   type SkuClassification,
   type UomType,
-  // ✅ new
+  type BoilerFarmOption,
   generateNextDrNo,
   listDocBatchCodes,
+  listBoilerFarmOptions,
 } from "./api";
 import { Trash2 } from "lucide-react";
 import type { ChickGradingQtyRow } from "./api";
 import { getChickGradingQtyByBatchCode } from "./api";
 import { refreshSessionx } from "@/app/admin/user/RefreshSession";
+import RequiredLabel from "@/components/RequiredLabel";
+import SearchableDropdown from "@/lib/SearchableDropdown";
 
 type FormState = {
   doc_date: string; // YYYY-MM-DD
   dr_no: string;
   farm_name: string;
+  address: string;
   hauler_name: string;
   hauler_plate_no: string;
   truck_seal_no: string;
@@ -57,13 +61,6 @@ type ItemDraft = {
   uom: UomType | "";
   qty: string;
 };
-
-const FARM_OPTIONS = [
-  "Wealthcore Bagbaguin",
-  "Wealthcore Sta Cruz",
-  "Fortune / Apena Hatchery",
-  "Imperial Hatchery",
-] as const;
 
 type SkuOption = {
   sku_name: string;
@@ -89,9 +86,9 @@ const SKU_TO_FIELD: Record<string, keyof ChickGradingQtyRow> = {
 const SKU_OPTIONS: SkuOption[] = [
   { sku_name: "Class A", classification: "SALEABLE" },
   { sku_name: "Class A Junior", classification: "SALEABLE" },
-  { sku_name: "Class B", classification: "SALEABLE" },
-  { sku_name: "Class C", classification: "SALEABLE" },
 
+  { sku_name: "Class B", classification: "BY_PRODUCT" },
+  { sku_name: "Class C", classification: "BY_PRODUCT" },
   { sku_name: "Infertile", classification: "BY_PRODUCT" },
   { sku_name: "Live PIP", classification: "BY_PRODUCT" },
   { sku_name: "Dead Chick", classification: "BY_PRODUCT" },
@@ -152,6 +149,9 @@ export default function DocdispatchForm() {
   const [docBatchCodes, setDocBatchCodes] = useState<string[]>([]);
   const [docBatchLoading, setDocBatchLoading] = useState(false);
 
+  const [boilerFarms, setBoilerFarms] = useState<BoilerFarmOption[]>([]);
+  const [boilerFarmsLoading, setBoilerFarmsLoading] = useState(false);
+
   // if user manually edits DR no, we stop auto-overwriting
   const drManualRef = useRef(false);
 
@@ -159,6 +159,7 @@ export default function DocdispatchForm() {
     doc_date: todayYMD(),
     dr_no: "",
     farm_name: "",
+    address: "",
     hauler_name: "",
     hauler_plate_no: "",
     truck_seal_no: "",
@@ -192,6 +193,18 @@ export default function DocdispatchForm() {
     setItemDraft((p) => ({ ...p, [k]: v }));
   }
 
+  function handleFarmChange(boilerName: string) {
+    const selected = boilerFarms.find(
+      (farm) => farm.boiler_name === boilerName,
+    );
+
+    setForm((prev) => ({
+      ...prev,
+      farm_name: boilerName,
+      address: selected?.address ?? "",
+    }));
+  }
+
   async function ensureGradingRow(batch_code: string) {
     const code = batch_code.trim();
     if (!code) return null;
@@ -213,26 +226,36 @@ export default function DocdispatchForm() {
     (async () => {
       setHaulersLoading(true);
       setDocBatchLoading(true);
+      setBoilerFarmsLoading(true);
+
       try {
-        const [h, b] = await Promise.all([
+        const [h, b, farms] = await Promise.all([
           listDistinctHaulers(),
           listDocBatchCodes(),
+          listBoilerFarmOptions(),
         ]);
+
         if (!alive) return;
+
         setHaulers(h);
         setDocBatchCodes(b);
+        setBoilerFarms(farms);
       } catch (e) {
         console.error(e);
         if (!alive) return;
+
         setHaulers([]);
         setDocBatchCodes([]);
+        setBoilerFarms([]);
       } finally {
         if (alive) {
           setHaulersLoading(false);
           setDocBatchLoading(false);
+          setBoilerFarmsLoading(false);
         }
       }
     })();
+
     return () => {
       alive = false;
     };
@@ -256,6 +279,7 @@ export default function DocdispatchForm() {
           doc_date: header.doc_date,
           dr_no: header.dr_no ?? "",
           farm_name: header.farm_name ?? "",
+          address: header.address ?? "",
           hauler_name: header.hauler_name ?? "",
           hauler_plate_no: header.hauler_plate_no ?? "",
           truck_seal_no: header.truck_seal_no ?? "",
@@ -267,7 +291,6 @@ export default function DocdispatchForm() {
             header.number_of_fans == null ? "" : String(header.number_of_fans),
           remarks: header.remarks ?? "",
         });
-
         setItems(
           (items ?? []).map((it: any) => ({
             doc_batch_code: it.doc_batch_code,
@@ -390,6 +413,7 @@ export default function DocdispatchForm() {
         doc_date: form.doc_date,
         dr_no: form.dr_no.trim(),
         farm_name: form.farm_name.trim(),
+        address: form.address.trim() || null,
         hauler_name: form.hauler_name.trim() || null,
         hauler_plate_no: form.hauler_plate_no.trim() || null,
         truck_seal_no: form.truck_seal_no.trim() || null,
@@ -463,23 +487,46 @@ export default function DocdispatchForm() {
                   </div>
 
                   <div className="space-y-1 max-w-xl">
-                    <Label>Farm Name</Label>
-                    <Select
+                    <RequiredLabel>Farm Name</RequiredLabel>
+                    <SearchableDropdown
+                      list={boilerFarms}
+                      codeLabel="boiler_name"
+                      nameLabel="boiler_name"
+                      showNameOnly
                       value={form.farm_name}
-                      onValueChange={(v) => setField("farm_name", v)}
-                      disabled={saving}
+                      onChange={(val) => handleFarmChange(val)}
+                      disabled={saving || boilerFarmsLoading}
+                    />
+                    {/* <Select
+                      value={form.farm_name}
+                      onValueChange={handleFarmChange}
+                      disabled={saving || boilerFarmsLoading}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Select Farm..." />
+                        <SelectValue
+                          placeholder={
+                            boilerFarmsLoading
+                              ? "Loading farms..."
+                              : "Select farm..."
+                          }
+                        />
                       </SelectTrigger>
                       <SelectContent>
-                        {FARM_OPTIONS.map((f) => (
-                          <SelectItem key={f} value={f}>
-                            {f}
+                        {boilerFarms.map((farm) => (
+                          <SelectItem
+                            key={farm.boiler_name}
+                            value={farm.boiler_name}
+                          >
+                            {farm.boiler_name}
                           </SelectItem>
                         ))}
                       </SelectContent>
-                    </Select>
+                    </Select> */}
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label>Address</Label>
+                    <Textarea value={form.address} placeholder="" disabled />
                   </div>
 
                   <div className="space-y-1">
@@ -787,42 +834,6 @@ export default function DocdispatchForm() {
                   cancelPath="/jmb/docdispatchv2"
                   onSave={onSave}
                 />
-                {/* <div className="flex items-center justify-end gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      if (!form.dr_no.trim())
-                        return alert("DR No is required to print.");
-                      if (!form.doc_date)
-                        return alert("Date is required to print.");
-                      if (!form.farm_name.trim())
-                        return alert("Farm Name is required to print.");
-                      if (!items.length)
-                        return alert("Please add at least 1 item to print.");
-
-                      printTransferSlip({
-                        dr_no: form.dr_no.trim(),
-                        doc_date: form.doc_date,
-                        farm_name: form.farm_name.trim(),
-                        address: "", // optional: add farm address if you have it
-                        from_name: "Hatchery / Dispatch", // or form.hauler_name, your choice
-                        remarks: form.remarks ?? "",
-                        items: items.map((it: any) => ({
-                          doc_batch_code: it.doc_batch_code,
-                          sku_name: it.sku_name,
-                          classification: it.classification ?? "",
-                          uom: it.uom ?? "",
-                          qty: Number(it.qty ?? 0),
-                        })),
-                      });
-                    }}
-                    disabled={saving || loading}
-                  >
-                    <Printer className="size-4 mr-2" />
-                    Print
-                  </Button>
-                </div> */}
               </div>
             </div>
           )}

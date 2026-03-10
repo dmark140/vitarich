@@ -23,10 +23,14 @@ import {
   updateSetterIncubation,
   listHatchClassiRefs,
   type HatchClassiRefOption,
+  getUserInfo,
 } from "./api";
 import { Save, Pencil, Loader2, X } from "lucide-react";
 import FormActionButtons from "@/components/FormActionButtons";
 import { refreshSessionx } from "@/app/admin/user/RefreshSession";
+import RequiredLabel from "@/components/RequiredLabel";
+import { DefaultFarm } from "@/lib/types";
+import SearchableDropdown from "@/lib/SearchableDropdown";
 type FormState = {
   ref_no: string;
   setting_date: string; // datetime-local
@@ -103,28 +107,31 @@ export default function Eggsetterform() {
   const [loadingRecord, setLoadingRecord] = useState(false);
 
   const [refOptions, setRefOptions] = useState<HatchClassiRefOption[]>([]);
-
+  const [defaultFarm, setdefaultFarm] = useState<DefaultFarm>();
   const [form, setForm] = useState<FormState>({
     ref_no: "",
     setting_date: "",
     farm_source: "",
     machine_id: "",
-
     total_eggs: "",
     incubation_duration: "",
-
     setter_temp: "",
     egg_shell_temp: "",
-
     setter_humidity: "",
     egg_shell_temp_dt: "",
-
     turning_interval: "",
     egg_shell_orientation: "Pointed Down",
-
     turning_angle: "",
   });
+  const getDefaultFarm = async () => {
+    const data = await getUserInfo();
+    setdefaultFarm(data[0]);
+    // setHeader(h => h ? { ...h, delivered_to: data[0].code } : h)
+  };
 
+  useEffect(() => {
+    getDefaultFarm();
+  }, []);
   useEffect(() => {
     refreshSessionx(router);
   }, []);
@@ -320,8 +327,17 @@ export default function Eggsetterform() {
           {/* SECTION 1 */}
           <div className="rounded-md border p-4 space-y-4">
             <div className="space-y-2">
-              <Label>Egg Reference Number</Label>
-              <Select
+              <RequiredLabel>Egg Reference Number</RequiredLabel>
+              <SearchableDropdown
+                list={refOptions}
+                codeLabel="classi_ref_no"
+                nameLabel="classi_ref_no"
+                showNameOnly
+                value={form.ref_no}
+                onChange={(val) => handleSelectRef(val)}
+                disabled={saving || loadingRefs}
+              />
+              {/* <Select
                 value={form.ref_no}
                 onValueChange={handleSelectRef}
                 disabled={loadingRefs || disabledAll}
@@ -340,14 +356,16 @@ export default function Eggsetterform() {
                     </SelectItem>
                   ))}
                 </SelectContent>
-              </Select>
+              </Select> */}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Farm Source</Label>
                 <Input
-                  value={form.farm_source}
+                  // value={form.farm_source}
+                  value={isEdit ? form.farm_source : (defaultFarm?.name ?? "")}
+                  // value={defaultFarm?.name || ""}
                   readOnly
                   placeholder=""
                   disabled
@@ -373,7 +391,7 @@ export default function Eggsetterform() {
             ) : null}
 
             <div className="space-y-2">
-              <Label>Setting Date</Label>
+              <RequiredLabel>Setting Date</RequiredLabel>
               <Input
                 type="datetime-local"
                 value={form.setting_date}
@@ -385,7 +403,7 @@ export default function Eggsetterform() {
             </div>
 
             <div className="space-y-2">
-              <Label>Setter Machine ID</Label>
+              <RequiredLabel>Setter Machine ID</RequiredLabel>
               <Input
                 value={form.machine_id}
                 onChange={(e) =>
@@ -415,7 +433,7 @@ export default function Eggsetterform() {
             </div>
 
             <div className="space-y-2">
-              <Label>Setter Temperature (°C)</Label>
+              <Label>Setter Temperature (°F)</Label>
               <Input
                 type="number"
                 min={0}
@@ -435,7 +453,7 @@ export default function Eggsetterform() {
             </div>
 
             <div className="space-y-2">
-              <Label>Egg Shell Temperature (°C)</Label>
+              <Label>Egg Shell Temperature (°F)</Label>
               <Input
                 type="number"
                 step="0.01"
@@ -548,7 +566,7 @@ export default function Eggsetterform() {
               saving={saving}
               isEdit={isEdit}
               disabled={disabledAll}
-              cancelPath="/a_baja/eggsetter"
+              cancelPath="/jmb/eggsetter"
               onSave={onSave}
             />
           </div>
