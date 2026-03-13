@@ -65,7 +65,16 @@ export default function page() {
                 />
 
                 <div className="text-sm text-muted-foreground">
-                    Selected values: {multipleValue.length ? multipleValue.join(", ") : "none"}
+                    Selected values: {multipleValue.length
+                        ? multipleValue.map((code) => {
+                            const item = numbers.find((n) => n.code === code)
+                            return (
+                                <p key={code}>
+                                    {item?.code} - {item?.name}
+                                </p>
+                            )
+                        })
+                        : "none"}
                 </div>
             </div>
 
