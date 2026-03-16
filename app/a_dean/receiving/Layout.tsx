@@ -2,7 +2,7 @@
 import { Button } from '@/components/ui/button'
 import { DataTable } from '@/components/ui/DataTable'
 import { ColumnConfig, RowDataKey } from '@/lib/Defaults/DefaultTypes'
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useLayoutEffect, useMemo, useState } from 'react'
 import { getReceivingDraftPending, getReceivingList } from './api'
 import TableSkeleton from '@/components/ui/TableSkeleton'
 import { sleep } from '@/lib/utils'
@@ -16,6 +16,8 @@ import DynamicTable from '@/components/ui/DataTableV2'
 import { EditIcon, HandCoins, Map, Plus, QrCode, RefreshCcw } from 'lucide-react'
 import { db } from '@/lib/Supabase/supabaseClient'
 import { refreshSessionx } from '@/app/admin/user/RefreshSession'
+import { getAuthId } from '@/lib/getAuthId'
+import { checkUserActive } from '@/lib/CheckUserIfActive'
 
 
 
@@ -135,7 +137,10 @@ export default function Layout() {
         route.prefetch("/a_dean/receiving/manual")
     }, [])
 
-
+    useEffect(() => {
+     setValue("loading_g", loading)
+    }, [loading])
+    
 
     return (
         <div>
@@ -152,10 +157,7 @@ export default function Layout() {
                     CurrentPageName='Receiving List'
                 />
                 <div className='flex gap-4'>
-                    {/* <Button
-                        onClick={() => setIsScanning(true)}
-                    ><QrCode />Scan Search</Button> */}
-                    
+                  
                     <Button
                         // onClick={() => setIsScanning(true)}
                         onClick={() => route.push("/a_dean/receiving/manual")}

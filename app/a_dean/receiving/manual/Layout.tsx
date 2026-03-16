@@ -60,7 +60,7 @@ const emptyApprovalRecord: DataRecordApproval = {
 export default function ApprovalDecisionForm() {
   const confirm = useConfirm();
   const router = useRouter()
-  const { getValue } = useGlobalContext()
+  const { getValue, setValue } = useGlobalContext()
   const [loading, setloading] = useState(false)
   const [farms, setfarms] = useState<Farms[]>([])
   const [header, setHeader] = useState<DataRecordApproval | null>(null)
@@ -192,10 +192,22 @@ export default function ApprovalDecisionForm() {
     return true
   }
 
+
   // const insertMe = async () => {
   //   setloading(true)
+
+  //   const confirmed = await confirm({
+  //     title: "Receive items?",
+  //     description: "Are you sure you want to record these items as received?",
+  //     confirmText: "Confirm receipt",
+  //     cancelText: "Cancel",
+  //   });
+
+  //   setloading(confirmed)
+  //   if (!confirmed) return;
   //   const transformedItems = items.map(i => ({
   //     ...i,
+  //     brdr_ref_no: `${brdr_ref_no}-${i.house_no}`, // auto generate
   //     total_api: i.total ?? 0,
   //     actual_count: i.actual_total ?? 0,
   //   }))
@@ -216,22 +228,22 @@ export default function ApprovalDecisionForm() {
   //     driver: footer.driver,
   //     serial_no: footer.serial,
   //     delivered_to: defaultFarm?.code,
-  //     brdr_ref_no: brdr_ref_no,
+  //     brdr_ref_no: brdr_ref_no, // header value
   //     items: transformedItems,
   //   }
+  //   // console.log({ payload })
+  //   // return
   //   const res = await createReceiving(payload)
-  //   router.push("/a_dean/receiving/")
-  //   setloading(false)
 
   //   if (res.success) {
   //     alert(`Saved! DocEntry: ${res.docentry}`)
+  //     router.push("/a_dean/receiving/")
   //   } else {
   //     alert(res.error)
   //   }
+
   //   setloading(false)
-
   // }
-
   const insertMe = async () => {
     setloading(true)
 
@@ -244,34 +256,41 @@ export default function ApprovalDecisionForm() {
 
     setloading(confirmed)
     if (!confirmed) return;
+
     const transformedItems = items.map(i => ({
       ...i,
-      brdr_ref_no: `${brdr_ref_no}-${i.house_no}`, // auto generate
+      brdr_ref_no: `${brdr_ref_no ?? ""}-${i.house_no ?? ""}`,
+      sku: i.sku ?? "",
+      lot_no: i.lot_no ?? "",
+      breed: i.breed ?? "",
+      house_no: i.house_no ?? "",
+      prod_date: i.prod_date ?? "",
+      prod_date_to: i.prod_date_to ?? "",
+      age: i.age ?? "",
       total_api: i.total ?? 0,
       actual_count: i.actual_total ?? 0,
     }))
 
     const payload = {
-      doc_date: header?.doc_date,
-      temperature,
-      humidity,
-      soldTo: header?.soldTo,
-      Attention: header?.Attention,
-      po_no: header?.po_no,
-      voyage_no: header?.voyage_no,
-      shipped_via: header?.shipped_via,
-      dr_num: header?.dr_num,
-      no_of_crates: footer.crates,
-      no_of_tray: footer.trays,
-      plate_no: footer.van_plate,
-      driver: footer.driver,
-      serial_no: footer.serial,
-      delivered_to: defaultFarm?.code,
-      brdr_ref_no: brdr_ref_no, // header value
+      doc_date: header?.doc_date ?? "",
+      temperature: Number(temperature) || 0,
+      humidity: Number(humidity) || 0,
+      soldTo: header?.soldTo ?? "",
+      Attention: header?.Attention ?? "",
+      po_no: header?.po_no ?? "",
+      voyage_no: header?.voyage_no ?? "",
+      shipped_via: header?.shipped_via ?? "",
+      dr_num: header?.dr_num ?? "",
+      no_of_crates: Number(footer.crates) || 0,
+      no_of_tray: Number(footer.trays) || 0,
+      plate_no: footer.van_plate ?? "",
+      driver: footer.driver ?? "",
+      serial_no: footer.serial ?? "",
+      delivered_to: defaultFarm?.code ?? "",
+      brdr_ref_no: brdr_ref_no ?? "",
       items: transformedItems,
     }
-    // console.log({ payload })
-    // return
+
     const res = await createReceiving(payload)
 
     if (res.success) {
@@ -297,6 +316,9 @@ export default function ApprovalDecisionForm() {
     serial: ''
   })
 
+  useEffect(() => {
+    setValue("loading_g", loading)
+  }, [loading])
   return (
     <form onSubmit={handleSubmit}>
       <Card className="w-full border-none shadow-none bg-background p-0">

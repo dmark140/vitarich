@@ -203,3 +203,7 @@
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
+
+:root{
+  font-size: 18px;
+}

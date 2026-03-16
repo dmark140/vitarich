@@ -7,11 +7,13 @@ import { Edit } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import React, { useEffect, useMemo, useState } from 'react'
 import { db } from '@/lib/Supabase/supabaseClient'
+import { useGlobalContext } from '@/lib/context/GlobalContext'
 
 export default function Layout() {
   const route = useRouter()
   const [initialRows, setinitialRows] = useState<RowDataKey[]>([])
   const [loading, setLoading] = useState(true)
+  const { setValue, getValue } = useGlobalContext()
 
   const tableColumnsx: ColumnConfig[] = useMemo(
     () => [
@@ -55,6 +57,11 @@ export default function Layout() {
     loadData()
   }, [])
 
+
+  useEffect(() => {
+    setValue("loading_g", loading)
+  }, [loading])
+
   return (
     <div>
       <div className='mt-8 flex justify-between items-center mx-4'>
@@ -63,7 +70,13 @@ export default function Layout() {
           CurrentPageName='Disposal'
         />
         <div>
-          <Button onClick={() => route.push("/a_dean/disposal/new")}>
+          <Button onClick={() => 
+          {
+            setLoading(true)
+            route.push("/a_dean/disposal/new")
+
+          }
+            }>
             <Edit />
             New Disposal
           </Button>
@@ -87,7 +100,7 @@ export default function Layout() {
                       onMouseEnter={() => route.prefetch(printUrl)}
                       onFocus={() => route.prefetch(printUrl)}
                       // onClick={() => route.push(printUrl)}
-                      onClick={() =>  window.open(printUrl, '_blank')}
+                      onClick={() => window.open(printUrl, '_blank')}
                       className='border border-green-500 bg-white text-black'
                       size="sm"
                     >

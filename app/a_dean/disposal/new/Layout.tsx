@@ -11,8 +11,13 @@ import { Edit } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 import { get_available_chick_grading_batch_refs, get_chick_grading_inventory, create_disposal } from './api'
 import { db } from '@/lib/Supabase/supabaseClient'
+import { useGlobalContext } from '@/lib/context/GlobalContext'
+import { toast } from 'sonner'
+import { useConfirm } from '@/lib/ConfirmProvider'
 
 export default function Layout() {
+  const { setValue, getValue } = useGlobalContext()
+  const confirm = useConfirm();
   const [rows, setRows] = useState<Record<string, any>[]>([])
   const [pickedRows, setPickedRows] = useState<Record<string, any>[]>([])
   const [headerData, setHeaderData] = useState<Record<string, any>>({})
@@ -86,8 +91,17 @@ export default function Layout() {
   ]
 
   const getBatchs = async () => {
-    const data = await get_available_chick_grading_batch_refs()
-    setbatchCOdes(data.data || [])
+    try {
+      setSaving(true)
+
+      const data = await get_available_chick_grading_batch_refs()
+      setbatchCOdes(data.data || [])
+    } catch (error) {
+
+    }
+
+    setSaving(!true)
+
   }
 
   const getData = async () => {
@@ -99,15 +113,22 @@ export default function Layout() {
   }
 
   const getDrPreview = async () => {
-    const { data } = await db.rpc('get_next_ds_preview')
-    setHeaderData(h => ({ ...h, ds_no: data || '' }))
+    try {
+      setSaving(true)
+      const { data } = await db.rpc('get_next_ds_preview')
+      setHeaderData(h => ({ ...h, ds_no: data || '' }))
+    } catch (error) {
+
+    }
+    setSaving(false)
+
   }
 
   const handleSave = async () => {
     if (pickedRows.length === 0) return
 
 
-    
+
     setSaving(true)
 
     const res = await create_disposal(headerData, pickedRows)
@@ -120,12 +141,14 @@ export default function Layout() {
       return
     }
 
-    alert("Disposal created successfully")
+    toast("Disposal created successfully")
 
     setPickedRows([])
     setRows([])
     setHeaderData({})
     getDrPreview()
+
+
   }
 
   useEffect(() => {
@@ -137,6 +160,10 @@ export default function Layout() {
     getData()
   }, [headerData.batch_code])
 
+
+  useEffect(() => {
+    setValue("loading_g", saving)
+  }, [saving])
   return (
     <div>
       <div className='mt-8 flex justify-between items-center'>
