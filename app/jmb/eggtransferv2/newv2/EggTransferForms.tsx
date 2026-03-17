@@ -23,9 +23,12 @@ import {
   updateEggTransfer,
   getEggTransferById,
   listClassiRefNos,
+  getFarmSourceBySetterRef,
 } from "./api";
 import FormActionButtons from "@/components/FormActionButtons";
 import { refreshSessionx } from "@/app/admin/user/RefreshSession";
+import RequiredLabel from "@/components/RequiredLabel";
+import SearchableDropdown from "@/lib/SearchableDropdown";
 
 type FormState = {
   ref_no: string;
@@ -76,7 +79,7 @@ export default function EggTransferForm() {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState<boolean>(!!isEdit);
 
-  const [refOptions, setRefOptions] = useState<string[]>([]);
+  const [refOptions, setRefOptions] = useState<{ ref_no: string }[]>([]);
   const [refLoading, setRefLoading] = useState(false);
 
   const [form, setForm] = useState<FormState>({
@@ -99,13 +102,19 @@ export default function EggTransferForm() {
       try {
         const refs = await listClassiRefNos();
         if (!alive) return;
-        setRefOptions(refs);
+
+        setRefOptions(
+          (refs ?? []).map((r) => ({
+            ref_no: r,
+          })),
+        );
       } catch (e: any) {
         console.error(e);
       } finally {
         if (alive) setRefLoading(false);
       }
     })();
+
     return () => {
       alive = false;
     };
@@ -151,6 +160,27 @@ export default function EggTransferForm() {
     return durationMinutes !== null;
   }, [form.trans_date_start, form.trans_date_end, durationMinutes]);
 
+  async function handleSelectRef(val: string) {
+    setForm((p) => ({
+      ...p,
+      ref_no: val,
+      farm_source: "",
+    }));
+
+    if (!val) return;
+
+    try {
+      const farmSource = await getFarmSourceBySetterRef(val);
+      setForm((p) => ({
+        ...p,
+        ref_no: val,
+        farm_source: farmSource || "",
+      }));
+    } catch (e: any) {
+      console.error(e);
+      alert(e?.message ?? "Failed to load farm source.");
+    }
+  }
   async function onSave() {
     if (!form.ref_no) {
       alert("Reference Number is required.");
@@ -221,8 +251,17 @@ export default function EggTransferForm() {
             <>
               {/* ONE COLUMN UI */}
               <div className="space-y-2">
-                <Label>Egg Reference Number</Label>
-                <Select
+                <RequiredLabel>Egg Reference Number</RequiredLabel>
+                <SearchableDropdown
+                  list={refOptions}
+                  codeLabel="ref_no"
+                  nameLabel="ref_no"
+                  showNameOnly
+                  value={form.ref_no}
+                  onChange={(val) => handleSelectRef(val)}
+                  disabled={saving || refLoading}
+                />
+                {/* <Select
                   value={form.ref_no}
                   onValueChange={(v) => setForm((p) => ({ ...p, ref_no: v }))}
                   disabled={refLoading || saving}
@@ -241,11 +280,10 @@ export default function EggTransferForm() {
                       </SelectItem>
                     ))}
                   </SelectContent>
-                </Select>
+                </Select> */}
               </div>
 
               {/* separator after Ref No. */}
-              <Separator />
 
               <div className="space-y-2">
                 <Label>Farm Source</Label>
@@ -254,12 +292,14 @@ export default function EggTransferForm() {
                   onChange={(e) =>
                     setForm((p) => ({ ...p, farm_source: e.target.value }))
                   }
-                  placeholder=""
+                  readOnly
+                  disabled
                 />
               </div>
+              <Separator />
 
               <div className="space-y-2">
-                <Label>Transfer Date &amp; Time Start</Label>
+                <RequiredLabel>Transfer Date &amp; Time Start</RequiredLabel>
                 <Input
                   type="datetime-local"
                   value={form.trans_date_start}

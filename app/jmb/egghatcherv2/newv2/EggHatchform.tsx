@@ -355,7 +355,7 @@ export default function EggHatchform() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <Label>Duration</Label>
+                  <Label>Hatch Window</Label>
                   <Input
                     disabled
                     value={fmtDuration(durationMinutes)}
@@ -363,7 +363,7 @@ export default function EggHatchform() {
                   />
                   <Input value={form.duration} disabled placeholder="" />
                 </div>
-
+                {/* 
                 <div className="space-y-1">
                   <Label>Hatch Window (minutes)</Label>
                   <Input
@@ -372,7 +372,7 @@ export default function EggHatchform() {
                     onChange={(e) => setField("hatch_window", e.target.value)}
                     placeholder=""
                   />
-                </div>
+                </div> */}
               </div>
 
               <div className="space-y-1">

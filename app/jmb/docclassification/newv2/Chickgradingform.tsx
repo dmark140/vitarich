@@ -604,7 +604,7 @@ export default function Chickgradingform() {
                   </div>
 
                   <div className="space-y-1">
-                    <Label>Total Chicks</Label>
+                    <Label>Total Egg Set</Label>
                     <Input
                       value={
                         totalLoading
@@ -766,7 +766,7 @@ export default function Chickgradingform() {
                     </div>
 
                     <div className="space-y-1">
-                      <Label>Quality: Class C</Label>
+                      <Label>Quality: Class C – Abnormal / Reject</Label>
                       <Input
                         type="text"
                         inputMode="numeric"

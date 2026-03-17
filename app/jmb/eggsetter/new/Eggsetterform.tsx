@@ -124,12 +124,22 @@ export default function Eggsetterform() {
     egg_shell_orientation: "Pointed Down",
     turning_angle: "",
   });
+  // const getDefaultFarm = async () => {
+  //   const data = await getUserInfo();
+  //   setdefaultFarm(data[0]);
+  //   // setHeader(h => h ? { ...h, delivered_to: data[0].code } : h)
+  // };
+
   const getDefaultFarm = async () => {
     const data = await getUserInfo();
-    setdefaultFarm(data[0]);
-    // setHeader(h => h ? { ...h, delivered_to: data[0].code } : h)
-  };
+    const farm = data?.[0];
 
+    setdefaultFarm(farm);
+    setForm((p) => ({
+      ...p,
+      farm_source: p.farm_source || farm?.name || "",
+    }));
+  };
   useEffect(() => {
     getDefaultFarm();
   }, []);
@@ -239,8 +249,7 @@ export default function Eggsetterform() {
     setForm((p) => ({
       ...p,
       ref_no: ref,
-      farm_source: extractFarmOnly(ref),
-      // keep your old behavior: total_eggs from hatch classification good_egg
+      //  farm_source: extractFarmOnly(ref),
       total_eggs: picked?.good_egg != null ? String(picked.good_egg) : "",
     }));
   }
@@ -366,11 +375,7 @@ export default function Eggsetterform() {
                   <div className="space-y-2">
                     <Label>Farm Source</Label>
                     <Input
-                      // value={form.farm_source}
-                      value={
-                        isEdit ? form.farm_source : (defaultFarm?.name ?? "")
-                      }
-                      // value={defaultFarm?.name || ""}
+                      value={form.farm_source}
                       readOnly
                       placeholder=""
                       disabled

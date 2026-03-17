@@ -140,14 +140,14 @@ export default function EggHatchTable() {
       },
       {
         accessorKey: "duration",
-        header: "Duration",
+        header: "Hatch Window",
         cell: ({ row }) => fmtDurationHHMM(row.original.duration),
       },
-      {
-        accessorKey: "hatch_window",
-        header: "Hatch Window",
-        cell: ({ row }) => fmtNumber(row.original.hatch_window),
-      },
+      // {
+      //   accessorKey: "hatch_window",
+      //   header: "Hatch Window",
+      //   cell: ({ row }) => fmtNumber(row.original.hatch_window),
+      // },
       {
         accessorKey: "total_egg",
         header: "Total Egg",
@@ -166,14 +166,14 @@ export default function EggHatchTable() {
       columnVisibility,
       rowSelection,
     },
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
   });
 
   return (
@@ -281,7 +281,7 @@ export default function EggHatchTable() {
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
           >
-            Prev
+            Previous
           </Button>
           <Button
             type="button"
