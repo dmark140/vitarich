@@ -1,3 +1,36 @@
+/**
+ * EggTransferForm Component
+ *
+ * A form component for creating and editing egg transfer records in the hatchery management system.
+ * Supports both creation of new entries and editing of existing records via URL parameters.
+ *
+ * @component
+ * @returns {JSX.Element} The rendered egg transfer form with fields for reference number,
+ *                        farm source, transfer dates/times, duration, bangers count,
+ *                        and total egg transfer quantity.
+ *
+ * @example
+ * // Creating a new egg transfer entry
+ * <EggTransferForm />
+ *
+ * @example
+ * // Editing an existing egg transfer entry (via URL parameter ?id=123)
+ * <EggTransferForm />
+ *
+ * @remarks
+ * - This is a client component (uses "use client" directive)
+ * - Requires URL search parameter 'id' to determine edit vs create mode
+ * - Auto-populates farm_source field based on selected ref_no
+ * - Calculates duration automatically when both start and end times are provided
+ * - Performs validation on required fields and date range before submission
+ * - Redirects to egg transfer list view upon successful save
+ *
+ * @state {FormState} form - Current form field values including reference number, dates, and quantities
+ * @state {boolean} loading - Indicates if record data is being loaded for edit mode
+ * @state {boolean} saving - Indicates if form submission is in progress
+ * @state {Array} refOptions - List of available classification reference numbers for dropdown
+ * @state {boolean} refLoading - Indicates if reference options are being loaded
+ */
 "use client";
 
 import { useEffect, useMemo, useState } from "react";

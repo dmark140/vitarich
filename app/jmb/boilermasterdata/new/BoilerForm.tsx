@@ -1,3 +1,41 @@
+/**
+ * BoilerForm Component
+ *
+ * A client-side form component for creating and editing boiler master data records.
+ * Handles form state management, validation, and CRUD operations for boiler information.
+ *
+ * @component
+ *
+ * @example
+ * // Usage in a Next.js page
+ * import BoilerForm from '@/app/jmb/boilermasterdata/new/BoilerForm';
+ *
+ * export default function Page() {
+ *   return <BoilerForm />;
+ * }
+ *
+ * @returns {JSX.Element} A form interface for managing boiler master data
+ *
+ * @description
+ * Features:
+ * - Create new boiler records or edit existing ones based on URL query parameters
+ * - Form validation for required fields (boiler_name, region, address)
+ * - Real-time form field updates with controlled inputs
+ * - Success/error notifications via Alert component
+ * - Asynchronous data loading, saving, and deletion
+ * - Session refresh on component mount
+ * - Breadcrumb navigation
+ * - Loading states for all async operations
+ * - Action buttons for save, update, delete, and cancel operations
+ *
+ * @remarks
+ * - Uses Next.js 13+ App Router (`useRouter`, `useSearchParams`)
+ * - Form fields: boiler_name, assigned_ta, region, address
+ * - Only boiler_name is strictly required; other fields can be null
+ * - Delete operation marks records as inactive rather than hard deletion
+ * - Session validation happens on mount via `refreshSessionx`
+ * - Form is cleared after successful creation (non-edit mode)
+ */
 "use client";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */

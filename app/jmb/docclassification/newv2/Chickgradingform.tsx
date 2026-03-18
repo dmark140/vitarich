@@ -1,3 +1,33 @@
+/**
+ * Chick Grading Form Component
+ *
+ * A comprehensive form for recording and managing chick grading data in the hatchery document classification system.
+ * Supports both creating new grading records and editing existing ones.
+ *
+ * @component
+ * @returns {JSX.Element} The rendered chick grading form
+ *
+ * @remarks
+ * - Automatically loads the current logged-in user's information and populates the grading personnel field
+ * - Fetches available egg references from the database for selection
+ * - Generates batch codes automatically when a new egg reference is selected
+ * - Retrieves remaining inventory from the egg reference
+ * - Validates that the sum of all quality grades equals the total chicks before saving
+ * - Calculates quality grade rate and cull rate percentages in real-time
+ * - Supports keyboard input with number formatting (comma-separated thousands)
+ *
+ * @example
+ * // Usage in a Next.js app
+ * import Chickgradingform from '@/app/jmb/docclassification/newv2/Chickgradingform';
+ *
+ * export default function Page() {
+ *   return <Chickgradingform />;
+ * }
+ *
+ * @example
+ * // For editing an existing record, pass the ID via query parameter
+ * // Route: /jmb/docclassification/newv2?id=123
+ */
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";

@@ -1,3 +1,54 @@
+/**
+ * Egg Setter Incubation Form Component
+ *
+ * A comprehensive form for creating and editing egg setter incubation records.
+ * This component manages the entry of incubation parameters including temperature,
+ * humidity, egg orientation, and turning intervals for poultry hatchery operations.
+ *
+ * @component
+ *
+ * @example
+ * ```tsx
+ * import Eggsetterform from '@/app/jmb/eggsetter/new/Eggsetterform';
+ *
+ * export default function Page() {
+ *   return <Eggsetterform />;
+ * }
+ * ```
+ *
+ * @returns {JSX.Element} The rendered egg setter form with two-column layout
+ *
+ * @remarks
+ * - Requires client-side rendering (`"use client"`)
+ * - Supports both create and edit modes via URL `id` parameter
+ * - Displays a temperature converter widget in the sidebar
+ * - Validates date relationships: Egg Shell Temp Date must be after Setting Date
+ * - Auto-populates farm source and total eggs from reference selection
+ * - Session refresh is automatically triggered on component mount
+ * - All numeric inputs are validated to prevent negative values
+ *
+ * @internal
+ * Query Parameter:
+ * - `id` (optional): Record ID for edit mode. If provided, loads existing record data.
+ *
+ * State Management:
+ * - `form`: Primary form state containing all incubation parameters
+ * - `refOptions`: Available egg reference numbers from API
+ * - `defaultFarm`: User's default farm information
+ * - Loading and saving states for async operations
+ *
+ * API Integration:
+ * - Fetches reference numbers and user farm information on mount
+ * - Creates new or updates existing incubation records via API
+ * - Automatically refreshes session on component initialization
+ *
+ * Validation:
+ * - Required fields: Reference Number, Setting Date, Setter Machine ID
+ * - Date validation: Egg Shell Temp Date must be >= Setting Date
+ * - Numeric validation: Non-negative values with optional decimal precision
+ * - Temperature inputs support decimal values (°F)
+ * - Humidity and angle inputs support decimal percentages
+ */
 "use client";
 
 import { useEffect, useMemo, useState } from "react";

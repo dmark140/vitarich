@@ -1,3 +1,44 @@
+/**
+ * Chick Grading Form Component
+ *
+ * A comprehensive form for recording and managing chick grading processes in a hatchery system.
+ * Supports both creation of new grading records and editing of existing ones with automatic
+ * batch code generation and real-time calculation of quality metrics.
+ *
+ * @component
+ * @returns {JSX.Element} The rendered chick grading form
+ *
+ * @example
+ * // Usage in a Next.js page or route
+ * <Chickgradingform />
+ *
+ * @remarks
+ * - Requires authentication and user profile data from Supabase
+ * - Automatically populates grading_personnel with logged-in user's full name (new records only)
+ * - Validates that total of all input values equals total_chicks from egg reference
+ * - Uses search params to determine edit vs. create mode (id=<number>)
+ * - All numeric inputs are formatted with locale-specific thousands separators
+ * - Maintains state for loading, saving, and async operations with cleanup
+ *
+ * @features
+ * - Auto-generate batch codes based on egg reference and date
+ * - Real-time calculation of:
+ *   - Good quality chicks (Class A + B + A Junior + C)
+ *   - Total by-product and disposal count
+ *   - Quality grade rate percentage
+ *   - Cull rate percentage
+ * - Form validation ensuring totals match
+ * - Formatted number display with Philippine locale
+ * - Responsive two-column layout for input fields
+ * - Breadcrumb navigation
+ *
+ * @dependencies
+ * - React, Next.js App Router (useRouter, useSearchParams)
+ * - UI components (Card, Label, Input, Select, Separator)
+ * - Supabase Auth & Database
+ * - Form action utilities (FormActionButtons, Breadcrumb)
+ */
+
 "use client";
 
 import React, { useEffect, useMemo, useState, type ChangeEvent } from "react";

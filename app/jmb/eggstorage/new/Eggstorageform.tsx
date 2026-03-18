@@ -1,3 +1,44 @@
+/**
+ * Egg Storage Form Component
+ *
+ * A comprehensive form for creating and editing egg storage records in the hatchery management system.
+ * Handles temperature, humidity, and shell temperature monitoring data for stored eggs.
+ *
+ * @component
+ * @returns {JSX.Element} The rendered egg storage form with validation and duration calculation
+ *
+ * @example
+ * ```tsx
+ * <Eggstorageform />
+ * ```
+ *
+ * @remarks
+ * - Supports both create (new record) and update (edit existing) modes
+ * - Automatically calculates storage duration between shell start and end times
+ * - Loads available egg reference numbers from the hatch_classification table
+ * - Includes a temperature converter utility in the sidebar
+ * - Requires authenticated session (checked via refreshSessionx)
+ * - Uses Supabase as the backend database
+ *
+ * @state
+ * - `loading` - Loading state for initial record fetch in edit mode
+ * - `saving` - Saving state during form submission
+ * - `classiRefNo` - Selected egg classification reference number
+ * - `classiRefs` - Array of available egg reference options
+ * - `classiRefLoading` - Loading state for reference dropdown
+ * - `stor_temp` - Storage temperature in Celsius
+ * - `room_temp` - Room temperature in Celsius
+ * - `stor_humi` - Storage humidity percentage
+ * - `shellStartLocal` - Shell temperature measurement start datetime (local format)
+ * - `shellEndLocal` - Shell temperature measurement end datetime (local format)
+ * - `remarks` - Additional notes about the storage record
+ *
+ * @effects
+ * - Loads classification references on component mount
+ * - Validates user session on mount
+ * - Loads existing record data in edit mode based on URL parameter
+ * - Calculates duration whenever shell timestamps change
+ */
 "use client";
 
 import { useEffect, useMemo, useState } from "react";

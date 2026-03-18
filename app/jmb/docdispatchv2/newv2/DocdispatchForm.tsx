@@ -1,3 +1,44 @@
+/**
+ * DocdispatchForm - A comprehensive form component for managing DOC (Day-Old Chick) dispatch documents.
+ *
+ * This component handles:
+ * - Creation and editing of dispatch delivery receipts
+ * - Management of chick grading quantities by batch code
+ * - Dynamic SKU (Stock Keeping Unit) selection with auto-classification
+ * - Hauler, farm, and truck information management
+ * - Multi-item line entry with validation
+ *
+ * @component
+ *
+ * @remarks
+ * - Uses Next.js App Router for navigation and query parameters
+ * - Implements session refresh on component mount
+ * - Maintains a cache of chick grading data to minimize API calls
+ * - Prevents auto-generation of DR number once user manually edits it
+ * - Supports both create and edit modes based on URL query parameter `id`
+ *
+ * @example
+ * ```tsx
+ * // New dispatch document
+ * <DocdispatchForm />
+ *
+ * // Edit existing document (via URL: ?id=123)
+ * <DocdispatchForm />
+ * ```
+ *
+ * @state
+ * - `form` - Main header information (date, DR no, farm, hauler details, etc.)
+ * - `itemDraft` - Current item being composed before adding to list
+ * - `items` - Array of added dispatch items
+ * - `gradingCache` - Cache of batch code to ChickGradingQtyRow mapping
+ * - `loading` - Loading state for fetching existing record
+ * - `saving` - Saving state during form submission
+ * - `haulers` - List of available haulers from dropdown
+ * - `docBatchCodes` - List of available DOC batch codes
+ * - `boilerFarms` - List of available boiler farm options
+ *
+ * @returns {JSX.Element} A form interface for DOC dispatch management with breadcrumb navigation and validation
+ */
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
