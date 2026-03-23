@@ -125,7 +125,7 @@ export async function listHatchClassification(limit = 50) {
 }
 export async function getReceivingList(limit = 50) {
   const { data, error } = await db
-    .from("vwdmf_receiving_list")
+    .from("view_for_classification")
     .select("*")
     .order("created_at", { ascending: false })
     .limit(limit);
