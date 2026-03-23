@@ -71,6 +71,7 @@ import RequiredLabel from "@/components/RequiredLabel";
 import { refreshSessionx } from "@/app/admin/user/RefreshSession";
 import SearchableDropdown from "@/lib/SearchableDropdown";
 import TemperatureConverter from "@/components/TemperatureConverter";
+import SearchableDropdown1 from "@/lib/SearchableDropdown1";
 
 type HatchClassiRefOption = {
   classi_ref_no: string;
@@ -103,7 +104,7 @@ export default function Eggstorageform() {
   const [saving, setSaving] = useState(false);
 
   // dropdown
-  const [classiRefNo, setClassiRefNo] = useState("");
+  const [classiRefNos, setClassiRefNos] = useState<string[]>([]);
   const [classiRefs, setClassiRefs] = useState<HatchClassiRefOption[]>([]);
   const [classiRefLoading, setClassiRefLoading] = useState(false);
 
@@ -149,7 +150,7 @@ export default function Eggstorageform() {
         setLoading(true);
         const data = await getEggStorageById(editId as number);
 
-        setClassiRefNo(data.classi_ref_no ?? "");
+        setClassiRefNos(data.classi_ref_no ? [data.classi_ref_no] : []);
         setStorTemp(data.stor_temp ?? "");
         setRoomTemp(data.room_temp ?? "");
         setStorHumi(data.stor_humi ?? "");
@@ -184,11 +185,46 @@ export default function Eggstorageform() {
     return `${hours}h ${minutes}m`;
   }, [durationSeconds]);
 
+  // async function onSave() {
+  //   try {
+  //     setSaving(true);
+
+  //     const payload: EggStorageInsert = {
+  //       stor_temp: stor_temp || null,
+  //       room_temp: room_temp || null,
+  //       stor_humi: stor_humi || null,
+  //       shell_start: fromDatetimeLocalValue(shellStartLocal),
+  //       shell_end: fromDatetimeLocalValue(shellEndLocal),
+  //       duration: durationSeconds,
+  //       remarks: remarks || null,
+  //       classi_ref_no: classiRefNo || null,
+  //     };
+
+  //     if (isEdit) {
+  //       await updateEggStorage(editId as number, payload); // ✅ 2 args
+  //     } else {
+  //       await createEggStorage(payload);
+  //     }
+
+  //     router.push("/jmb/eggstorage");
+  //     router.refresh();
+  //   } catch (err: any) {
+  //     alert(err?.message ?? "Failed to save.");
+  //   } finally {
+  //     setSaving(false);
+  //   }
+  // }
+
   async function onSave() {
     try {
       setSaving(true);
 
-      const payload: EggStorageInsert = {
+      if (classiRefNos.length === 0) {
+        alert("Please select at least one Egg Reference No.");
+        return;
+      }
+
+      const basePayload = {
         stor_temp: stor_temp || null,
         room_temp: room_temp || null,
         stor_humi: stor_humi || null,
@@ -196,13 +232,22 @@ export default function Eggstorageform() {
         shell_end: fromDatetimeLocalValue(shellEndLocal),
         duration: durationSeconds,
         remarks: remarks || null,
-        classi_ref_no: classiRefNo || null,
       };
 
       if (isEdit) {
-        await updateEggStorage(editId as number, payload); // ✅ 2 args
+        // ⚠️ Usually edit = single record only
+        await updateEggStorage(editId as number, {
+          ...basePayload,
+          classi_ref_no: classiRefNos[0] ?? null,
+        });
       } else {
-        await createEggStorage(payload);
+        // ✅ Insert multiple rows
+        const payloads: EggStorageInsert[] = classiRefNos.map((ref) => ({
+          ...basePayload,
+          classi_ref_no: ref,
+        }));
+
+        await createEggStorage(payloads); // ← must support bulk insert
       }
 
       router.push("/jmb/eggstorage");
@@ -232,13 +277,14 @@ export default function Eggstorageform() {
                   {/* Reference No. */}
                   <div className="grid grid-cols-1 gap-2">
                     <RequiredLabel>Egg Reference No.</RequiredLabel>
-                    <SearchableDropdown
+                    <SearchableDropdown1
                       list={classiRefs}
                       codeLabel="classi_ref_no"
                       nameLabel="classi_ref_no"
                       showNameOnly
-                      value={classiRefNo}
-                      onChange={(val) => setClassiRefNo(val)}
+                      value={classiRefNos}
+                      onChange={(val) => setClassiRefNos(val)}
+                      multiple
                       disabled={saving || classiRefLoading}
                     />
                     {/* <Select value={classiRefNo} onValueChange={setClassiRefNo}>

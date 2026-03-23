@@ -35,6 +35,8 @@ import {
 import EditActionButton from "@/components/EditActionButton";
 import { refreshSessionx } from "@/app/admin/user/RefreshSession";
 import { formatNumber } from "@/lib/utils/numberFormat";
+import loading from "@/loading";
+import { useGlobalContext } from "@/lib/context/GlobalContext";
 
 export default function HatchTable() {
   const router = useRouter();
@@ -51,6 +53,7 @@ export default function HatchTable() {
   const [itemsForClass, setItemsForClass] = useState<
     HatchForClassificationRow[]
   >([]);
+  const { setValue, getValue } = useGlobalContext();
   const load = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -233,6 +236,10 @@ export default function HatchTable() {
       rowSelection,
     },
   });
+
+  useEffect(() => {
+    setValue("loading_g", isLoadingforClass || isLoading);
+  }, [isLoadingforClass || isLoading]);
 
   return (
     <div className="rounded-md p-4">
