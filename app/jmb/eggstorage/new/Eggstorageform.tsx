@@ -121,7 +121,7 @@ export default function Eggstorageform() {
       try {
         setClassiRefLoading(true);
         const { data, error } = await db
-          .from("hatch_classification")
+          .from("view_eggclassi_for_eggstorage")
           .select("classi_ref_no,date_classify")
           .order("date_classify", { ascending: false })
           .order("classi_ref_no", { ascending: false });
