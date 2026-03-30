@@ -1,28 +1,51 @@
+/**
+ * Chick Grading Form Component
+ *
+ * A comprehensive form for recording and managing chick grading data in the hatchery document classification system.
+ * Supports both creating new grading records and editing existing ones.
+ *
+ * @component
+ * @returns {JSX.Element} The rendered chick grading form
+ *
+ * @remarks
+ * - Automatically loads the current logged-in user's information and populates the grading personnel field
+ * - Fetches available egg references from the database for selection
+ * - Generates batch codes automatically when a new egg reference is selected
+ * - Retrieves remaining inventory from the egg reference
+ * - Validates that the sum of all quality grades equals the total chicks before saving
+ * - Calculates quality grade rate and cull rate percentages in real-time
+ * - Supports keyboard input with number formatting (comma-separated thousands)
+ *
+ * @example
+ * // Usage in a Next.js app
+ * import Chickgradingform from '@/app/jmb/docclassification/newv2/Chickgradingform';
+ *
+ * export default function Page() {
+ *   return <Chickgradingform />;
+ * }
+ *
+ * @example
+ * // For editing an existing record, pass the ID via query parameter
+ * // Route: /jmb/docclassification/newv2?id=123
+ */
 "use client";
 
-import React, { useEffect, useMemo, useState, type ChangeEvent } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 import {
   ChickGradingProcess,
+  ChickGradingProcessCreate,
   createChickGradingProcess,
   getChickGradingProcessById,
   listEggReferences,
   updateChickGradingProcess,
   generateNextBatchCode,
-  getChicksHatchedByEggRef,
   getRemainingDocClassificationInventory,
 } from "./api";
 
@@ -36,18 +59,77 @@ import { refreshSessionx } from "@/app/admin/user/RefreshSession";
 import RequiredLabel from "@/components/RequiredLabel";
 import SearchableDropdown from "@/lib/SearchableDropdown";
 
-// non-negative number helper (handles NaN, null, undefined)
-function n(v: any) {
-  const x = Number(v);
-  if (!Number.isFinite(x)) return 0;
-  return Math.max(0, x);
-}
+type EggRefOption = {
+  egg_ref_no: string;
+};
 
-// used for inputs: "return to 0" if invalid/negative
-function clampNonNegative(value: string) {
-  const x = Number(value);
-  if (!Number.isFinite(x)) return 0;
-  return Math.max(0, x);
+type FormState = {
+  egg_ref_no: string;
+  batch_code: string;
+  grading_datetime: string;
+  grading_personnel: string;
+
+  class_a: number;
+  class_b: number;
+  class_a_junior: number;
+  class_c: number;
+  cull_chicks: number;
+  dead_chicks: number;
+  infertile: number;
+  dead_germ: number;
+  live_pip: number;
+  dead_pip: number;
+  unhatched: number;
+  rotten: number;
+  exploder: number;
+  unhatched_good: number;
+  unhatched_bad: number;
+  infertile_good: number;
+  infertile_bad: number;
+
+  chick_room_temperature: number | null;
+
+  total_chicks: number | null;
+  good_quality_chicks: number | null;
+  quality_grade_rate: number | null;
+  cull_rate: number | null;
+};
+
+const initialForm: FormState = {
+  egg_ref_no: "",
+  batch_code: "",
+  grading_datetime: new Date().toISOString(),
+  grading_personnel: "",
+
+  class_a: 0,
+  class_b: 0,
+  class_a_junior: 0,
+  class_c: 0,
+  cull_chicks: 0,
+  dead_chicks: 0,
+  infertile: 0,
+  dead_germ: 0,
+  live_pip: 0,
+  dead_pip: 0,
+  unhatched: 0,
+  rotten: 0,
+  exploder: 0,
+  unhatched_good: 0,
+  unhatched_bad: 0,
+  infertile_good: 0,
+  infertile_bad: 0,
+
+  chick_room_temperature: null,
+
+  total_chicks: null,
+  good_quality_chicks: null,
+  quality_grade_rate: null,
+  cull_rate: null,
+};
+
+function n(v: unknown) {
+  const x = Number(v);
+  return Number.isFinite(x) ? Math.max(0, x) : 0;
 }
 
 function fmtDT(v?: string | null) {
@@ -57,6 +139,11 @@ function fmtDT(v?: string | null) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(
     d.getHours(),
   )}:${pad(d.getMinutes())}`;
+}
+
+function formatNumber(value: number | null | undefined) {
+  if (value === null || value === undefined) return "";
+  return Number(value).toLocaleString("en-PH");
 }
 
 export default function Chickgradingform() {
@@ -69,161 +156,123 @@ export default function Chickgradingform() {
 
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-
-  const [eggRefs, setEggRefs] = useState<Record<string, any>[]>([]);
   const [eggRefsLoading, setEggRefsLoading] = useState(false);
-
   const [batchLoading, setBatchLoading] = useState(false);
   const [totalLoading, setTotalLoading] = useState(false);
 
   const [loggedInUser, setLoggedInUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserRow | null>(null);
 
-  const [remainingInventory, setRemainingInventory] = useState<number>(0);
+  const [eggRefs, setEggRefs] = useState<EggRefOption[]>([]);
+  const [remainingInventory, setRemainingInventory] = useState(0);
+  const [form, setForm] = useState<FormState>(initialForm);
 
-  // include class_c
-  const [form, setForm] = useState<
-    Partial<ChickGradingProcess> & { class_c?: any }
-  >({
-    egg_ref_no: "",
-    batch_code: "",
-    grading_datetime: new Date().toISOString(),
-    grading_personnel: "",
-
-    class_a: 0,
-    class_b: 0,
-    class_a_junior: 0,
-    class_c: 0,
-
-    cull_chicks: 0,
-    dead_chicks: 0,
-    infertile: 0,
-    dead_germ: 0,
-    live_pip: 0,
-    dead_pip: 0,
-    unhatched: 0,
-    rotten: 0,
-
-    exploder: 0,
-    unhatched_good: 0,
-    unhatched_bad: 0,
-    infertile_good: 0,
-    infertile_bad: 0,
-
-    chick_room_temperature: null,
-
-    total_chicks: null,
-    good_quality_chicks: null,
-    quality_grade_rate: null,
-    cull_rate: null,
-  });
-
-  function setField<K extends keyof typeof form>(
-    key: K,
-    value: (typeof form)[K],
-  ) {
-    setForm((p) => ({ ...p, [key]: value }));
+  function setField<K extends keyof FormState>(key: K, value: FormState[K]) {
+    setForm((prev) => ({ ...prev, [key]: value }));
   }
 
-  // ✅ Get current user session and profile
+  function handleNumberChange(field: keyof FormState) {
+    return (e: React.ChangeEvent<HTMLInputElement>) => {
+      const raw = e.target.value.replace(/,/g, "");
+      if (!/^\d*$/.test(raw)) return;
+
+      setForm((prev) => ({
+        ...prev,
+        [field]: raw === "" ? 0 : Number(raw),
+      }));
+    };
+  }
+
+  useEffect(() => {
+    refreshSessionx(router);
+  }, [router]);
+
+  // current user + auto grading personnel
   useEffect(() => {
     let alive = true;
+
     (async () => {
       try {
         const {
           data: { session },
         } = await db.auth.getSession();
+
         if (!alive) return;
 
         if (session?.user) {
           setLoggedInUser(session.user);
 
-          // Get user profile from database
           const profile = await getProfileByAuthId(session.user.id);
           if (!alive) return;
 
-          if (profile) {
-            setUserProfile(profile);
+          setUserProfile(profile);
 
-            // Auto-fill grading_personnel with full name if not in edit mode
-            if (!editId) {
-              const fullName =
-                `${profile.firstname || ""} ${profile.middlename || ""} ${profile.lastname || ""}`.trim();
-              if (fullName) {
-                setForm((prev) => ({
-                  ...prev,
-                  grading_personnel: fullName,
-                }));
-              }
+          if (!editId && profile) {
+            const fullName =
+              `${profile.firstname || ""} ${profile.middlename || ""} ${profile.lastname || ""}`.trim();
+
+            if (fullName) {
+              setForm((prev) => ({
+                ...prev,
+                grading_personnel: fullName,
+              }));
             }
           }
         }
       } catch (e) {
-        console.error("Failed to get user session/profile:", e);
+        console.error("Failed to get session/profile:", e);
       }
     })();
+
     return () => {
       alive = false;
     };
   }, [editId]);
 
-  function onNumChange(key: keyof typeof form) {
-    return (e: ChangeEvent<HTMLInputElement>) => {
-      const v = clampNonNegative(e.target.value);
-      setForm((p) => ({ ...p, [key]: v as any }));
-    };
-  }
-
-  function onNumBlur(key: keyof typeof form) {
-    return (e: ChangeEvent<HTMLInputElement>) => {
-      const v = clampNonNegative(e.target.value);
-      e.currentTarget.value = String(v);
-      setForm((p) => ({ ...p, [key]: v as any }));
-    };
-  }
-
-  // ✅ load dropdown
+  // egg ref dropdown
   useEffect(() => {
     let alive = true;
+
     (async () => {
       setEggRefsLoading(true);
       try {
         const refs = await listEggReferences();
         if (!alive) return;
-        setEggRefs(refs.map((ref) => ({ classi_ref_no: ref })));
+
+        setEggRefs(refs.map((egg_ref_no) => ({ egg_ref_no })));
       } catch (e) {
         console.error(e);
-        if (!alive) return;
-        setEggRefs([]);
+        if (alive) setEggRefs([]);
       } finally {
         if (alive) setEggRefsLoading(false);
       }
     })();
+
     return () => {
       alive = false;
     };
   }, []);
 
-  // ✅ load edit record
+  // load edit record
   useEffect(() => {
     if (!editId) return;
+
     setLoading(true);
+
     (async () => {
       try {
         const rec = await getChickGradingProcessById(editId);
 
         setForm({
-          ...rec,
           egg_ref_no: rec.egg_ref_no ?? "",
           batch_code: rec.batch_code ?? "",
-          grading_personnel: rec.grading_personnel ?? "",
           grading_datetime: rec.grading_datetime ?? new Date().toISOString(),
+          grading_personnel: rec.grading_personnel ?? "",
 
           class_a: n(rec.class_a),
           class_b: n(rec.class_b),
           class_a_junior: n(rec.class_a_junior),
-          class_c: n((rec as any).class_c),
-
+          class_c: n(rec.class_c),
           cull_chicks: n(rec.cull_chicks),
           dead_chicks: n(rec.dead_chicks),
           infertile: n(rec.infertile),
@@ -232,22 +281,21 @@ export default function Chickgradingform() {
           dead_pip: n(rec.dead_pip),
           unhatched: n(rec.unhatched),
           rotten: n(rec.rotten),
-
           exploder: n(rec.exploder),
           unhatched_good: n(rec.unhatched_good),
           unhatched_bad: n(rec.unhatched_bad),
           infertile_good: n(rec.infertile_good),
           infertile_bad: n(rec.infertile_bad),
 
-          total_chicks: rec.total_chicks ?? null,
-          good_quality_chicks: rec.good_quality_chicks ?? null,
-          quality_grade_rate: rec.quality_grade_rate ?? null,
-          cull_rate: rec.cull_rate ?? null,
-
           chick_room_temperature:
             rec.chick_room_temperature === undefined
               ? null
               : (rec.chick_room_temperature ?? null),
+
+          total_chicks: rec.total_chicks ?? null,
+          good_quality_chicks: rec.good_quality_chicks ?? null,
+          quality_grade_rate: rec.quality_grade_rate ?? null,
+          cull_rate: rec.cull_rate ?? null,
         });
       } catch (e: any) {
         alert(e?.message ?? "Failed to load record.");
@@ -257,21 +305,16 @@ export default function Chickgradingform() {
     })();
   }, [editId]);
 
+  // remaining inventory + batch code on egg ref change
   useEffect(() => {
-    refreshSessionx(router);
-  }, []);
-
-  // ✅ Auto-generate Batch Code when Egg Ref changes (NEW only)
-  // ✅ Load remaining inventory + auto batch code when Egg Ref changes
-  useEffect(() => {
-    const egg = (form.egg_ref_no ?? "").trim();
+    const egg = form.egg_ref_no.trim();
 
     if (!egg) {
       setRemainingInventory(0);
-      setForm((p) => ({
-        ...p,
-        batch_code: isEdit ? p.batch_code : "",
+      setForm((prev) => ({
+        ...prev,
         total_chicks: null,
+        batch_code: isEdit ? prev.batch_code : "",
       }));
       return;
     }
@@ -282,37 +325,35 @@ export default function Chickgradingform() {
       try {
         setTotalLoading(true);
 
-        // ✅ Total chicks for DOC Classification = remaining inventory from inventory_postings
         const remaining = await getRemainingDocClassificationInventory(egg);
         if (!alive) return;
 
         setRemainingInventory(remaining);
-
-        setForm((p) => ({
-          ...p,
+        setForm((prev) => ({
+          ...prev,
           total_chicks: remaining,
         }));
 
-        // ✅ Auto batch code (NEW only)
         if (!isEdit) {
           setBatchLoading(true);
           const code = await generateNextBatchCode(egg, new Date());
           if (!alive) return;
 
-          setForm((p) => ({
-            ...p,
+          setForm((prev) => ({
+            ...prev,
             batch_code: code,
           }));
         }
       } catch (e: any) {
         console.error(e);
+
         if (!alive) return;
 
         alert(e?.message ?? "Failed to load remaining inventory / batch code.");
 
         setRemainingInventory(0);
-        setForm((p) => ({
-          ...p,
+        setForm((prev) => ({
+          ...prev,
           total_chicks: null,
           ...(isEdit ? {} : { batch_code: "" }),
         }));
@@ -328,15 +369,24 @@ export default function Chickgradingform() {
       alive = false;
     };
   }, [form.egg_ref_no, isEdit]);
-  // ✅ Total of By Product and for Dispose
+
+  const totalChicksPreview = useMemo(
+    () => n(form.total_chicks),
+    [form.total_chicks],
+  );
+  const goodQualityPreview = useMemo(() => n(form.class_a), [form.class_a]);
+
   const totalByProductPreview = useMemo(() => {
     return (
+      n(form.class_a_junior) +
+      n(form.class_b) +
+      n(form.class_c) +
       n(form.infertile) +
       n(form.dead_germ) +
       n(form.dead_chicks) +
+      n(form.unhatched) +
       n(form.live_pip) +
       n(form.dead_pip) +
-      n(form.unhatched) +
       n(form.rotten) +
       n(form.cull_chicks) +
       n(form.exploder) +
@@ -345,28 +395,14 @@ export default function Chickgradingform() {
       n(form.infertile_good) +
       n(form.infertile_bad)
     );
-  }, [
-    form.infertile,
-    form.dead_germ,
-    form.dead_chicks,
-    form.live_pip,
-    form.dead_pip,
-    form.unhatched,
-    form.rotten,
-    form.cull_chicks,
-    form.exploder,
-    form.unhatched_good,
-    form.unhatched_bad,
-    form.infertile_good,
-    form.infertile_bad,
-  ]);
+  }, [form]);
 
   const totalFromInputsPreview = useMemo(() => {
     return (
       n(form.class_a) +
       n(form.class_b) +
       n(form.class_a_junior) +
-      n((form as any).class_c) +
+      n(form.class_c) +
       n(form.cull_chicks) +
       n(form.dead_chicks) +
       n(form.infertile) +
@@ -381,87 +417,30 @@ export default function Chickgradingform() {
       n(form.infertile_good) +
       n(form.infertile_bad)
     );
-  }, [
-    form.class_a,
-    form.class_b,
-    form.class_a_junior,
-    (form as any).class_c,
-    form.cull_chicks,
-    form.dead_chicks,
-    form.infertile,
-    form.dead_germ,
-    form.live_pip,
-    form.dead_pip,
-    form.unhatched,
-    form.rotten,
-    form.exploder,
-    form.unhatched_good,
-    form.unhatched_bad,
-    form.infertile_good,
-    form.infertile_bad,
-  ]);
-
-  // ---- PREVIEWS (UI computed) ----
-  const totalChicksPreview = useMemo(() => {
-    return n(form.total_chicks);
-  }, [form.total_chicks]);
-
-  const goodQualityPreview = useMemo(() => {
-    return (
-      n(form.class_a) +
-      n(form.class_b) +
-      n(form.class_a_junior) +
-      n((form as any).class_c)
-    );
-  }, [form.class_a, form.class_b, form.class_a_junior, (form as any).class_c]);
+  }, [form]);
 
   const qualityRatePreview = useMemo(() => {
-    const t = totalChicksPreview;
-    if (t <= 0) return "";
-    return ((goodQualityPreview / t) * 100).toFixed(2);
-  }, [totalChicksPreview, goodQualityPreview]);
+    if (totalChicksPreview <= 0) return "";
+    return ((goodQualityPreview / totalChicksPreview) * 100).toFixed(2);
+  }, [goodQualityPreview, totalChicksPreview]);
 
   const cullRatePreview = useMemo(() => {
-    const t = totalChicksPreview;
-    if (t <= 0) return "";
-    return ((n(form.cull_chicks) / t) * 100).toFixed(2);
-  }, [totalChicksPreview, form.cull_chicks]);
-
-  function eqInt(a: number, b: number) {
-    return Math.round(a) === Math.round(b);
-  }
-
-  const formatNumber = (value: number | null | undefined) => {
-    if (value === null || value === undefined) return "";
-    return Number(value).toLocaleString("en-PH");
-  };
-
-  const handleFormattedNumberChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    field: keyof typeof form,
-  ) => {
-    // remove commas
-    const raw = e.target.value.replace(/,/g, "");
-
-    // allow only digits
-    if (!/^\d*$/.test(raw)) return;
-
-    setForm((prev) => ({
-      ...prev,
-      [field]: raw === "" ? 0 : Number(raw),
-    }));
-  };
+    if (totalChicksPreview <= 0) return "";
+    return ((n(form.cull_chicks) / totalChicksPreview) * 100).toFixed(2);
+  }, [form.cull_chicks, totalChicksPreview]);
 
   async function onSave() {
-    if (!(form.egg_ref_no ?? "").trim()) {
+    if (!form.egg_ref_no.trim()) {
       alert("Egg Reference No. is required.");
       return;
     }
-    if (!(form.batch_code ?? "").trim()) {
+
+    if (!form.batch_code.trim()) {
       alert("Batch code is required.");
       return;
     }
-    const totalChicks = n(form.total_chicks); // from pullout (chicks_hatched)
+
+    const totalChicks = n(form.total_chicks);
     const totalInputs = totalFromInputsPreview;
 
     if (totalChicks <= 0) {
@@ -479,18 +458,18 @@ export default function Chickgradingform() {
     }
 
     setSaving(true);
+
     try {
-      const payload: any = {
-        egg_ref_no: form.egg_ref_no?.trim() || null,
-        batch_code: (form.batch_code ?? "").trim(),
-        grading_datetime: form.grading_datetime ?? new Date().toISOString(),
-        grading_personnel: form.grading_personnel?.trim() || null,
+      const payload: ChickGradingProcessCreate = {
+        egg_ref_no: form.egg_ref_no.trim() || null,
+        batch_code: form.batch_code.trim(),
+        grading_datetime: form.grading_datetime || new Date().toISOString(),
+        grading_personnel: form.grading_personnel.trim() || null,
 
         class_a: n(form.class_a),
         class_b: n(form.class_b),
         class_a_junior: n(form.class_a_junior),
-        class_c: n((form as any).class_c),
-
+        class_c: n(form.class_c),
         cull_chicks: n(form.cull_chicks),
         dead_chicks: n(form.dead_chicks),
         infertile: n(form.infertile),
@@ -530,67 +509,39 @@ export default function Chickgradingform() {
     }
   }
 
-  const disabledAll = saving || loading;
-
   return (
-    <div className="w-full  px-6 py-6  mt-4">
+    <div className="w-full px-6 py-6 mt-4">
       <Breadcrumb
         SecondPreviewPageName="Hatchery"
         FirstPreviewsPageName="DOC Classification"
         CurrentPageName={isEdit ? "Edit Entry" : "New DOC Classification"}
       />
 
-      <Card className="w-full  min-h-[calc(90vh-120px)] p-6 space-y-4 mt-2">
+      <Card className="w-full min-h-[calc(90vh-120px)] p-6 space-y-4 mt-2">
         <CardContent className="max-w-2xl p-4 space-y-4">
           {loading ? (
             <div className="text-sm text-muted-foreground">Loading...</div>
           ) : (
             <div className="space-y-4">
-              {/* Top row */}
               <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
                 <div className="space-y-3">
                   <div className="space-y-1">
                     <RequiredLabel>Egg Reference No.</RequiredLabel>
                     <SearchableDropdown
                       list={eggRefs}
-                      codeLabel="classi_ref_no"
-                      nameLabel="classi_ref_no"
+                      codeLabel="egg_ref_no"
+                      nameLabel="egg_ref_no"
                       showNameOnly
-                      value={form.egg_ref_no ?? ""}
+                      value={form.egg_ref_no}
                       onChange={(val) => setField("egg_ref_no", val)}
                       disabled={saving || eggRefsLoading}
                     />
-
-                    {/* <Select
-                      value={form.egg_ref_no ?? ""}
-                      onValueChange={(v) => setField("egg_ref_no", v)}
-                      disabled={eggRefsLoading || saving}
-                    >
-                      <SelectTrigger>
-                        <SelectValue
-                          placeholder={
-                            eggRefsLoading
-                              ? "Loading..."
-                              : "Select Egg Ref. No."
-                          }
-                        />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {eggRefs.map((r) => (
-                          <SelectItem key={r} value={r}>
-                            {r}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select> */}
                   </div>
 
                   <div className="space-y-1">
                     <Label>Batch Code</Label>
                     <Input
-                      value={
-                        batchLoading ? "Generating..." : (form.batch_code ?? "")
-                      }
+                      value={batchLoading ? "Generating..." : form.batch_code}
                       onChange={(e) => setField("batch_code", e.target.value)}
                       disabled
                     />
@@ -614,10 +565,11 @@ export default function Chickgradingform() {
                       disabled
                     />
                   </div>
+
                   <div className="space-y-1">
                     <Label>Grading Personnel</Label>
                     <Input
-                      value={form.grading_personnel ?? ""}
+                      value={form.grading_personnel}
                       onChange={(e) =>
                         setField("grading_personnel", e.target.value)
                       }
@@ -629,9 +581,7 @@ export default function Chickgradingform() {
 
               <Separator />
 
-              {/* Middle grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                {/* Left column */}
                 <div className="space-y-4">
                   <div className="grid gap-3">
                     <div className="space-y-1">
@@ -640,9 +590,7 @@ export default function Chickgradingform() {
                         type="text"
                         inputMode="numeric"
                         value={formatNumber(form.class_a)}
-                        onChange={(e) =>
-                          handleFormattedNumberChange(e, "class_a")
-                        }
+                        onChange={handleNumberChange("class_a")}
                       />
                     </div>
 
@@ -652,9 +600,7 @@ export default function Chickgradingform() {
                         type="text"
                         inputMode="numeric"
                         value={formatNumber(form.class_a_junior)}
-                        onChange={(e) =>
-                          handleFormattedNumberChange(e, "class_a_junior")
-                        }
+                        onChange={handleNumberChange("class_a_junior")}
                       />
                     </div>
                   </div>
@@ -666,9 +612,7 @@ export default function Chickgradingform() {
                         type="text"
                         inputMode="numeric"
                         value={formatNumber(form.infertile)}
-                        onChange={(e) =>
-                          handleFormattedNumberChange(e, "infertile")
-                        }
+                        onChange={handleNumberChange("infertile")}
                       />
                     </div>
 
@@ -678,9 +622,7 @@ export default function Chickgradingform() {
                         type="text"
                         inputMode="numeric"
                         value={formatNumber(form.live_pip)}
-                        onChange={(e) =>
-                          handleFormattedNumberChange(e, "live_pip")
-                        }
+                        onChange={handleNumberChange("live_pip")}
                       />
                     </div>
                   </div>
@@ -692,64 +634,42 @@ export default function Chickgradingform() {
                         type="text"
                         inputMode="numeric"
                         value={formatNumber(form.cull_chicks)}
-                        onChange={(e) =>
-                          handleFormattedNumberChange(e, "cull_chicks")
-                        }
+                        onChange={handleNumberChange("cull_chicks")}
                       />
                     </div>
 
-                    <div className="space-y-1">
-                      <Label>Unhatched</Label>
-                      <Input
-                        type="text"
-                        inputMode="numeric"
-                        value={formatNumber(form.unhatched)}
-                        onChange={(e) =>
-                          handleFormattedNumberChange(e, "unhatched")
-                        }
-                        onBlur={onNumBlur("unhatched")}
-                      />
-                    </div>
                     <div className="space-y-1">
                       <Label>Unhatched Good</Label>
                       <Input
                         type="text"
                         inputMode="numeric"
                         value={formatNumber(form.unhatched_good)}
-                        onChange={(e) =>
-                          handleFormattedNumberChange(e, "unhatched_good")
-                        }
-                        onBlur={onNumBlur("unhatched_good")}
+                        onChange={handleNumberChange("unhatched_good")}
                       />
                     </div>
+
                     <div className="space-y-1">
                       <Label>Unhatched Bad</Label>
                       <Input
                         type="text"
                         inputMode="numeric"
                         value={formatNumber(form.unhatched_bad)}
-                        onChange={(e) =>
-                          handleFormattedNumberChange(e, "unhatched_bad")
-                        }
-                        onBlur={onNumBlur("unhatched_bad")}
+                        onChange={handleNumberChange("unhatched_bad")}
                       />
                     </div>
+
                     <div className="space-y-1">
                       <Label>Infertile Good</Label>
                       <Input
                         type="text"
                         inputMode="numeric"
                         value={formatNumber(form.infertile_good)}
-                        onChange={(e) =>
-                          handleFormattedNumberChange(e, "infertile_good")
-                        }
-                        onBlur={onNumBlur("infertile_good")}
+                        onChange={handleNumberChange("infertile_good")}
                       />
                     </div>
                   </div>
                 </div>
 
-                {/* Right column */}
                 <div className="space-y-4">
                   <div className="grid gap-3">
                     <div className="space-y-1">
@@ -758,10 +678,7 @@ export default function Chickgradingform() {
                         type="text"
                         inputMode="numeric"
                         value={formatNumber(form.class_b)}
-                        onChange={(e) =>
-                          handleFormattedNumberChange(e, "class_b")
-                        }
-                        onBlur={onNumBlur("class_b")}
+                        onChange={handleNumberChange("class_b")}
                       />
                     </div>
 
@@ -771,10 +688,7 @@ export default function Chickgradingform() {
                         type="text"
                         inputMode="numeric"
                         value={formatNumber(form.class_c)}
-                        onChange={(e) =>
-                          handleFormattedNumberChange(e, "class_c")
-                        }
-                        onBlur={onNumBlur("class_c")}
+                        onChange={handleNumberChange("class_c")}
                       />
                     </div>
                   </div>
@@ -786,10 +700,7 @@ export default function Chickgradingform() {
                         type="text"
                         inputMode="numeric"
                         value={formatNumber(form.dead_chicks)}
-                        onChange={(e) =>
-                          handleFormattedNumberChange(e, "dead_chicks")
-                        }
-                        onBlur={onNumBlur("dead_chicks")}
+                        onChange={handleNumberChange("dead_chicks")}
                       />
                     </div>
 
@@ -799,10 +710,7 @@ export default function Chickgradingform() {
                         type="text"
                         inputMode="numeric"
                         value={formatNumber(form.dead_germ)}
-                        onChange={(e) =>
-                          handleFormattedNumberChange(e, "dead_germ")
-                        }
-                        onBlur={onNumBlur("dead_germ")}
+                        onChange={handleNumberChange("dead_germ")}
                       />
                     </div>
                   </div>
@@ -814,10 +722,7 @@ export default function Chickgradingform() {
                         type="text"
                         inputMode="numeric"
                         value={formatNumber(form.dead_pip)}
-                        onChange={(e) =>
-                          handleFormattedNumberChange(e, "dead_pip")
-                        }
-                        onBlur={onNumBlur("dead_pip")}
+                        onChange={handleNumberChange("dead_pip")}
                       />
                     </div>
 
@@ -827,34 +732,27 @@ export default function Chickgradingform() {
                         type="text"
                         inputMode="numeric"
                         value={formatNumber(form.rotten)}
-                        onChange={(e) =>
-                          handleFormattedNumberChange(e, "rotten")
-                        }
-                        onBlur={onNumBlur("rotten")}
+                        onChange={handleNumberChange("rotten")}
                       />
                     </div>
+
                     <div className="space-y-1">
                       <Label>Infertile Bad</Label>
                       <Input
                         type="text"
                         inputMode="numeric"
                         value={formatNumber(form.infertile_bad)}
-                        onChange={(e) =>
-                          handleFormattedNumberChange(e, "infertile_bad")
-                        }
-                        onBlur={onNumBlur("infertile_bad")}
+                        onChange={handleNumberChange("infertile_bad")}
                       />
                     </div>
+
                     <div className="space-y-1">
                       <Label>Exploder</Label>
                       <Input
                         type="text"
                         inputMode="numeric"
                         value={formatNumber(form.exploder)}
-                        onChange={(e) =>
-                          handleFormattedNumberChange(e, "exploder")
-                        }
-                        onBlur={onNumBlur("exploder")}
+                        onChange={handleNumberChange("exploder")}
                       />
                     </div>
                   </div>
@@ -863,20 +761,11 @@ export default function Chickgradingform() {
 
               <Separator />
 
-              {/* Bottom section */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-3">
                   <div className="space-y-1">
                     <Label>Good Quality Chicks</Label>
-                    <Input
-                      value={String(goodQualityPreview)}
-                      // value={
-                      //   form.good_quality_chicks !== null && form.good_quality_chicks !== undefined
-                      //     ? String(form.good_quality_chicks)
-                      //     : String(goodQualityPreview)
-                      // }
-                      disabled
-                    />
+                    <Input value={String(goodQualityPreview)} disabled />
                   </div>
 
                   <div className="space-y-1">
@@ -888,26 +777,12 @@ export default function Chickgradingform() {
                 <div className="space-y-3">
                   <div className="space-y-1">
                     <Label>Quality Grade Rate %</Label>
-                    <Input
-                      value={
-                        form.quality_grade_rate !== null &&
-                        form.quality_grade_rate !== undefined
-                          ? String(form.quality_grade_rate)
-                          : qualityRatePreview
-                      }
-                      disabled
-                    />
+                    <Input value={qualityRatePreview} disabled />
                   </div>
+
                   <div className="space-y-1">
                     <Label>Cull Rate %</Label>
-                    <Input
-                      value={
-                        form.cull_rate !== null && form.cull_rate !== undefined
-                          ? String(form.cull_rate)
-                          : cullRatePreview
-                      }
-                      disabled
-                    />
+                    <Input value={cullRatePreview} disabled />
                   </div>
                 </div>
               </div>

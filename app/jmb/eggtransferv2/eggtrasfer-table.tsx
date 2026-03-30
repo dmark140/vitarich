@@ -29,6 +29,7 @@ import { EggTransferProcess, listEggTransfers } from "./newv2/api";
 import Breadcrumb from "@/lib/Breadcrumb";
 import EditActionButton from "@/components/EditActionButton";
 import { refreshSessionx } from "@/app/admin/user/RefreshSession";
+import { formatNumber } from "@/lib/utils/numberFormat";
 
 function formatDateTime(v?: string | null) {
   if (!v) return "";
@@ -143,12 +144,12 @@ export default function EggTransferTable() {
     {
       accessorKey: "num_bangers",
       header: "No. of Bangers",
-      cell: ({ row }) => row.original.num_bangers ?? "",
+      cell: ({ getValue }) => formatNumber(getValue<number>()),
     },
     {
       accessorKey: "total_egg_transfer",
       header: "Total Egg Transfer",
-      cell: ({ row }) => row.original.total_egg_transfer ?? "",
+      cell: ({ getValue }) => formatNumber(getValue<number>()),
     },
   ];
 
@@ -268,24 +269,30 @@ export default function EggTransferTable() {
       </div>
 
       {/* Pagination */}
-      <div className="flex items-center justify-end space-x-2 py-4">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage()}
-        >
-          Previous
-        </Button>
+      <div className="flex items-center justify-between gap-2">
+        <div className="text-sm text-muted-foreground">
+          Page {table.getState().pagination.pageIndex + 1} of{" "}
+          {table.getPageCount()}
+        </div>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+          >
+            Previous
+          </Button>
 
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
-        >
-          Next
-        </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+          >
+            Next
+          </Button>
+        </div>
       </div>
     </div>
   );

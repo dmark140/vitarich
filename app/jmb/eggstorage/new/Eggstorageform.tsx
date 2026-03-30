@@ -1,3 +1,44 @@
+/**
+ * Egg Storage Form Component
+ *
+ * A comprehensive form for creating and editing egg storage records in the hatchery management system.
+ * Handles temperature, humidity, and shell temperature monitoring data for stored eggs.
+ *
+ * @component
+ * @returns {JSX.Element} The rendered egg storage form with validation and duration calculation
+ *
+ * @example
+ * ```tsx
+ * <Eggstorageform />
+ * ```
+ *
+ * @remarks
+ * - Supports both create (new record) and update (edit existing) modes
+ * - Automatically calculates storage duration between shell start and end times
+ * - Loads available egg reference numbers from the hatch_classification table
+ * - Includes a temperature converter utility in the sidebar
+ * - Requires authenticated session (checked via refreshSessionx)
+ * - Uses Supabase as the backend database
+ *
+ * @state
+ * - `loading` - Loading state for initial record fetch in edit mode
+ * - `saving` - Saving state during form submission
+ * - `classiRefNo` - Selected egg classification reference number
+ * - `classiRefs` - Array of available egg reference options
+ * - `classiRefLoading` - Loading state for reference dropdown
+ * - `stor_temp` - Storage temperature in Celsius
+ * - `room_temp` - Room temperature in Celsius
+ * - `stor_humi` - Storage humidity percentage
+ * - `shellStartLocal` - Shell temperature measurement start datetime (local format)
+ * - `shellEndLocal` - Shell temperature measurement end datetime (local format)
+ * - `remarks` - Additional notes about the storage record
+ *
+ * @effects
+ * - Loads classification references on component mount
+ * - Validates user session on mount
+ * - Loads existing record data in edit mode based on URL parameter
+ * - Calculates duration whenever shell timestamps change
+ */
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -30,6 +71,7 @@ import RequiredLabel from "@/components/RequiredLabel";
 import { refreshSessionx } from "@/app/admin/user/RefreshSession";
 import SearchableDropdown from "@/lib/SearchableDropdown";
 import TemperatureConverter from "@/components/TemperatureConverter";
+import SearchableDropdown1 from "@/lib/SearchableDropdown1";
 
 type HatchClassiRefOption = {
   classi_ref_no: string;
@@ -62,7 +104,7 @@ export default function Eggstorageform() {
   const [saving, setSaving] = useState(false);
 
   // dropdown
-  const [classiRefNo, setClassiRefNo] = useState("");
+  const [classiRefNos, setClassiRefNos] = useState<string[]>([]);
   const [classiRefs, setClassiRefs] = useState<HatchClassiRefOption[]>([]);
   const [classiRefLoading, setClassiRefLoading] = useState(false);
 
@@ -72,14 +114,14 @@ export default function Eggstorageform() {
   const [shellStartLocal, setShellStartLocal] = useState("");
   const [shellEndLocal, setShellEndLocal] = useState("");
   const [remarks, setRemarks] = useState("");
-
+  const [selectedEggRefs, setSelectedEggRefs] = useState<string[]>([]);
   // load ref options
   useEffect(() => {
     const loadClassiRefs = async () => {
       try {
         setClassiRefLoading(true);
         const { data, error } = await db
-          .from("hatch_classification")
+          .from("view_eggclassi_for_eggstorage")
           .select("classi_ref_no,date_classify")
           .order("date_classify", { ascending: false })
           .order("classi_ref_no", { ascending: false });
@@ -108,7 +150,7 @@ export default function Eggstorageform() {
         setLoading(true);
         const data = await getEggStorageById(editId as number);
 
-        setClassiRefNo(data.classi_ref_no ?? "");
+        setClassiRefNos(data.classi_ref_no ? [data.classi_ref_no] : []);
         setStorTemp(data.stor_temp ?? "");
         setRoomTemp(data.room_temp ?? "");
         setStorHumi(data.stor_humi ?? "");
@@ -143,11 +185,46 @@ export default function Eggstorageform() {
     return `${hours}h ${minutes}m`;
   }, [durationSeconds]);
 
+  // async function onSave() {
+  //   try {
+  //     setSaving(true);
+
+  //     const payload: EggStorageInsert = {
+  //       stor_temp: stor_temp || null,
+  //       room_temp: room_temp || null,
+  //       stor_humi: stor_humi || null,
+  //       shell_start: fromDatetimeLocalValue(shellStartLocal),
+  //       shell_end: fromDatetimeLocalValue(shellEndLocal),
+  //       duration: durationSeconds,
+  //       remarks: remarks || null,
+  //       classi_ref_no: classiRefNo || null,
+  //     };
+
+  //     if (isEdit) {
+  //       await updateEggStorage(editId as number, payload); // ✅ 2 args
+  //     } else {
+  //       await createEggStorage(payload);
+  //     }
+
+  //     router.push("/jmb/eggstorage");
+  //     router.refresh();
+  //   } catch (err: any) {
+  //     alert(err?.message ?? "Failed to save.");
+  //   } finally {
+  //     setSaving(false);
+  //   }
+  // }
+
   async function onSave() {
     try {
       setSaving(true);
 
-      const payload: EggStorageInsert = {
+      if (classiRefNos.length === 0) {
+        alert("Please select at least one Egg Reference No.");
+        return;
+      }
+
+      const basePayload = {
         stor_temp: stor_temp || null,
         room_temp: room_temp || null,
         stor_humi: stor_humi || null,
@@ -155,13 +232,22 @@ export default function Eggstorageform() {
         shell_end: fromDatetimeLocalValue(shellEndLocal),
         duration: durationSeconds,
         remarks: remarks || null,
-        classi_ref_no: classiRefNo || null,
       };
 
       if (isEdit) {
-        await updateEggStorage(editId as number, payload); // ✅ 2 args
+        // ⚠️ Usually edit = single record only
+        await updateEggStorage(editId as number, {
+          ...basePayload,
+          classi_ref_no: classiRefNos[0] ?? null,
+        });
       } else {
-        await createEggStorage(payload);
+        // ✅ Insert multiple rows
+        const payloads: EggStorageInsert[] = classiRefNos.map((ref) => ({
+          ...basePayload,
+          classi_ref_no: ref,
+        }));
+
+        await createEggStorage(payloads); // ← must support bulk insert
       }
 
       router.push("/jmb/eggstorage");
@@ -191,13 +277,14 @@ export default function Eggstorageform() {
                   {/* Reference No. */}
                   <div className="grid grid-cols-1 gap-2">
                     <RequiredLabel>Egg Reference No.</RequiredLabel>
-                    <SearchableDropdown
+                    <SearchableDropdown1
                       list={classiRefs}
                       codeLabel="classi_ref_no"
                       nameLabel="classi_ref_no"
                       showNameOnly
-                      value={classiRefNo}
-                      onChange={(val) => setClassiRefNo(val)}
+                      value={classiRefNos}
+                      onChange={(val) => setClassiRefNos(val)}
+                      multiple
                       disabled={saving || classiRefLoading}
                     />
                     {/* <Select value={classiRefNo} onValueChange={setClassiRefNo}>

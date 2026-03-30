@@ -22,91 +22,109 @@ export type ChickGradingProcess = {
   dead_pip: number | null;
   unhatched: number | null;
   rotten: number | null;
-
-  chick_room_temperature: number | null;
-  grading_personnel: string | null;
-  grading_datetime: string;
-
   exploder: number | null;
   unhatched_good: number | null;
   unhatched_bad: number | null;
   infertile_good: number | null;
   infertile_bad: number | null;
-  // GENERATED columns (read-only)
+
+  chick_room_temperature: number | null;
+  grading_personnel: string | null;
+  grading_datetime: string;
+
+  // computed from view
   total_chicks: number | null;
   good_quality_chicks: number | null;
   quality_grade_rate: number | null;
   cull_rate: number | null;
 };
 
-const TABLE = "chick_grading_process";
+const READ_TABLE = "v_chick_grading_process";
+const WRITE_TABLE = "chick_grading_process";
+
+export type ChickGradingProcessCreate = {
+  batch_code: string;
+  egg_ref_no?: string | null;
+
+  class_a?: number | null;
+  class_b?: number | null;
+  class_a_junior?: number | null;
+  class_c?: number | null;
+  cull_chicks?: number | null;
+  dead_chicks?: number | null;
+  infertile?: number | null;
+  dead_germ?: number | null;
+  live_pip?: number | null;
+  dead_pip?: number | null;
+  unhatched?: number | null;
+  rotten?: number | null;
+  exploder?: number | null;
+  unhatched_good?: number | null;
+  unhatched_bad?: number | null;
+  infertile_good?: number | null;
+  infertile_bad?: number | null;
+
+  chick_room_temperature?: number | null;
+  grading_personnel?: string | null;
+  grading_datetime?: string;
+};
+
+export type ChickGradingProcessUpdate = Partial<ChickGradingProcessCreate>;
 
 export async function listChickGradingProcess() {
   const { data, error } = await db
-    .from(TABLE)
+    .from(READ_TABLE)
     .select("*")
     .order("id", { ascending: false });
+
   if (error) throw error;
   return (data ?? []) as ChickGradingProcess[];
 }
 
 export async function getChickGradingProcessById(id: number) {
   const { data, error } = await db
-    .from(TABLE)
+    .from(READ_TABLE)
     .select("*")
     .eq("id", id)
     .single();
+
   if (error) throw error;
   return data as ChickGradingProcess;
 }
-
-export type ChickGradingProcessCreate = Omit<
-  ChickGradingProcess,
-  | "id"
-  | "created_at"
-  | "created_by"
-  | "updated_at"
-  | "updated_by"
-  | "total_chicks"
-  | "good_quality_chicks"
-  | "quality_grade_rate"
-  | "cull_rate"
->;
 
 export async function createChickGradingProcess(
   payload: ChickGradingProcessCreate,
 ) {
   const { data, error } = await db
-    .from(TABLE)
+    .from(WRITE_TABLE)
     .insert([payload])
     .select("*")
     .single();
-  if (error) throw error;
-  return data as ChickGradingProcess;
-}
 
-export type ChickGradingProcessUpdate = Partial<ChickGradingProcessCreate>;
+  if (error) throw error;
+
+  return await getChickGradingProcessById(data.id);
+}
 
 export async function updateChickGradingProcess(
   id: number,
   payload: ChickGradingProcessUpdate,
 ) {
-  const { data, error } = await db
-    .from(TABLE)
+  const { error } = await db
+    .from(WRITE_TABLE)
     .update({
       ...payload,
       updated_at: new Date().toISOString(),
     })
-    .eq("id", id)
-    .select("*")
-    .single();
+    .eq("id", id);
 
   if (error) throw error;
-  return data as ChickGradingProcess;
+
+  return await getChickGradingProcessById(id);
 }
 
 export async function deleteChickGradingProcess(id: number) {
-  const { error } = await db.from(TABLE).delete().eq("id", id);
+  const { error } = await db.from(WRITE_TABLE).delete().eq("id", id);
   if (error) throw error;
   return true;
 }
@@ -119,31 +137,30 @@ export async function listEggReferences() {
     .order("egg_ref_no", { ascending: true });
 
   if (error) throw error;
-  return (data ?? []).map((r: any) => r.egg_ref_no).filter(Boolean) as string[];
-}
 
-// -------------------------------
-// ✅ Batch Code Generator
-// Format: EggRefNo-BMMDDYY-0001
-// Autoincrement per MMDDYY based on latest batch saved that day.
-// -------------------------------
+  return [
+    ...new Set((data ?? []).map((r: any) => r.egg_ref_no).filter(Boolean)),
+  ] as string[];
+}
 
 function pad2(n: number) {
   return String(n).padStart(2, "0");
 }
+
+function pad4(n: number) {
+  return String(n).padStart(4, "0");
+}
+
 function mmddyyFromDate(d: Date) {
   const mm = pad2(d.getMonth() + 1);
   const dd = pad2(d.getDate());
   const yy = String(d.getFullYear()).slice(-2);
   return `${mm}${dd}${yy}`;
 }
-function pad4(n: number) {
-  return String(n).padStart(4, "0");
-}
 
 /**
- * Get next batch code for a given egg_ref_no.
- * Sequence is per MMDDYY across ALL transactions.
+ * Format: EggRefNo-BMMDDYY-0001
+ * Sequence is per MMDDYY across all chick grading rows.
  */
 export async function generateNextBatchCode(
   eggRefNo: string,
@@ -155,73 +172,39 @@ export async function generateNextBatchCode(
   const mmddyy = mmddyyFromDate(when);
   const needle = `-B${mmddyy}-`;
 
-  // get latest batch_code for this day (ends with -0001, -0002, etc)
   const { data, error } = await db
-    .from(TABLE)
+    .from(WRITE_TABLE)
     .select("batch_code")
     .ilike("batch_code", `%${needle}%`)
-    .order("batch_code", { ascending: false }) // lexicographic works with fixed 4-digit suffix
+    .order("batch_code", { ascending: false })
     .limit(1);
 
   if (error) throw error;
 
   let nextSeq = 1;
-  const last = (data?.[0] as any)?.batch_code as string | undefined;
+  const last = data?.[0]?.batch_code as string | undefined;
+
   if (last && last.includes(needle)) {
-    const lastPart = last.split("-").pop(); // "0007"
-    const lastNum = Number(lastPart);
-    if (Number.isFinite(lastNum) && lastNum >= 1) nextSeq = lastNum + 1;
+    const lastNum = Number(last.split("-").pop());
+    if (Number.isFinite(lastNum) && lastNum > 0) {
+      nextSeq = lastNum + 1;
+    }
   }
 
   return `${egg}-B${mmddyy}-${pad4(nextSeq)}`;
 }
-export async function getChicksHatchedByEggRef(eggRefNo: string) {
-  const egg = (eggRefNo ?? "").trim();
-  if (!egg) return 0;
-
-  const { data, error } = await db
-    .from("chick_pullout_process")
-    .select("chicks_hatched")
-    .eq("egg_ref_no", egg)
-    .order("id", { ascending: false })
-    .limit(1);
-
-  if (error) throw error;
-
-  const v = (data?.[0] as any)?.chicks_hatched;
-  const n = Number(v);
-  return Number.isFinite(n) ? Math.max(0, n) : 0;
-}
-
 export async function getRemainingDocClassificationInventory(eggRefNo: string) {
   const egg = (eggRefNo ?? "").trim();
   if (!egg) return 0;
 
-  const { data, error } = await db
-    .from("inventory_postings")
-    .select("qty, transfer_type")
-    .eq("source_doc_type", "CLASSIFICATION")
-    .eq("item_code", "HE")
-    .eq("warehouse_code", "HAT-G-A")
-    .eq("ref", egg);
+  const { data, error } = await db.rpc(
+    "get_remaining_doc_classification_inventory",
+    {
+      p_egg_ref_no: egg,
+    },
+  );
 
   if (error) throw error;
 
-  const rows = (data ?? []) as Array<{
-    qty: number | string | null;
-    transfer_type: string | null;
-  }>;
-
-  let totalIn = 0;
-  let totalOut = 0;
-
-  for (const row of rows) {
-    const qty = Math.max(0, Number(row.qty ?? 0));
-    const transferType = (row.transfer_type ?? "").trim().toUpperCase();
-
-    if (transferType === "IN") totalIn += qty;
-    if (transferType === "OUT") totalOut += qty;
-  }
-
-  return Math.max(0, totalIn - totalOut);
+  return Number(data ?? 0);
 }

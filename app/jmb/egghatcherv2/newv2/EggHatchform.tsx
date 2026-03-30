@@ -1,3 +1,43 @@
+/**
+ * EggHatchform Component
+ *
+ * A form component for creating and editing egg hatchery process records.
+ * Allows users to input details about egg batches including source, machine information,
+ * temperature/humidity settings, and hatch timing data.
+ *
+ * @component
+ * @returns {React.ReactElement} The rendered form component
+ *
+ * @example
+ * // Create new record
+ * <EggHatchform />
+ *
+ * @example
+ * // Edit existing record
+ * <EggHatchform /> // with ?id=123 in URL
+ *
+ * @features
+ * - Create new egg hatchery process records
+ * - Edit existing records
+ * - Delete records
+ * - Auto-calculated hatch duration based on start/end times
+ * - Dropdown selection for egg reference numbers
+ * - Form validation for required fields and date logic
+ * - Session refresh on component mount
+ * - Responsive grid layout
+ *
+ * @state
+ * - `loading` - Initial data load state
+ * - `saving` - Save/delete operation state
+ * - `eggRefs` - Available egg reference numbers for dropdown
+ * - `eggRefsLoading` - Dropdown data loading state
+ * - `form` - Form field values object
+ *
+ * @remarks
+ * Uses Next.js App Router for navigation and search parameters.
+ * Supports both create and edit modes based on URL query parameter `id`.
+ * Duration is automatically calculated and displayed in human-readable format (e.g., "2h 30m").
+ */
 "use client";
 
 import { useEffect, useMemo, useState } from "react";

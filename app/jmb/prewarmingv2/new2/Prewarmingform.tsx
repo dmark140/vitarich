@@ -1,3 +1,42 @@
+/**
+ * Prewarmingform Component
+ *
+ * A form component for creating and editing egg pre-warming records in the hatchery management system.
+ * Handles temperature monitoring, time tracking, and duration calculations for egg pre-warming processes.
+ *
+ * @component
+ * @returns {React.ReactElement} The pre-warming form UI with temperature conversion utility
+ *
+ * @example
+ * // Usage in a Next.js app
+ * import Prewarmingform from '@/app/jmb/prewarmingv2/new2/Prewarmingform';
+ * export default function Page() {
+ *   return <Prewarmingform />;
+ * }
+ *
+ * @remarks
+ * - Supports both create and edit modes via URL query parameter `id`
+ * - Automatically loads egg reference options from the API
+ * - Calculates and displays duration between start and end times
+ * - Requires user session authentication via refreshSessionx
+ * - Uses client-side rendering ("use client" directive)
+ *
+ * @features
+ * - Form validation for required fields
+ * - Time validation to ensure end time is after start time
+ * - Automatic duration calculation in minutes/hours
+ * - Disabled state management during data loading and saving
+ * - Breadcrumb navigation
+ * - Temperature converter utility panel
+ * - SearchableDropdown for egg reference selection
+ *
+ * @dependencies
+ * - Next.js navigation (useRouter, useSearchParams)
+ * - React hooks (useState, useEffect, useMemo)
+ * - UI components (Card, Input, Textarea, Button, Select, Separator)
+ * - Custom components (Breadcrumb, SearchableDropdown, FormActionButtons, TemperatureConverter, RequiredLabel)
+ * - API functions (createEggPreWarming, updateEggPreWarming, getEggPreWarmingById, listHatchClassiRefs)
+ */
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -30,9 +69,10 @@ import SearchableDropdown from "@/lib/SearchableDropdown";
 import { refreshSessionx } from "@/app/admin/user/RefreshSession";
 import RequiredLabel from "@/components/RequiredLabel";
 import TemperatureConverter from "@/components/TemperatureConverter";
+import SearchableDropdown1 from "@/lib/SearchableDropdown1";
 
 type FormState = {
-  egg_ref_no: string;
+  egg_ref_no: string[];
   pre_temp: string;
   egg_temp: string;
   egg_temp_time_start: string; // datetime-local
@@ -87,7 +127,7 @@ export default function Prewarmingform() {
   const [refLoading, setRefLoading] = useState(true);
 
   const [form, setForm] = useState<FormState>({
-    egg_ref_no: "",
+    egg_ref_no: [],
     pre_temp: "",
     egg_temp: "",
     egg_temp_time_start: "",
@@ -134,7 +174,7 @@ export default function Prewarmingform() {
         }
 
         setForm({
-          egg_ref_no: item.egg_ref_no ?? "",
+          egg_ref_no: item.egg_ref_no ? [item.egg_ref_no] : [],
           pre_temp: item.pre_temp ?? "",
           egg_temp: item.egg_temp ?? "",
           egg_temp_time_start: toLocalInputValue(item.egg_temp_time_start),
@@ -163,11 +203,53 @@ export default function Prewarmingform() {
     [durationMins],
   );
 
+  // async function onSave() {
+  //   if (!form.egg_ref_no.length) {
+  //     alert("Egg Reference No. is required.");
+  //     return;
+  //   }
+  //   if (
+  //     form.egg_temp_time_start &&
+  //     form.egg_temp_time_end &&
+  //     durationMins === null
+  //   ) {
+  //     alert("End Time must be after Start Time.");
+  //     return;
+  //   }
+
+  //   setSaving(true);
+  //   try {
+  //     const payload = {
+  //       egg_ref_no: form.egg_ref_no.trim(),
+  //       pre_temp: form.pre_temp || null,
+  //       egg_temp: form.egg_temp || null,
+  //       egg_temp_time_start: form.egg_temp_time_start || null,
+  //       egg_temp_time_end: form.egg_temp_time_end || null,
+  //       duration: durationMins,
+  //       remarks: form.remarks || null,
+  //       is_active: true,
+  //     };
+
+  //     if (isEdit) {
+  //       await updateEggPreWarming(editId as number, payload);
+  //     } else {
+  //       await createEggPreWarming(payload);
+  //     }
+
+  //     router.push("/jmb/prewarmingv2");
+  //     router.refresh();
+  //   } catch (e: any) {
+  //     alert(e?.message ?? "Failed to save.");
+  //   } finally {
+  //     setSaving(false);
+  //   }
+  // }
   async function onSave() {
-    if (!form.egg_ref_no.trim()) {
+    if (!form.egg_ref_no.length) {
       alert("Egg Reference No. is required.");
       return;
     }
+
     if (
       form.egg_temp_time_start &&
       form.egg_temp_time_end &&
@@ -179,8 +261,7 @@ export default function Prewarmingform() {
 
     setSaving(true);
     try {
-      const payload = {
-        egg_ref_no: form.egg_ref_no.trim(),
+      const basePayload = {
         pre_temp: form.pre_temp || null,
         egg_temp: form.egg_temp || null,
         egg_temp_time_start: form.egg_temp_time_start || null,
@@ -191,9 +272,19 @@ export default function Prewarmingform() {
       };
 
       if (isEdit) {
-        await updateEggPreWarming(editId as number, payload);
+        // ⚠️ Edit = single only
+        await updateEggPreWarming(editId as number, {
+          ...basePayload,
+          egg_ref_no: form.egg_ref_no[0] ?? null,
+        });
       } else {
-        await createEggPreWarming(payload);
+        // ✅ MULTI INSERT
+        const payloads = form.egg_ref_no.map((ref) => ({
+          ...basePayload,
+          egg_ref_no: ref,
+        }));
+
+        await createEggPreWarming(payloads);
       }
 
       router.push("/jmb/prewarmingv2");
@@ -204,7 +295,6 @@ export default function Prewarmingform() {
       setSaving(false);
     }
   }
-
   return (
     <div className="w-full  px-6 py-6  mt-4">
       <Breadcrumb
@@ -227,15 +317,15 @@ export default function Prewarmingform() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <RequiredLabel>Egg Reference No.</RequiredLabel>
-                  <SearchableDropdown
+                  <SearchableDropdown1
                     list={eggRefs}
-                    codeLabel="classi_ref_no"
-                    nameLabel="classi_ref_no"
+                    codeLabel="egg_ref_no"
+                    nameLabel="egg_ref_no"
                     showNameOnly
                     value={form.egg_ref_no}
                     // onChange={(val) => handleFarmChange(val)}
-
                     onChange={(v) => setForm((p) => ({ ...p, egg_ref_no: v }))}
+                    multiple
                     disabled={saving || refLoading}
                   />
 

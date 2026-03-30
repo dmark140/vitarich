@@ -29,6 +29,7 @@ import Breadcrumb from "@/lib/Breadcrumb";
 import EditActionButton from "@/components/EditActionButton";
 import { listEggPreWarming, type EggPreWarming } from "./new2/api";
 import { refreshSessionx } from "@/app/admin/user/RefreshSession";
+import { useGlobalContext } from "@/lib/context/GlobalContext";
 
 function fmtDuration(mins: number | null) {
   if (mins == null) return "";
@@ -62,7 +63,7 @@ export default function PrewarmTable() {
       setIsLoading(false);
     }
   }, []);
-
+  const { setValue, getValue } = useGlobalContext();
   useEffect(() => {
     refreshSessionx(router);
   }, []);
@@ -137,6 +138,9 @@ export default function PrewarmTable() {
       rowSelection,
     },
   });
+  useEffect(() => {
+    setValue("loading_g", isLoading);
+  }, [isLoading]);
 
   return (
     <div className="rounded-md p-4">
@@ -240,24 +244,30 @@ export default function PrewarmTable() {
       </div>
 
       {/* Pagination */}
-      <div className="flex items-center justify-end space-x-2 py-4">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage()}
-        >
-          Previous
-        </Button>
+      <div className="flex items-center justify-between gap-2">
+        <div className="text-sm text-muted-foreground">
+          Page {table.getState().pagination.pageIndex + 1} of{" "}
+          {table.getPageCount()}
+        </div>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+          >
+            Previous
+          </Button>
 
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
-        >
-          Next
-        </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+          >
+            Next
+          </Button>
+        </div>
       </div>
     </div>
   );

@@ -1,3 +1,36 @@
+/**
+ * CheckPulloutForm Component
+ *
+ * A form component for creating and editing chick pullout process records in a hatchery management system.
+ *
+ * @component
+ * @returns {JSX.Element} The rendered form with fields for egg reference, hatch data, and computed metrics
+ *
+ * @description
+ * This component provides:
+ * - Dropdown selection for egg references with auto-loading of options
+ * - Auto-population of related fields (chick hatch ref, farm source, machine number, hatch window) based on selected egg reference
+ * - Manual entry fields for hatch date, chicks hatched count, and dead-in-shell count
+ * - Real-time computation of hatch fertility percentage and mortality rate
+ * - Support for both create and edit modes via URL parameter
+ * - Form validation and submission with success/error handling
+ *
+ * @example
+ * ```tsx
+ * // New entry mode
+ * <CheckPulloutForm />
+ *
+ * // Edit mode (via URL parameter: ?id=123)
+ * <CheckPulloutForm />
+ * ```
+ *
+ * @remarks
+ * - Requires session authentication via `refreshSessionx`
+ * - Automatically mirrors egg_ref_no to chick_hatch_ref_no
+ * - Fetches metadata for selected egg reference asynchronously
+ * - Numbers are clamped to non-negative values
+ * - Computed fields (hatch fertility, mortality rate) are read-only
+ */
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
