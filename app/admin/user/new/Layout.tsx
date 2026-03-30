@@ -25,6 +25,7 @@ import { ColumnsYesOrNoCodeOnly } from '@/lib/Defaults/DefaultColumns'
 import { InputDropDown } from '@/components/ui/InputDropDown'
 import { getvwdmf_get_farmlist_code_name_farmtype } from './api'
 import { sleep } from '@/lib/utils'
+import SearchableCombobox from '@/components/SearchableCombobox'
 
 type authProps = {
   email: string
@@ -44,6 +45,7 @@ export default function Layout() {
 
   const [loading, setLoading] = useState(false)
   const [initialLoading, setInitialLoading] = useState(true)
+  const [defaultFarms, setdefaultFarms] = useState<string[]>([])
 
   const fields = [
     { key: 'firstname', label: 'First Name', required: true },
@@ -54,7 +56,7 @@ export default function Layout() {
     { key: 'gender', label: 'Gender', type: "list", list: DefaultGenders, code: "code", name: "name", showOnlyName: true },
     { key: 'phone', label: 'Phone' },
     { key: 'location', label: 'Address' },
-    { key: 'default_farm', label: 'Default Farm', type: 'list', list: defaultfarmlist, code: 'code', name: "name" },
+    { key: 'default_farm', label: 'Default Farm', type: 'multi-select', list: defaultfarmlist, code: 'code', name: "name" },
     { key: 'supervisor', label: 'Supervisor', type: 'list', list: superuserlsit, code: 'code', name: "name" },
     // { key: 'supervisor', label: 'Supervisor', type: 'list', list: superuserlsit, code: 'code', name: "name" },
     { key: 'remarks', label: 'Remarks', component: 'textarea' },
@@ -262,6 +264,15 @@ export default function Layout() {
                       // showNameOnly
                       value={(form as any)[f.key] || ''}
                       onChange={(v) => handleChange(f.key as any, v)}
+                    />
+                  ) : f.type === 'multi-select' ? (
+                    <SearchableCombobox
+                      multiple
+                      showCode
+                      items={f.list || []}
+                      value={defaultFarms}
+                      onValueChange={setdefaultFarms}
+                    // onChange={(v) => handleChange(f.key as any, v)}
                     />
                   ) : (
                     <Input
