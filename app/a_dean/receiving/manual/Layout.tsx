@@ -1,3 +1,168 @@
+/**
+ * @fileoverview Manual egg receiving form component for hatchery operations.
+ * Handles the creation of receiving records with header information (delivery details, dates)
+ * and line items (egg inventory details with production dates and batch information).
+ * 
+ * @module /app/a_dean/receiving/manual/Layout
+ * @requires React, next/navigation, sonner (toast), custom hooks and components
+ */
+/**
+ * Represents a single item from the item master database.
+ * @typedef {Object} ItemMasterType
+ * @property {number} id - Unique identifier
+ * @property {string} item_code - SKU code for the egg item
+ * @property {string} item_name - Display name of the egg item
+ * @property {string} unit_measure - Unit of measurement (e.g., "PCS", "TRAY")
+ */
+/**
+ * Parses an age string in format "X Weeks, Y Day(s)" into numeric components.
+ * @description Extracts weeks and days from the standardized age format.
+ * Used when toggling the age picker popover to restore previous values.
+ * @param {string} ageString - Age string in format "26 Weeks, 0 Day(s)"
+ * @returns {{w: number, d: number}} Object with weeks (w) and days (d)
+ * @example
+ * parseAge("26 Weeks, 3 Day(s)") // returns { w: 26, d: 3 }
+ * parseAge("") // returns { w: 26, d: 0 } (default)
+ */
+
+/**
+ * Fetches the default farm assigned to the current user.
+ * 
+ * @description Retrieves user information and sets the "delivered_to" field
+ * in the header record. Called on component mount to populate farm details.
+ * 
+ * @async
+ * @returns {Promise<void>}
+ * @throws {Error} If API call to getUserInfo fails
+ * 
+ * @side-effects Sets state: defaultFarm, header (delivered_to field)
+ */
+
+/**
+ * Updates a single field in a line item by ID.
+ * 
+ * @description Immutably updates one or more properties of a draft item
+ * in the items array. Used for form input changes in the table rows.
+ * 
+ * @param {number} id - The unique ID of the line item to update
+ * @param {Partial<DraftItem>} changes - Object containing fields to update
+ * @returns {void}
+ * 
+ * @example
+ * updateItem(1234567890, { sku: "EGG-001", lot_no: "LOT-2024-01" })
+ */
+
+/**
+ * Adds a new empty line item row to the items array.
+ * 
+ * @description Creates a draft item with default values. Used when user
+ * clicks "Add Row" button. New items can be deleted unless saved.
+ * 
+ * @returns {void}
+ * 
+ * @side-effects Appends new DraftItem to items state with:
+ * - Unique ID based on timestamp
+ * - Default UoM: "PCS"
+ * - Default age: "26 Weeks, 0 Day(s)"
+ * - isNew flag: true (enables delete checkbox)
+ */
+
+/**
+ * Toggles checkbox selection for a line item (new items only).
+ * 
+ * @description Allows users to select multiple new items for batch deletion.
+ * Only affects items where isNew === true (unsaved draft items).
+ * 
+ * @param {number} id - The line item ID to toggle
+ * @returns {void}
+ * 
+ * @side-effects Updates selectedRows state array
+ */
+
+/**
+ * Removes all selected line items from the table.
+ * 
+ * @description Deletes items marked for removal (must be new/unsaved).
+ * Clears the selection state after deletion.
+ * 
+ * @returns {void}
+ * 
+ * @side-effects Mutates items and selectedRows state
+ */
+
+/**
+ * Validates all line items before submission.
+ * 
+ * @description Checks that:
+ * - At least one line item exists
+ * - Each item has required fields: brdr_ref_no, sku, lot_no, prod_date, age, house_no, actual_total
+ * - A breed is selected in the header
+ * 
+ * Shows alert popup with missing fields if validation fails.
+ * @returns {boolean} True if validation passes, false otherwise
+ * 
+ * @side-effects Displays toast notification if items array is empty
+ */
+
+/**
+ * Submits the receiving record to the backend after confirmation.
+ * 
+ * @description Main form submission handler. Performs the following:
+ * 1. Validates line items
+ * 2. Shows confirmation dialog
+ * 3. Transforms line items (auto-generates brdr_ref_no, converts totals)
+ * 4. Calls createReceiving API with full payload
+ * 5. Navigates to list page on success or shows error alert
+ * 
+ * @async
+ * @returns {Promise<void>}
+ * @throws Catches and displays errors via alert popup
+ * 
+ * @side-effects
+ * - Sets loading state during submission
+ * - Navigates router on success
+ * - Displays alert dialogs for confirmation and results
+ */
+
+/**
+ * Handles form submission with validation.
+ * 
+ * @description Prevents default form behavior and triggers insertMe
+ * if line item validation passes.
+ * 
+ * @param {React.FormEvent} e - Form submission event
+ * @returns {Promise<void>}
+ */
+
+/**
+ * ApprovalDecisionForm Component
+ * 
+ * @description Main form component for recording manual egg receiving transactions.
+ * Displays:
+ * - Header section: delivery farm, dates, shipping info, breeder reference
+ * - Line items table: egg inventory with SKU, lot, production date, age, house number
+ * - Footer section: logistics info (crates, trays, vehicle plate, driver, serial)
+ * 
+ * Business Logic:
+ * - Header "Delivered From" field auto-populates TIN and address based on selected farm
+ * - Age field uses custom VerticalRuler popup for weeks/days selection
+ * - House number automatically updates brdr_ref_no format: "{brdr_ref_no}-{house_no}"
+ * - New items can be deleted; saved items cannot be removed from this form
+ * - Breed field is shared across all line items (set once in header)
+ * 
+ * @component
+ * @returns {React.ReactElement} Form UI with validation and submission flow
+ * 
+ * State Management:
+ * - Global context: getValue/setValue for itemmaster, farms, loading state
+ * - Local state: header record, line items, footer logistics, dates/temperatures
+ * - Selected rows tracking for batch delete functionality
+ * 
+ * Dependencies:
+ * - getUserInfo, createReceiving APIs
+ * - GlobalContext and ConfirmProvider hooks
+ * - ShadCN UI components (Input, Button, Table, Popover, etc.)
+ */
 'use client'
 import React, { useEffect, useState } from 'react'
 import { useGlobalContext } from '@/lib/context/GlobalContext'
