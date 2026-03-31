@@ -20,7 +20,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+
 import { Input } from "./ui/input"
+import { Label } from "./ui/label"
 
 type ComboboxItemType = {
   code: string
@@ -29,6 +31,8 @@ type ComboboxItemType = {
 
 type MultiProps = {
   multiple: true
+  label?: string
+  required?: boolean
   items: ComboboxItemType[]
   value: string[]
   onValueChange: (value: string[]) => void
@@ -40,6 +44,8 @@ type MultiProps = {
 
 type SingleProps = {
   multiple?: false
+  label?: string
+  required?: boolean
   items: ComboboxItemType[]
   value: string
   onValueChange: (value: string) => void
@@ -67,6 +73,16 @@ export default function SearchableCombobox(props: Props) {
     showCode = false,
   } = props
 
+  /**
+   * 🔑 Normalize value so Combobox NEVER receives undefined
+   */
+  const normalizedValue = React.useMemo(() => {
+    if (props.multiple) {
+      return Array.isArray(props.value) ? props.value : []
+    }
+    return props.value ?? ""
+  }, [props.multiple, props.value])
+
   const filteredItems = React.useMemo(() => {
     if (!search) return items
 
@@ -77,11 +93,12 @@ export default function SearchableCombobox(props: Props) {
     )
   }, [items, search])
 
-
   const selectedItems = React.useMemo(() => {
-    const values = Array.isArray(props.value) ? props.value : []
-    return items.filter((item) => values.includes(item.code))
-  }, [items, props.value])
+    if (!props.multiple) return []
+    return items.filter((item) =>
+      normalizedValue.includes(item.code)
+    )
+  }, [items, normalizedValue, props.multiple])
 
   const modalFiltered = React.useMemo(() => {
     if (!modalSearch) return selectedItems
@@ -100,282 +117,267 @@ export default function SearchableCombobox(props: Props) {
 
   const selectItem = (code: string) => {
     if (props.multiple) {
-      const current = Array.isArray(props.value) ? props.value : []
+      const current = normalizedValue as string[]
 
       if (!current.includes(code)) {
         props.onValueChange([...current, code])
       }
-
-      // keep dropdown open for multiple select
     } else {
       props.onValueChange(code)
-
-      // close only for single select
       setOpen(false)
     }
   }
 
+  const renderHiddenBadge = () => {
+    if (!props.multiple) return null
+
+    const selected = normalizedValue as string[]
+    const hiddenCount = selected.length - 1
+
+    if (hiddenCount <= 0) return null
+
+    return (
+      <button
+        type="button"
+        onClick={() => setShowModal(true)}
+        className="absolute right-0 mb-1 px-2 py-0.5 text-xs rounded bg-primary mt-1 z-50 hover:bg-primary/70 border-black/10 shadow-2xl border-2 text-white transition whitespace-nowrap"
+      >
+        +{hiddenCount} more
+      </button>
+    )
+  }
+
   return (
-    <Combobox
-      open={open}
-      onOpenChange={(o) => {
-        setOpen(o)
+    <div className="relative overflow-x-auto">
+      <div className="flex justify-between items-center">
+        <Label className="mb-2" required={props.required}>
+          {props.label}
+        </Label>
+        {renderHiddenBadge()}
+      </div>
 
-        if (o) {
-          setTimeout(() => searchRef.current?.focus(), 0)
-        } else {
-          setSearch("")
-        }
-      }}
-      multiple={props.multiple}
-      autoHighlight={autoHighlight}
-      items={filteredItems}
-      value={props.value as any}
-      onValueChange={(val) => {
-        if (props.multiple) {
-          if (!val) props.onValueChange([])
-          else if (Array.isArray(val)) props.onValueChange(val)
-          else props.onValueChange([val])
-        } else {
-          if (!val) props.onValueChange("")
-          else if (Array.isArray(val)) props.onValueChange(val[0] ?? "")
-          else props.onValueChange(val)
-        }
+      <Combobox
+        open={open}
+        onOpenChange={(o) => {
+          setOpen(o)
 
-        if (!props.multiple) {
-          setOpen(false)
-        }
-      }}
-    >
-      <ComboboxChips ref={anchor} className={`${className} w-full border`}>
-        <ComboboxValue>
-          {(values) => {
-            const normalized = Array.isArray(values)
-              ? values
-              : values
+          if (o) {
+            setTimeout(() => searchRef.current?.focus(), 0)
+          } else {
+            setSearch("")
+          }
+        }}
+        multiple={props.multiple}
+        autoHighlight={autoHighlight}
+        items={filteredItems}
+        value={normalizedValue}
+        onValueChange={(val) => {
+          if (props.multiple) {
+            props.onValueChange(
+              Array.isArray(val) ? val : val ? [val] : []
+            )
+          } else {
+            props.onValueChange(
+              Array.isArray(val)
+                ? val[0] ?? ""
+                : val ?? ""
+            )
+          }
+
+          if (!props.multiple) {
+            setOpen(false)
+          }
+        }}
+      >
+        <ComboboxChips ref={anchor} className={className}>
+          <ComboboxValue>
+            {(values) => {
+              const normalized = Array.isArray(values)
+                ? values
+                : values
                 ? [values]
                 : []
 
-            // if (props.multiple) {
-            //   return (
-            //     <>
-            //       {normalized.map((val) => {
-            //         const item = items.find((f) => f.code === val)
+              if (props.multiple) {
+                const selected = normalizedValue as string[]
+                const first = selected[0]
 
-            //         return (
-            //           <ComboboxChip key={val} className="bg-black/75 rounded-2xl text-white">
-            //             {formatLabel(item)}
-            //           </ComboboxChip>
-            //         )
-            //       })}
-            //       <ComboboxChipsInput />
-            //     </>
-            //   )
-            // }
-            // if (props.multiple) {
-            //   const visible = normalized.slice(0, 2)
-            //   const hidden = normalized.slice(2)
+                const firstItem = items.find(
+                  (f) => f.code === first
+                )
 
-            //   return (
-            //     <div className="flex items-center w-full gap-1 overflow-hidden">
+                return (
+                  <div className="flex flex-col w-full min-w-0 gap-1">
+                    <div className="flex items-center gap-1 overflow-hidden flex-nowrap">
+                      {first && (
+                        <ComboboxChip className="bg-black/75 rounded-2xl text-white shrink-0">
+                          <span className="truncate">
+                            {formatLabel(firstItem)}
+                          </span>
+                        </ComboboxChip>
+                      )}
 
-            //       {/* LEFT SIDE (chips + input) */}
-            //       <div className="flex items-center gap-1 flex-nowrap overflow-hidden">
-            //         {visible.map((val) => {
-            //           const item = items.find((f) => f.code === val)
+                      <ComboboxChipsInput className="min-w-15" />
+                    </div>
+                  </div>
+                )
+              }
 
-            //           return (
-            //             <ComboboxChip
-            //               key={val}
-            //               className="bg-black/75 rounded-2xl text-white shrink-0"
-            //             >
-            //               {formatLabel(item)}
-            //             </ComboboxChip>
-            //           )
-            //         })}
-
-            //         {/* INPUT */}
-            //         <ComboboxChipsInput className="min-w-[60px]" />
-            //       </div>
-
-            //       {/* RIGHT SIDE (+X MORE) */}
-            //       {hidden.length > 0 && (
-            //         <button
-            //           type="button"
-            //           onClick={() => setShowModal(true)}
-            //           className="ml-auto shrink-0 px-2 py-0.5 text-xs rounded-full bg-muted hover:bg-muted/70 transition whitespace-nowrap"
-            //         >
-            //           +{hidden.length} more
-            //         </button>
-            //       )}
-            //     </div>
-            //   )
-            // }
-            if (props.multiple) {
-              const values = Array.isArray(props.value) ? props.value : []
-
-              const first = values[0]
-              const hiddenCount = values.length - 1
-
-              const firstItem = items.find((f) => f.code === first)
+              const val = normalized[0]
+              const item = items.find((f) => f.code === val)
 
               return (
-                <div className="flex items-center w-full gap-1 overflow-hidden">
-
-                  {/* LEFT SIDE */}
-                  <div className="flex items-center gap-1 overflow-hidden flex-nowrap">
-
-                    {/* FIRST ITEM ONLY */}
-                    {first && (
-                      <ComboboxChip
-                        className="bg-black/75 rounded-2xl text-white shrink-0 flex items-center gap-1"
-                      >
-                        {/* ❌ LEFT SIDE */}
-                        <span
-                          className="cursor-pointer text-xs mr-1"
-                          onClick={() => {
-                            const current = values.filter((v) => v !== first)
-                            props.onValueChange(current)
-                          }}
-                        >
-                          ✕
-                        </span>
-
-                      <span className="truncate min-w-0 flex-1">
-                          {formatLabel(firstItem)}
-                        </span>
-                      </ComboboxChip>
-                    )}
-
-                    {/* INPUT */}
-                    <ComboboxChipsInput className="min-w-[60px]" />
-                  </div>
-
-                  {/* RIGHT SIDE */}
-                  {hiddenCount > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => setShowModal(true)}
-                      className="ml-auto shrink-0 px-2 py-0.5 text-xs rounded-full bg-muted hover:bg-muted/70 transition whitespace-nowrap"
-                    >
-                      +{hiddenCount} more
-                    </button>
-                  )}
-                </div>
+                <ComboboxChipsInput
+                  value={formatLabel(item)}
+                  readOnly
+                />
               )
-            }
-            const val = normalized[0]
-            const item = items.find((f) => f.code === val)
-
-            return (
-              <ComboboxChipsInput
-                value={formatLabel(item)}
-                readOnly
-              />
-            )
-          }}
-        </ComboboxValue>
-      </ComboboxChips>
-
-      <ComboboxContent anchor={anchor}>
-        <div className="p-2">
-          <Input
-            ref={searchRef}
-            className="w-full"
-            placeholder="Search..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Tab" && filteredItems.length > 0) {
-                e.preventDefault()
-                selectItem(filteredItems[0].code)
-              }
             }}
-          />
-        </div>
+          </ComboboxValue>
+        </ComboboxChips>
 
-        {filteredItems.length === 0 && (
-          <ComboboxEmpty>No items found.</ComboboxEmpty>
-        )}
-
-        <ComboboxList>
-          {(item: ComboboxItemType) => (
-            <ComboboxItem key={item.code} value={item.code}>
-              {formatLabel(item)}
-            </ComboboxItem>
-          )}
-        </ComboboxList>
-
-        {/* SELECT ALL */}
-        {props.multiple && props.allowSelectAll && filteredItems.length > 0 && (
-          <div className="border-t p-2">
-            <button
-              type="button"
-              className="w-full text-sm text-left px-2 py-1 rounded-md hover:bg-muted"
-              onClick={() => {
-                const allCodes = filteredItems.map((i) => i.code)
-                props.onValueChange(allCodes)
+        <ComboboxContent anchor={anchor}>
+          <div className="p-2">
+            <Input
+              ref={searchRef}
+              className="w-full"
+              placeholder="Search..."
+              value={search}
+              onChange={(e) =>
+                setSearch(e.target.value)
+              }
+              onKeyDown={(e) => {
+                if (
+                  e.key === "Tab" &&
+                  filteredItems.length > 0
+                ) {
+                  e.preventDefault()
+                  selectItem(filteredItems[0].code)
+                }
               }}
-            >
-              Select All
-            </button>
+            />
           </div>
-        )}
-      </ComboboxContent>
 
-      <Dialog open={showModal} onOpenChange={setShowModal}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Selected Items</DialogTitle>
-          </DialogHeader>
-
-          {/* SEARCH */}
-          <Input
-            placeholder="Search selected..."
-            value={modalSearch}
-            onChange={(e) => setModalSearch(e.target.value)}
-            className="mb-2"
-          />
-
-          {/* LIST */}
-          <div className="max-h-75 overflow-auto space-y-2">
-            {modalFiltered.length === 0 && (
-              <div className="text-sm text-muted-foreground">
-                No items found.
-              </div>
-            )}
-
-            {modalFiltered.map((item) => (
-              <div
-                key={item.code}
-                className="flex items-center justify-between border rounded-md px-3 py-2"
-              >
-                <span className="text-sm">
-                  {formatLabel(item)}
-                </span>
-
-                {/* REMOVE BUTTON */}
+          <div className="flex gap-1 px-2 pb-2">
+            {props.multiple && (
+              <>
                 <button
-                  className="text-xs text-red-500 hover:underline"
+                  type="button"
+                  className="bg-card-foreground/80 text-white rounded-md px-2 text-sm font-semibold"
                   onClick={() => {
-                    if (!props.multiple) return
+                    const current =
+                      normalizedValue as string[]
 
-                    const current = Array.isArray(props.value)
-                      ? props.value
-                      : []
+                    const filteredCodes =
+                      filteredItems.map(
+                        (i) => i.code
+                      )
 
-                    props.onValueChange(
-                      current.filter((v) => v !== item.code)
+                    const merged = Array.from(
+                      new Set([
+                        ...current,
+                        ...filteredCodes,
+                      ])
                     )
+
+                    props.onValueChange(merged)
                   }}
                 >
-                  Remove
+                  Select all
                 </button>
-              </div>
-            ))}
+
+                <button
+                  type="button"
+                  className="bg-card-foreground/80 text-white rounded-md px-2 text-sm font-semibold"
+                  onClick={() =>
+                    props.onValueChange([])
+                  }
+                >
+                  Clear
+                </button>
+              </>
+            )}
           </div>
-        </DialogContent>
-      </Dialog>
-    </Combobox>
+
+          {filteredItems.length === 0 && (
+            <ComboboxEmpty>
+              No items found.
+            </ComboboxEmpty>
+          )}
+
+          <ComboboxList>
+            {(item: ComboboxItemType) => (
+              <ComboboxItem
+                key={item.code}
+                value={item.code}
+              >
+                {formatLabel(item)}
+              </ComboboxItem>
+            )}
+          </ComboboxList>
+        </ComboboxContent>
+
+        <Dialog
+          open={showModal}
+          onOpenChange={setShowModal}
+        >
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>
+                Selected Items
+              </DialogTitle>
+            </DialogHeader>
+
+            <Input
+              placeholder="Search selected..."
+              value={modalSearch}
+              onChange={(e) =>
+                setModalSearch(e.target.value)
+              }
+              className="mb-2"
+            />
+
+            <div className="max-h-75 overflow-auto space-y-2">
+              {modalFiltered.length === 0 && (
+                <div className="text-sm text-muted-foreground">
+                  No items found.
+                </div>
+              )}
+
+              {modalFiltered.map((item) => (
+                <div
+                  key={item.code}
+                  className="flex items-center justify-between border rounded-md px-3 py-2"
+                >
+                  <span className="text-sm">
+                    {formatLabel(item)}
+                  </span>
+
+                  <button
+                    className="text-xs text-red-500 hover:underline"
+                    onClick={() => {
+                      if (!props.multiple)
+                        return
+
+                      const current =
+                        normalizedValue as string[]
+
+                      props.onValueChange(
+                        current.filter(
+                          (v) =>
+                            v !== item.code
+                        )
+                      )
+                    }}
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+            </div>
+          </DialogContent>
+        </Dialog>
+      </Combobox>
+    </div>
   )
 }

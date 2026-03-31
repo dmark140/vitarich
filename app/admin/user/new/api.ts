@@ -71,3 +71,31 @@ export async function getvwdmf_get_farmlist_code_name_farmtype() {
     throw err;
   }
 }
+
+export async function get_vwdmf_super_users() {
+  try {
+    const { data, error } = await db
+      .from("vwdmf_super_users")
+      .select("*")
+    if (error) throw error;
+    return data || [];
+  } catch (err) {
+    console.log(err);
+    throw err;
+  }
+}
+
+
+export async function getUserFarms(users_id: number) {
+  console.log({ users_id })
+  const { data, error } = await db.rpc("get_user_farms", {
+    p_users_id: users_id,
+  });
+  console.log({ data, error })
+  if (error) {
+    console.error("RPC error:", error);
+    return null;
+  }
+
+  return data;
+}

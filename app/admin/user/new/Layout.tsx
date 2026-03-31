@@ -12,109 +12,177 @@ import { Input } from '@/components/ui/input'
 import { useGlobalContext } from '@/lib/context/GlobalContext'
 import { db } from '@/lib/Supabase/supabaseClient'
 
-import { updateUserProfile, getProfileByAuthId, getProfileNotByAuthIdIsSuper } from '../api'
+import {
+  updateUserProfile,
+  getProfileByAuthId,
+  getUserInfoById,
+} from '../api'
+
 import { User } from '@supabase/supabase-js'
 import { SuperUsers, UserInsert, UserRow } from '@/lib/types'
 
 import SuperUser from './SuperUser'
 import RuleAndPerm from './RuleAndPerm'
+
 import SearchableDropdown from '@/lib/SearchableDropdown'
+import SearchableCombobox from '@/components/SearchableCombobox'
 
 import { DefaultGenders } from '@/lib/Defaults/DefaultValues'
 import { ColumnsYesOrNoCodeOnly } from '@/lib/Defaults/DefaultColumns'
-import { InputDropDown } from '@/components/ui/InputDropDown'
-import { getvwdmf_get_farmlist_code_name_farmtype } from './api'
-import { sleep } from '@/lib/utils'
-import SearchableCombobox from '@/components/SearchableCombobox'
 
-type authProps = {
+import {
+  get_vwdmf_super_users,
+  getvwdmf_get_farmlist_code_name_farmtype,
+} from './api'
+import DefaultFarmComboBox from '@/app/components/DefaultFarmComboBox'
+
+/* -------------------------------------------------------------------------- */
+/*                                   TYPES                                    */
+/* -------------------------------------------------------------------------- */
+
+export type AuthUser = {
   email: string
   id: string
   auth_id: string
 }
 
+/* -------------------------------------------------------------------------- */
+/*                                  COMPONENT                                 */
+/* -------------------------------------------------------------------------- */
+
 export default function Layout() {
+  const [farm, setFarm] = useState()
   const { getValue, setValue } = useGlobalContext()
 
   const [tab, setTab] = useState(1)
+
   const [form, setForm] = useState<Partial<UserRow>>({})
-  const [authSelected, setAuthSelected] = useState<authProps>()
-  const [defaultfarmlist, setDefaultFarmList] = useState<any[]>([])
-  const [superuserlsit, setsuperuserlsit] = useState<SuperUsers[]>([])
+  const [authSelected, setAuthSelected] = useState<AuthUser>()
+
+  const [farmList, setFarmList] = useState<any[]>([])
+  const [defaultFarms, setDefaultFarms] = useState<any[]>([])
+
+  const [superUsers, setSuperUsers] = useState<SuperUsers[]>([])
+
   const [loggedInUser, setLoggedInUser] = useState<User | null>(null)
 
   const [loading, setLoading] = useState(false)
   const [initialLoading, setInitialLoading] = useState(true)
-  const [defaultFarms, setdefaultFarms] = useState<string[]>([])
+
+  /* -------------------------------------------------------------------------- */
+  /*                               FIELD CONFIG                                 */
+  /* -------------------------------------------------------------------------- */
 
   const fields = [
-    { key: 'firstname', label: 'First Name', required: true },
-    { key: 'middlename', label: 'Middle Name' },
-    { key: 'lastname', label: 'Last Name', required: true },
-    { key: 'mobile', label: 'Mobile' },
-    { key: 'birthdate', label: 'Birthdate', type: 'date' },
-    { key: 'gender', label: 'Gender', type: "list", list: DefaultGenders, code: "code", name: "name", showOnlyName: true },
-    { key: 'phone', label: 'Phone' },
-    { key: 'location', label: 'Address' },
-    { key: 'default_farm', label: 'Default Farm', type: 'multi-select', list: defaultfarmlist, code: 'code', name: "name" },
-    { key: 'supervisor', label: 'Supervisor', type: 'list', list: superuserlsit, code: 'code', name: "name" },
-    // { key: 'supervisor', label: 'Supervisor', type: 'list', list: superuserlsit, code: 'code', name: "name" },
-    { key: 'remarks', label: 'Remarks', component: 'textarea' },
+    { required: true, key: 'firstname', label: 'First Name' },
+    { required: false, key: 'middlename', label: 'Middle Name' },
+    { required: true, key: 'lastname', label: 'Last Name' },
+    { required: false, key: 'mobile', label: 'Mobile' },
+    { required: true, key: 'birthdate', label: 'Birthdate', type: 'date' },
+    {
+      required: false,
+      key: 'gender',
+      label: 'Gender',
+      type: 'list',
+      list: DefaultGenders,
+      code: 'code',
+      name: 'name',
+    },
+    { required: false, key: 'phone', label: 'Phone' },
+    { required: true, key: 'location', label: 'Address' },
+    {
+      required: true,
+      key: 'default_farm',
+      label: 'Default Farm',
+      type: 'list',
+      list: farmList,
+      code: 'code',
+      name: 'name',
+    },
+    {
+      required: true,
+      key: 'assigned_farms',
+      label: 'Assigned Farms',
+      type: 'multi-select',
+      list: farmList,
+      code: 'code',
+      name: 'name',
+    },
+    {
+      required: true,
+      key: 'supervisor',
+      label: 'Supervisor',
+      type: 'list',
+      list: superUsers,
+      code: 'code',
+      name: 'name',
+    },
+    {
+      required: true,
+      key: 'remarks',
+      label: 'Remarks',
+      component: 'textarea',
+    },
   ]
 
-  const handleChange = useCallback((key: keyof UserInsert, value: any) => {
-    setForm((p) => ({ ...p, [key]: value }))
-  }, [])
+  /* -------------------------------------------------------------------------- */
+  /*                                FORM LOGIC                                  */
+  /* -------------------------------------------------------------------------- */
+
+  const handleChange = useCallback(
+    (key: keyof UserInsert, value: any) => {
+      setForm((prev) => ({ ...prev, [key]: value }))
+    },
+    []
+  )
 
   const handleSubmit = async () => {
-    if (!loggedInUser?.id) return toast.error('Administrator not authenticated')
-    if (!authSelected?.id) return toast.error('No user selected')
-    if (tab !== 1) return toast.warning("Go to 'Details' tab to save")
+    if (!loggedInUser?.id)
+      return toast.error('Administrator not authenticated')
 
-    setLoading(true)
+    if (!authSelected?.id)
+      return toast.error('No user selected')
+
+    if (tab !== 1)
+      return toast.warning("Go to 'Details' tab to save")
 
     try {
-      await updateUserProfile({
-        ...form,
-        auth_id: authSelected.auth_id,
-        created_by: loggedInUser.id,
-      } as UserInsert)
+      setLoading(true)
 
-      toast.success(`Profile for ${authSelected.email} saved`)
-    } catch (e: any) {
-      toast.error(e.message)
+      await updateUserProfile(
+        {
+          ...form,
+          auth_id: authSelected.auth_id,
+          created_by: loggedInUser.id,
+        } as UserInsert,
+        defaultFarms
+      )
+
+      toast.success(
+        `Profile for ${authSelected.email} saved successfully`
+      )
+    } catch (error: any) {
+      toast.error(error.message)
     } finally {
       setLoading(false)
     }
   }
 
-  // const fetchProfile = async () => {
+  /* -------------------------------------------------------------------------- */
+  /*                              DATA LOADERS                                  */
+  /* -------------------------------------------------------------------------- */
 
-  //   setInitialLoading(true)
-
-  //   try {
-  //     const profile = await getProfileByAuthId(authSelected?.auth_id ?? "")
-  //     console.log({ profile })
-  //     setForm(profile || {})
-  //   } catch {
-  //     toast.error('Failed to load profile')
-  //   } finally {
-  //     setInitialLoading(false)
-  //   }
-  // }
-  useEffect(() => {
-    setValue("loading_g", loading || initialLoading)
-  }, [loading, initialLoading])
-  const fetchProfile = async () => {
-    setInitialLoading(true)
-
+  const fetchProfile = async (authId: string) => {
     try {
-      const profile = await getProfileByAuthId(authSelected?.auth_id ?? "")
-      console.log({ profile })
+      setInitialLoading(true)
+
+      const profile = await getProfileByAuthId(authId)
 
       setForm({
         ...profile,
-        supervisor: profile?.supervisor ? String(profile.supervisor) : ""
+        supervisor: profile?.supervisor
+          ? String(profile.supervisor)
+          : '',
       })
     } catch {
       toast.error('Failed to load profile')
@@ -122,6 +190,21 @@ export default function Layout() {
       setInitialLoading(false)
     }
   }
+
+  const loadSuperUserData = async (userId: string) => {
+    try {
+      const [userInfo, superUsersList] = await Promise.all([
+        getUserInfoById(userId),
+        get_vwdmf_super_users(),
+      ])
+
+      setSuperUsers(superUsersList)
+      setDefaultFarms(userInfo?.[0]?.users_farms ?? [])
+    } catch {
+      toast.error('Failed loading supervisor data')
+    }
+  }
+
   const togglePermissions = (enable: boolean) => {
     const checkboxes = document.querySelectorAll<HTMLInputElement>(
       '#permissions-container .permission-checkbox'
@@ -129,9 +212,9 @@ export default function Layout() {
 
     let changed = 0
 
-    checkboxes.forEach((c) => {
-      if (c.checked !== enable) {
-        c.click()
+    checkboxes.forEach((checkbox) => {
+      if (checkbox.checked !== enable) {
+        checkbox.click()
         changed++
       }
     })
@@ -139,27 +222,31 @@ export default function Layout() {
     toast.success(
       changed
         ? `${enable ? 'Enabled' : 'Disabled'} ${changed} permissions`
-        : `All permissions already ${enable ? 'enabled' : 'disabled'}`
+        : `All permissions already ${enable ? 'enabled' : 'disabled'
+        }`
     )
   }
 
-  const getSuperUser = async () => {
-    const data = await getProfileNotByAuthIdIsSuper(authSelected?.auth_id || "")
-    console.log({ data })
-    setsuperuserlsit(data)
-  }
+  /* -------------------------------------------------------------------------- */
+  /*                                 EFFECTS                                    */
+  /* -------------------------------------------------------------------------- */
+
+  useEffect(() => {
+    setValue('loading_g', loading || initialLoading)
+  }, [loading, initialLoading, setValue])
 
   useEffect(() => {
     const init = async () => {
       const { data } = await db.auth.getSession()
       setLoggedInUser(data.session?.user ?? null)
 
-      const farms = await getvwdmf_get_farmlist_code_name_farmtype()
-      setDefaultFarmList(farms)
+      const farms =
+        await getvwdmf_get_farmlist_code_name_farmtype()
+
+      setFarmList(farms)
     }
 
     init()
-
   }, [])
 
   useEffect(() => {
@@ -168,15 +255,25 @@ export default function Layout() {
 
   useEffect(() => {
     if (!authSelected?.auth_id) return
-    console.log(authSelected?.auth_id)
-    getSuperUser()
-    fetchProfile()
+
+    fetchProfile(authSelected.auth_id)
+    loadSuperUserData(authSelected.id)
   }, [authSelected])
 
-  const disabled = loading || initialLoading || tab !== 1 || !authSelected?.id
+  /* -------------------------------------------------------------------------- */
+  /*                                  UI STATE                                  */
+  /* -------------------------------------------------------------------------- */
+
+  const disabled =
+    loading || initialLoading || tab !== 1 || !authSelected?.id
+
+  /* -------------------------------------------------------------------------- */
+  /*                                  RENDER                                    */
+  /* -------------------------------------------------------------------------- */
 
   return (
     <div>
+      {/* HEADER */}
       <div className="px-4 my-2 flex justify-between">
         <p className="font-bold text-xl">
           {authSelected?.email || 'No User Selected'}
@@ -202,15 +299,18 @@ export default function Layout() {
           )}
 
           <Button disabled={disabled} onClick={handleSubmit}>
-            {initialLoading ? 'Loading...' : loading ? 'Saving...' : 'Save'}
+            {initialLoading
+              ? 'Loading...'
+              : loading
+                ? 'Saving...'
+                : 'Save'}
           </Button>
-          {/* <Button onClick={getSuperUser}>check getSuperUser</Button> */}
-          {/* <Button onClick={() => console.log({ form })}>check form</Button> */}
         </div>
       </div>
 
       <Separator />
 
+      {/* TAB SWITCH */}
       <div className="px-4 flex gap-2 my-2">
         <Button
           variant={tab === 1 ? 'secondary' : 'ghost'}
@@ -229,57 +329,68 @@ export default function Layout() {
 
       <Separator />
 
+      {/* DETAILS TAB */}
       {tab === 1 && (
         <form className="space-y-4">
           <SuperUser />
 
           <div className="bg-white p-4 rounded-md">
-            <div className="grid grid-cols-3 gap-4">
-              {fields.map((f) => (
+            <div className="grid grid-cols-2 gap-4">
+              {fields.map((field) => (
                 <div
-                  key={f.key}
-                  className={`${f.component === 'textarea' ? 'col-span-3' : ''} grid gap-2`}
+                  key={field.key}
+                  className={`grid gap-2 ${field.component === 'textarea'
+                    ? 'col-span-2'
+                    : ''
+                    }`}
                 >
-                  <Label required={f.required}>{f.label}</Label>
+                  {field.key !== 'assigned_farms' && (
+                    <Label required={field.required}>
+                      {field.label}
+                    </Label>
+                  )}
 
-                  {f.key === 'gexnder' ? (
-                    <InputDropDown
-                      data={DefaultGenders}
-                      columns={ColumnsYesOrNoCodeOnly as any}
-                      onClick={(e: any) => handleChange(f.key as any, e.code)}
-                    />
-                  ) : f.component === 'textarea' ? (
+                  {field.component === 'textarea' ? (
                     <Textarea
                       className="border-2 border-black/30"
-                      value={(form as any)[f.key] || ''}
+                      value={(form as any)[field.key] || ''}
                       onChange={(e) =>
-                        handleChange(f.key as any, e.target.value)
+                        handleChange(
+                          field.key as any,
+                          e.target.value
+                        )
                       }
                     />
-                  ) : f.type === 'list' ? (
+                  ) : field.type === 'list' ? (
                     <SearchableDropdown
-                      list={f.list || []}
-                      codeLabel={f.code || ""}
-                      nameLabel={f.name || ""}
-                      // showNameOnly
-                      value={(form as any)[f.key] || ''}
-                      onChange={(v) => handleChange(f.key as any, v)}
+                      list={field.list || []}
+                      codeLabel={field.code || ''}
+                      nameLabel={field.name || ''}
+                      value={(form as any)[field.key] || ''}
+                      onChange={(v) =>
+                        handleChange(field.key as any, v)
+                      }
                     />
-                  ) : f.type === 'multi-select' ? (
+                  ) : field.type === 'multi-select' ? (
                     <SearchableCombobox
+                      required
+                      label={field.label}
                       multiple
                       showCode
-                      items={f.list || []}
+                      items={field.list || []}
                       value={defaultFarms}
-                      onValueChange={setdefaultFarms}
-                    // onChange={(v) => handleChange(f.key as any, v)}
+                      onValueChange={setDefaultFarms}
+                      className="w-full"
                     />
                   ) : (
                     <Input
-                      type={f.type || 'text'}
-                      value={(form as any)[f.key] || ''}
+                      type={field.type || 'text'}
+                      value={(form as any)[field.key] || ''}
                       onChange={(e) =>
-                        handleChange(f.key as any, e.target.value)
+                        handleChange(
+                          field.key as any,
+                          e.target.value
+                        )
                       }
                     />
                   )}
@@ -290,11 +401,20 @@ export default function Layout() {
         </form>
       )}
 
+      {/* PERMISSIONS TAB */}
       {tab === 2 && !initialLoading && (
         <div className="px-4">
-          <RuleAndPerm userId={authSelected?.auth_id || '0'} />
+          <RuleAndPerm
+            userId={authSelected?.auth_id || '0'}
+          />
         </div>
       )}
+
+      <DefaultFarmComboBox
+        label='Default farm'
+        setValue={setFarm}
+        value={farm}
+      />
     </div>
   )
 }

@@ -15,6 +15,7 @@ import ThemeSwitch from "../ThemeSwitch"
 import { db } from "../Supabase/supabaseClient"
 import { Session } from "@supabase/supabase-js"
 import UserAccountMenu from "../UserAccountMenu"
+import GlobalFarmUserSettings from "@/components/ui/GlobalFarmUserSettings"
 
 const versions = ["1.0.1", "1.1.0-alpha", "2.0.0-beta1"]
 
@@ -208,17 +209,17 @@ export function AppSidebar() {
         } duration-300`}
     >
       <div className="px-3   h-13.5  mt-1  z-50">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between ">
           {/* <VersionSwitcher versions={versions} defaultVersion={versions[0]} /> */}
           <Button className="m-3 text-foreground" variant="ghost" size="icon" onClick={toggle} >
             <Menu className="size-5" />
           </Button>
-          {!collapsed &&
-            <div className="mt-2">
-
+          <div className="flex  gap-4">
+            {!collapsed &&
               <GlobalSearch collapsed={collapsed} />
-            </div>
-          }
+            }
+            <GlobalFarmUserSettings />
+          </div>
         </div>
       </div>
 
