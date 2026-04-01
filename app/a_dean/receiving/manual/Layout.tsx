@@ -503,10 +503,10 @@ export default function ApprovalDecisionForm() {
                           </PopoverTrigger>
                           <PopoverContent className="w-auto p-4" align="start">
                             <div className="flex gap-4 items-center justify-center">
-                              <VerticalRuler
+                              {/* <VerticalRuler
                                 label="Weeks"
                                 min={26}
-                                max={65}
+                                max={104}
                                 value={activeWeeks}
                                 autoOpen
 
@@ -514,6 +514,22 @@ export default function ApprovalDecisionForm() {
                               />
                               <VerticalRuler
                                 label="Days"
+                                min={0}
+                                max={6}
+                                value={activeDays}
+                                onChange={setActiveDays}
+                              /> */}
+
+                              <VerticalRuler2
+                                label="Height (cm)"
+                                min={26}
+                                max={104}
+                                value={activeWeeks}
+                                onChange={setActiveWeeks}
+                              />
+
+                               <VerticalRuler2
+                                label="Height (cm)"
                                 min={0}
                                 max={6}
                                 value={activeDays}

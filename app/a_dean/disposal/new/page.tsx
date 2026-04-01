@@ -11,7 +11,6 @@ export default function page() {
         <div>
             <NavigationBar currentLabel="">
                 <div className='mx-4'>
-                
                     <Layout />
                 </div>
             </NavigationBar>
