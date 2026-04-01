@@ -1,9 +1,8 @@
 'use client'
 import React, { useEffect, useState } from 'react'
-import { getUserFarms, getvwdmf_get_farmlist_code_name_farmtype } from '../admin/user/new/api'
+import { getUserFarms } from '../admin/user/new/api'
 import SearchableCombobox from '@/components/SearchableCombobox'
 import { useGlobalContext } from '@/lib/context/GlobalContext'
-import { db } from '@/lib/Supabase/supabaseClient'
 import { AuthUser } from '../admin/user/new/Layout'
 
 type Params = {
@@ -17,39 +16,58 @@ export default function DefaultFarmComboBox({
     setValue,
     value,
 }: Params) {
+
     const { getValue } = useGlobalContext()
 
     const [farmList, setFarmList] = useState<any[]>([])
-
-    const [authSelected, setAuthSelected] = useState<AuthUser>()
+    const [authSelected, setAuthSelected] = useState<AuthUser | null>(null)
+ 
     useEffect(() => {
-        setAuthSelected(getValue('selectedUser'))
+        const selectedUser = getValue('selectedUser')
+        if (selectedUser) {
+            setAuthSelected(selectedUser)
+        }
     }, [getValue])
 
-
+ 
     useEffect(() => {
-        if (authSelected?.id) {
-            const init = async () => {
-                const farms = await getUserFarms(Number(authSelected?.id) || 0)
-                console.log({ farms })
-                setFarmList(farms)
-            }
-            init()
+        if (!authSelected?.id) return
+
+        const init = async () => {
+            const farms = await getUserFarms(Number(authSelected.id))
+            console.log({ farms })
+            setFarmList(farms || [])
         }
+
+        init()
 
     }, [authSelected])
 
-    // set default value from GlobalContext if empty
+
+    /**
+     * Set default combobox value
+     * Priority:
+     * 1. DefaultFarmId
+     * 2. selectedUser.id (fallback)
+     */
     useEffect(() => {
         if (value) return
         if (!farmList.length) return
 
         const defaultFarmId = getValue('DefaultFarmId')
+        const selectedUser = getValue('selectedUser')
 
         if (defaultFarmId) {
             setValue(defaultFarmId)
+            return
         }
-    }, [farmList, value])
+
+        if (selectedUser?.id) {
+            setValue(selectedUser.id)
+        }
+
+    }, [farmList, value, getValue, setValue])
+
 
     return (
         <>
@@ -58,11 +76,10 @@ export default function DefaultFarmComboBox({
                 label={label}
                 showCode
                 items={farmList}
-                value={value}
+                value={value ?? ''}
                 onValueChange={setValue}
                 className="w-full"
             />
-            {value}
         </>
     )
 }

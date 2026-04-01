@@ -56,7 +56,7 @@ const emptyApprovalRecord: DataRecordApproval = {
   status: 'pending',
   checked: false,
   docentry: 0,
-  delivered_to: ''
+  delivered_to: 0
 }
 
 export default function ApprovalDecisionForm() {
@@ -88,15 +88,41 @@ export default function ApprovalDecisionForm() {
     return { w: 26, d: 0 }
   }
 
+  // const getDefaultFarm = async () => {
+  //   const data = await getUserInfo()
+  //   setdefaultFarm(data[0])
+  //   setHeader(h => h ? { ...h, delivered_to: data[0].code } : h)
+  // }
+
   const getDefaultFarm = async () => {
+    const defaultFarmId = getValue("DefaultFarmId")
+
+    if (defaultFarmId) {
+      setHeader(h =>
+        h && !h.delivered_to
+          ? { ...h, delivered_to: defaultFarmId }
+          : h
+      )
+      return
+    }
+
     const data = await getUserInfo()
-    setdefaultFarm(data[0])
-    setHeader(h => h ? { ...h, delivered_to: data[0].code } : h)
+
+    if (data?.length) {
+      setdefaultFarm(data[0])
+
+      setHeader(h =>
+        h && !h.delivered_to
+          ? { ...h, delivered_to: data[0].id }
+          : h
+      )
+    }
   }
 
   useEffect(() => {
+    if (!header) return
     getDefaultFarm()
-  }, [])
+  }, [header, getValue])
 
   useEffect(() => {
     refreshSessionx(router)
@@ -212,7 +238,7 @@ export default function ApprovalDecisionForm() {
 
     setloading(confirmed)
     if (!confirmed) return;
-    console.log({ brdr_ref_no })
+    // console.log({ brdr_ref_no })
     const transformedItems = items.map(i => ({
       ...i,
       brdr_ref_no: `${brdr_ref_no ?? ""}-${i.house_no ?? ""}`,
@@ -227,7 +253,7 @@ export default function ApprovalDecisionForm() {
       total_api: i.total ?? 0,
       actual_count: i.actual_total ?? 0,
     }))
-    console.log({ transformedItems })
+    // console.log({ transformedItems })
     const payload = {
       doc_date: header?.doc_date ?? "",
       temperature: Number(temperature) || 0,
@@ -243,7 +269,7 @@ export default function ApprovalDecisionForm() {
       plate_no: footer.van_plate ?? "",
       driver: footer.driver ?? "",
       serial_no: footer.serial ?? "",
-      delivered_to: defaultFarm?.code ?? "",
+      delivered_to: header?.delivered_to ?? 0,
       brdr_ref_no: brdr_ref_no ?? "",
       items: transformedItems,
     }
@@ -256,7 +282,7 @@ export default function ApprovalDecisionForm() {
     } else {
       alert(res.error)
     }
-
+    console.log({ payload })
     setloading(false)
   }
   const handleSubmit = async (e: React.FormEvent) => {
@@ -294,34 +320,15 @@ export default function ApprovalDecisionForm() {
               </Button> */}
               <Button type="submit" disabled={loading}>
                 <Save className="mr-2 h-4 w-4" /> Save Record
-              </Button>
+              </Button> 
             </div>
           </div>
         </CardHeader>
 
         <CardContent className='bg-white rounded-2xl p-4 space-y-6'>
-          <div className="sm:grid md:grid-cols-3 sm:grid-cols-2 gap-6">
+          <div className="sm:grid md:grid-cols-2 lg:grid-cols-3 sm:grid-cols-1 gap-6">
             <div className='mt-2'>
               <Label className='pb-2'>Delivered From</Label>
-              {/* <SearchableDropdown
-                list={farms}
-                codeLabel="code"
-                nameLabel="name"
-                value={header?.soldTo || ''}
-                onChange={(val) => {
-                  const selectedFarm = farms.find((f: any) => f.code === val)
-                  setHeader(h =>
-                    h ? {
-                      ...h,
-                      soldTo: val,
-                      tin: selectedFarm?.tin || '',
-                      address: selectedFarm?.address || '',
-                    } : h
-                  )
-                }}
-              /> */}
-
-
               <SearchableCombobox
                 multiple={false}
                 showCode
@@ -360,7 +367,7 @@ export default function ApprovalDecisionForm() {
 
           <Separator className='my-2' />
 
-          <div className="sm:grid md:grid-cols-3 sm:grid-cols-2 gap-6">
+          <div className="sm:grid md:grid-cols-2 lg:grid-cols-3 sm:grid-cols-1 gap-6">
 
             <div className='mt-1'>
               <DefaultFarmComboBox
@@ -443,13 +450,7 @@ export default function ApprovalDecisionForm() {
                         )}
                       </TableCell>
                       <TableCell>{index + 1}</TableCell>
-                      {/* <TableCell>
-                        <Input
-                          required
-                          value={item.brdr_ref_no || ''}
-                          onChange={e => updateItem(item.id, { brdr_ref_no: e.target.value })}
-                        />
-                      </TableCell> */}
+                 
                       <TableCell>
                         <SearchableDropdown
                           list={ItemMaster}
@@ -472,13 +473,6 @@ export default function ApprovalDecisionForm() {
                           onChange={e => updateItem(item.id, { lot_no: e.target.value })}
                         />
                       </TableCell>
-                      {/* <TableCell>
-                        <Input
-                          required
-                          value={item.breed || ''}
-                          onChange={e => updateItem(item.id, { breed: e.target.value })}
-                        />
-                      </TableCell> */}
                       <TableCell>
                         <DateRangePicker
                           onChange={(e) => {
@@ -488,15 +482,19 @@ export default function ApprovalDecisionForm() {
                         />
                       </TableCell>
                       <TableCell>
-                        <Popover onOpenChange={(open) => {
-                          if (open) {
-                            const { w, d } = parseAge(item.age || '26 Weeks, 0 Day(s)')
-                            setActiveWeeks(w)
-                            setActiveDays(d)
-                          } else {
-                            updateItem(item.id, { age: `${activeWeeks} Weeks, ${activeDays} Day(s)` })
-                          }
-                        }}>
+                        <Popover
+                          onOpenChange={(open) => {
+                            if (open) {
+                              const { w, d } = parseAge(item.age || "26 Weeks, 0 Day(s)");
+                              setActiveWeeks(w);
+                              setActiveDays(d);
+                            } else {
+                              updateItem(item.id, {
+                                age: `${activeWeeks} Weeks, ${activeDays} Day(s)`,
+                              });
+                            }
+                          }}
+                        >
                           <PopoverTrigger asChild>
                             <Button variant="outline" className="w-45 justify-start text-left font-normal">
                               <CalendarDays className="mr-2 h-4 w-4" />
@@ -510,6 +508,8 @@ export default function ApprovalDecisionForm() {
                                 min={26}
                                 max={65}
                                 value={activeWeeks}
+                                autoOpen
+
                                 onChange={setActiveWeeks}
                               />
                               <VerticalRuler
@@ -526,13 +526,6 @@ export default function ApprovalDecisionForm() {
                           </PopoverContent>
                         </Popover>
                       </TableCell>
-                      {/* <TableCell>
-                        <Input
-                          required
-                          value={item.house_no || ''}
-                          onChange={e => updateItem(item.id, { house_no: e.target.value })}
-                        />
-                      </TableCell> */}
                       <TableCell>
                         <Input
                           required

@@ -152,7 +152,7 @@ export async function insertUserProfile(userProfileData: UserInsert): Promise<Us
 
 export async function updateUserProfile(
   userProfileData: UserInsert,
-  defaultFarms: string[]
+  defaultFarms?: string[] | []
 ) {
   const payload = {
     p_auth_id: userProfileData.auth_id,

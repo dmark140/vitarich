@@ -9,6 +9,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { useGlobalContext } from '@/lib/context/GlobalContext'
+import { Modal } from '@/lib/Moda'
 
 type Farm = {
   id: number
@@ -88,8 +89,9 @@ export default function GlobalFarmUserSettings() {
 
   return (
     <div>
-      <Button
-        variant="secondary"
+      <button
+      className='shadow-md  px-3 py-1 rounded-md border border-border text-sm w-full text-left whitespace-nowrap'
+        // variant="secondary"
         onClick={() => setOpen(true)}
       >
         Farm:
@@ -97,14 +99,23 @@ export default function GlobalFarmUserSettings() {
         {defaultFarm
           ? `${defaultFarm.code} - ${defaultFarm.name}`
           : 'Select Farm'}
-      </Button>
+      </button>
 
-      <Dialog open={open} onOpenChange={setOpen}>
+      {/* <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Select Default Farm</DialogTitle>
           </DialogHeader>
 
+        </DialogContent>
+      </Dialog> */}
+
+      <Modal
+        open={open}
+        onOpenChange={setOpen}
+        title="Select Default Farm"
+      >
+        
           <div className="flex flex-col gap-2">
             {allowedFarms.map((farm) => (
               <Button
@@ -117,8 +128,7 @@ export default function GlobalFarmUserSettings() {
               </Button>
             ))}
           </div>
-        </DialogContent>
-      </Dialog>
+      </Modal>
     </div>
   )
 }

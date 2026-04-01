@@ -24,6 +24,7 @@ import {
 import { Input } from "./ui/input"
 import { Label } from "./ui/label"
 
+
 type ComboboxItemType = {
   code: string
   name: string
@@ -39,6 +40,7 @@ type MultiProps = {
   allowSelectAll?: boolean
   autoHighlight?: boolean
   className?: string
+
   showCode?: boolean
 }
 
@@ -52,10 +54,19 @@ type SingleProps = {
   allowSelectAll?: boolean
   autoHighlight?: boolean
   className?: string
+
   showCode?: boolean
 }
 
-type Props = MultiProps | SingleProps
+type Props =
+  | (MultiProps & {
+    open?: boolean
+    onOpenChange?: (open: boolean) => void
+  })
+  | (SingleProps & {
+    open?: boolean
+    onOpenChange?: (open: boolean) => void
+  })
 
 export default function SearchableCombobox(props: Props) {
   const [showModal, setShowModal] = React.useState(false)
@@ -63,7 +74,20 @@ export default function SearchableCombobox(props: Props) {
   const anchor = useComboboxAnchor()
   const searchRef = React.useRef<HTMLInputElement>(null)
 
-  const [open, setOpen] = React.useState(false)
+  // const [open, setOpen] = React.useState(false)
+
+  const [internalOpen, setInternalOpen] = React.useState(false)
+
+  const open =
+    props.open !== undefined ? props.open : internalOpen
+
+  const setOpen = (value: boolean) => {
+    if (props.onOpenChange) {
+      props.onOpenChange(value)
+    } else {
+      setInternalOpen(value)
+    }
+  }
   const [search, setSearch] = React.useState("")
 
   const {
@@ -195,8 +219,8 @@ export default function SearchableCombobox(props: Props) {
               const normalized = Array.isArray(values)
                 ? values
                 : values
-                ? [values]
-                : []
+                  ? [values]
+                  : []
 
               if (props.multiple) {
                 const selected = normalizedValue as string[]

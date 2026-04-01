@@ -148,7 +148,7 @@ export interface DataRecordApproval {
   status: DraftStatus
   checked: boolean;
   docentry: number;
-  delivered_to: string | null;
+  delivered_to: number | null;
 
 }
 
@@ -424,6 +424,7 @@ export type Users = {
 }
 
 export type DefaultFarm = {
+  id: number;
   code: string;
   name: string;
 
@@ -457,7 +458,7 @@ export interface UserProfileSafe {
   updated_at: string | null
   updated_by: string | null
 
-  docStatus: string | null  
+  docStatus: string | null
 
   email: string | null
   firstname: string | null
@@ -470,7 +471,7 @@ export interface UserProfileSafe {
   birthdate: string | null
 
   location: string | null
-  remarks: string | null 
+  remarks: string | null
 
   auth_id: string | null
   issuper: boolean

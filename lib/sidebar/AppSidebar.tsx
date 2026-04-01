@@ -218,7 +218,6 @@ export function AppSidebar() {
             {!collapsed &&
               <GlobalSearch collapsed={collapsed} />
             }
-            <GlobalFarmUserSettings />
           </div>
         </div>
       </div>

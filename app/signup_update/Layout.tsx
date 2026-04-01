@@ -103,7 +103,9 @@ export default function Layout() {
         ...form,
         auth_id: sessionUser.id,
         created_by: sessionUser.id,
+      
         // profile_completed: true
+        
       })
 
       toast.success(`Profile for ${sessionUser.email} saved`)
