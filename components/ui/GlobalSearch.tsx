@@ -47,17 +47,6 @@ export default function GlobalSearch({ collapsed }: collapsed) {
 
     return (
         <>
-            {/* <button
-                onClick={() => setOpen(true)}
-                className="relative inline-flex items-center w-full px-4 py-2 text-sm text-muted-foreground bg-secondary/50 border rounded-md hover:bg-secondary transition-colors"
-            >
-                <Search className="w-4 h-4 mr-2" />
-                <div className='w-30 text-left'>Search...</div>
-                <kbd className="pointer-events-none absolute right-1.5 top-2 hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex">
-                    <span className="text-xs">⌘</span>K
-                </kbd>
-            </button> */}
-
             <Button
                 variant="secondary" // Changed to secondary to match your bg-secondary/50 look
                 type="button"

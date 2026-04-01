@@ -2,8 +2,11 @@ import { db } from '@/lib/Supabase/supabaseClient'
 import { DefaultFarm, DocumentApproval, Farms, Users } from '@/lib/types'
 
 
-
-
+//Add proper JSDoc documentation
+/**
+ * Retrieves the list of farms for a specific breeder.
+ * @returns {Promise<Farms[]>} A promise resolving to an array of farm objects.
+ */
 export async function getFarmDB_breeder() {
   const { data, error } = await db
     .from('vwdmf_get_farmlist_breeder_code_name')
@@ -35,7 +38,10 @@ export async function getFarmDB() {
 
 
 
-
+/**
+ * Retrieves the user information for the currently authenticated user.
+ * @returns {Promise<DefaultFarm[]>} A promise resolving to an array of default farm objects associated with the user.
+ */
 export async function getUserInfo() {
   const { data: { session } } = await db.auth.getSession()
   console.log(session?.user.id)
@@ -54,6 +60,11 @@ export async function getUserInfo() {
 
 
 
+/**
+ * Creates a new receiving document in the database using the provided payload.
+ * @param {Object} payload - The data for the receiving document, including details such as document date, temperature, humidity, supplier information, and item details.
+ * @returns {Promise<Object>} An object containing the success status and either the document entry ID or an error message.
+ */ 
 
 export async function createReceiving(payload: any) {
   try {
@@ -83,8 +94,7 @@ export async function createReceiving(payload: any) {
     const { data, error } = await db.rpc('insert_receiving', {
       p_doc_date: doc_date,
       p_temperature: temperature,
-      p_humidity: humidity,
-// build2
+      p_humidity: humidity, 
       p_soldto: soldTo,
       p_attention: Attention,
       p_po_no: po_no,

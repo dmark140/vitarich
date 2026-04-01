@@ -204,6 +204,11 @@
   -ms-overflow-style: none;
 }
 
+/* 
 :root{
+  font-size: 21px; 
+}*/
+
+:root {
   font-size: 18px;
 }

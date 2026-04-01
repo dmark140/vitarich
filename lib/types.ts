@@ -95,6 +95,7 @@ export interface UserInsert {
   location?: string | null;
   remarks?: string | null;
   supervisor?: string | null;
+  default_farm?: string | null;
 }
 
 
@@ -446,4 +447,38 @@ export interface ApprovalRequest {
   status: string
   approved_by?: string
   approved_at?: string
+}
+
+
+export interface UserProfileSafe {
+  id: number | null
+  created_at: string | null
+  created_by: string | null
+  updated_at: string | null
+  updated_by: string | null
+
+  docStatus: string | null  
+
+  email: string | null
+  firstname: string | null
+  middlename: string | null
+  lastname: string | null
+  gender: string | null
+
+  phone: string | null
+  mobile: string | null
+  birthdate: string | null
+
+  location: string | null
+  remarks: string | null 
+
+  auth_id: string | null
+  issuper: boolean
+  default_farm: string | null
+
+  supervisor: number
+
+  isactive: boolean
+
+  users_farms: string[]
 }
