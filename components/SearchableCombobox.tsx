@@ -91,7 +91,7 @@ export default function SearchableCombobox(props: Props) {
   return (
     <Combobox
       open={open}
-      onOpenChange={(o) => {
+      onOpenChange={(o: any) => {
         setOpen(o)
 
         if (o) {
@@ -104,7 +104,7 @@ export default function SearchableCombobox(props: Props) {
       autoHighlight={autoHighlight}
       items={filteredItems}
       value={props.value as any}
-      onValueChange={(val) => {
+      onValueChange={(val: any) => {
         if (props.multiple) {
           if (!val) props.onValueChange([])
           else if (Array.isArray(val)) props.onValueChange(val)
@@ -122,7 +122,7 @@ export default function SearchableCombobox(props: Props) {
     >
       <ComboboxChips ref={anchor} className={`${className} w-full border`}>
         <ComboboxValue>
-          {(values) => {
+          {(values: any) => {
             const normalized = Array.isArray(values)
               ? values
               : values

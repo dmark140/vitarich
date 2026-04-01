@@ -44,6 +44,7 @@ export default function Layout() {
   ]
 
   const pickRow = (row: any) => {
+    console.log({ row })
     setPickedRows(prev => [...prev, row])
     setRows(prev => prev.filter(r => r !== row))
   }
