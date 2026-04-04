@@ -22,6 +22,9 @@ export type HatchClassification = {
   misshapen: number | null;
   leakers: number | null;
   dirties: number | null;
+  farm_id: number | null;
+  hairline: number | null;
+  farm_name: string | null;
 };
 
 export type HatchClassificationInsert = {
@@ -44,6 +47,9 @@ export type HatchClassificationInsert = {
   misshapen: number | null;
   leakers: number | null;
   dirties: number | null;
+  farm_id: number | null;
+  hairline: number | null;
+  farm_name: string | null;
 };
 
 export type HatchClassificationRow = HatchClassificationInsert & {
@@ -120,6 +126,7 @@ export async function listHatchClassification(limit = 50) {
     .order("id", { ascending: false })
     .limit(limit);
 
+  console.log("hatch_classification =>", { data, error });
   if (error) throw new Error(error.message);
   return (data ?? []) as HatchClassificationRow[];
 }
@@ -129,7 +136,7 @@ export async function getReceivingList(limit = 50) {
     .select("*")
     .order("created_at", { ascending: false })
     .limit(limit);
-
+  console.log("view_for_classification =>", { data, error });
   if (error) throw error;
 
   return data as ReceivingListRow[];

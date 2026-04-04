@@ -37,6 +37,7 @@ import { refreshSessionx } from "@/app/admin/user/RefreshSession";
 import { formatNumber } from "@/lib/utils/numberFormat";
 import loading from "@/loading";
 import { useGlobalContext } from "@/lib/context/GlobalContext";
+import { db } from "@/lib/Supabase/supabaseClient";
 
 export default function HatchTable() {
   const router = useRouter();
@@ -54,10 +55,12 @@ export default function HatchTable() {
     HatchForClassificationRow[]
   >([]);
   const { setValue, getValue } = useGlobalContext();
+
   const load = useCallback(async () => {
     setIsLoading(true);
     try {
       const data = await listHatchClassification(50);
+      // console.log(data);
       setItems(Array.isArray(data) ? data : []);
       setLastUpdated(new Date().toLocaleString());
     } catch (e) {
@@ -209,6 +212,7 @@ export default function HatchTable() {
       { accessorKey: "misshapen", header: "Misshapen" },
       { accessorKey: "leakers", header: "Leakers" },
       { accessorKey: "dirties", header: "Dirties" },
+      { accessorKey: "hairline", header: "Hairline" },
       {
         accessorKey: "ttl_count",
         header: "Total Count",

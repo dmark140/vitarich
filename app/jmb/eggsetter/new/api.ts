@@ -44,6 +44,7 @@ export type SetterIncubation = {
     | "Pointed Down"
     | "Pointed Middle"
     | null;
+  qty_set_egg: number | null;
 };
 
 const TABLE = "setter_incubation_process";

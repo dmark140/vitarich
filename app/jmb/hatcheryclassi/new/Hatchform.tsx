@@ -75,6 +75,8 @@ type ViewForHatcheryClassi = {
   UoM: string | null;
   actual_count: number | null;
   classfi_ref_no: string | null;
+  farm_id: string | null;
+  farm_name: string | null;
 };
 
 type FormState = {
@@ -89,7 +91,6 @@ type FormState = {
   classfi_ref_no: string;
   classi_ref_no: string;
   date_classify: string;
-
   good_egg: number;
   trans_crack: number;
   trans_condemn: number;
@@ -106,6 +107,9 @@ type FormState = {
   ttl_count: number;
   discrepancy: number;
   percentage_egg_recovery: number;
+  farm_id?: string;
+  hairline?: number;
+  farm_name: string;
 };
 
 const emptyForm: FormState = {
@@ -136,6 +140,9 @@ const emptyForm: FormState = {
   ttl_count: 0,
   discrepancy: 0,
   percentage_egg_recovery: 0,
+  farm_id: "",
+  hairline: 0,
+  farm_name: "",
 };
 
 export default function Hatchform() {
@@ -167,6 +174,7 @@ export default function Hatchform() {
       { label: "Misshapen", name: "misshapen" },
       { label: "Leakers", name: "leakers" },
       { label: "Dirties", name: "dirties" },
+      { label: "Hairline", name: "hairline" },
     ],
     [],
   );
@@ -243,6 +251,7 @@ export default function Hatchform() {
         base.misshapen = Number(row.misshapen ?? 0);
         base.leakers = Number(row.leakers ?? 0);
         base.dirties = Number(row.dirties ?? 0);
+        base.hairline = Number(row.hairline ?? 0);
 
         // Try to populate "view" fields from the breeders view by br_no
         const selected = breeders.find((b) => b.brdr_ref_no === base.br_no);
@@ -255,6 +264,8 @@ export default function Hatchform() {
           base.uom = selected.UoM ?? "";
           base.total_count_view = Number(selected.actual_count ?? 0);
           base.classfi_ref_no = selected.classfi_ref_no ?? "";
+          base.farm_id = selected.farm_id ?? "";
+          base.farm_name = selected.farm_name ?? "";
         }
 
         recalcTotals(base);
@@ -332,6 +343,8 @@ export default function Hatchform() {
         dr_date: selected.doc_date ?? "",
         temperature: selected.temperature ?? "",
         sku: selected.sku ?? "",
+        farm_id: selected.farm_id ?? "",
+        farm_name: selected.farm_name ?? "",
         // sku: selected.sku ?? "",
         itemcodedesc: selected.itemcodedesc ?? "",
         uom: selected.UoM ?? "",
@@ -404,10 +417,10 @@ export default function Hatchform() {
       alert("Classification Ref. No. not generated yet.");
       return false;
     }
-    if (Number(form.ttl_count) !== Number(form.total_count_view)) {
-      alert("Total Classify must be equal to Total Count.");
-      return false;
-    }
+    // if (Number(form.ttl_count) !== Number(form.total_count_view)) {
+    //   alert("Total Classify must be equal to Total Count.");
+    //   return false;
+    // }
     return true;
   };
 
@@ -437,6 +450,7 @@ export default function Hatchform() {
           misshapen: form.misshapen,
           leakers: form.leakers,
           dirties: form.dirties,
+          hairline: form.hairline,
           ttl_count: form.ttl_count,
           is_active: true,
         };
@@ -451,7 +465,6 @@ export default function Hatchform() {
         date_classify: form.date_classify,
         classi_ref_no: form.classi_ref_no || null,
         br_no: form.br_no,
-
         good_egg: form.good_egg,
         trans_crack: form.trans_crack,
         trans_condemn: form.trans_condemn,
@@ -467,6 +480,9 @@ export default function Hatchform() {
         dirties: form.dirties,
         ttl_count: form.ttl_count,
         is_active: true,
+        farm_id: form.farm_id ? Number(form.farm_id) : null,
+        farm_name: form.farm_name,
+        hairline: form.hairline ?? null,
       };
 
       await createHatchClassification(payload);
@@ -506,13 +522,18 @@ export default function Hatchform() {
           </div>
 
           <Separator />
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <DisabledField label="Farm ID" value={form.farm_id} />
+            <DisabledField label="Farm Name" value={form.farm_name} />
             <DisabledField label="DR No." value={form.dr_no} />
             <DisabledField label="DR Date" value={form.dr_date} />
             <DisabledField label="Temperature" value={form.temperature} />
             <DisabledField label="SKU" value={form.itemcodedesc} />
             <DisabledField label="UOM" value={form.uom} />
-            <DisabledField label="Total Count" value={form.total_count_view} />
+            <DisabledField
+              label="Total Received"
+              value={form.total_count_view}
+            />
           </div>
         </CardContent>
       </Card>
@@ -658,6 +679,16 @@ export default function Hatchform() {
               <NumberField
                 label="Dirties"
                 name="dirties"
+                placeholder="0"
+                form={form}
+                onChange={handleChange}
+                disabled={disabledAll}
+              />
+            </div>
+            <div className="md:col-span-1">
+              <NumberField
+                label="Hairline"
+                name="hairline"
                 placeholder="0"
                 form={form}
                 onChange={handleChange}

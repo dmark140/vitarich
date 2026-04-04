@@ -114,7 +114,6 @@ export default function Eggstorageform() {
   const [shellStartLocal, setShellStartLocal] = useState("");
   const [shellEndLocal, setShellEndLocal] = useState("");
   const [remarks, setRemarks] = useState("");
-  const [selectedEggRefs, setSelectedEggRefs] = useState<string[]>([]);
   // load ref options
   useEffect(() => {
     const loadClassiRefs = async () => {

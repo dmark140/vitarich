@@ -56,7 +56,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
   Select,
@@ -76,7 +75,6 @@ import {
   type HatchClassiRefOption,
   getUserInfo,
 } from "./api";
-import { Save, Pencil, Loader2, X } from "lucide-react";
 import FormActionButtons from "@/components/FormActionButtons";
 import { refreshSessionx } from "@/app/admin/user/RefreshSession";
 import RequiredLabel from "@/components/RequiredLabel";
@@ -102,6 +100,8 @@ type FormState = {
   egg_shell_orientation: "Pointed Up" | "Pointed Down" | "Pointed Middle";
 
   turning_angle: string;
+  qty_set_egg: number;
+  sum_set_egg?: number;
 };
 
 function extractFarmOnly(ref: string) {
@@ -174,6 +174,7 @@ export default function Eggsetterform() {
     turning_interval: "",
     egg_shell_orientation: "Pointed Down",
     turning_angle: "",
+    qty_set_egg: 0,
   });
   // const getDefaultFarm = async () => {
   //   const data = await getUserInfo();
@@ -271,6 +272,10 @@ export default function Eggsetterform() {
 
           turning_angle:
             row.turning_angle != null ? String(row.turning_angle) : "",
+          qty_set_egg:
+            row.qty_set_egg != null && Number.isFinite(Number(row.qty_set_egg))
+              ? Number(row.qty_set_egg)
+              : 0,
         }));
       } catch (e: any) {
         alert(e?.message ?? "Failed to load record.");
@@ -318,6 +323,10 @@ export default function Eggsetterform() {
       alert("Setter Machine ID is required.");
       return;
     }
+    if (!form.qty_set_egg) {
+      alert("Quantity of Set Eggs is required.");
+      return;
+    }
     if (!isValidDates) {
       alert("Egg Shell Temp Date & Time must be after Setting Date.");
       return;
@@ -352,6 +361,7 @@ export default function Eggsetterform() {
       egg_shell_orientation: form.egg_shell_orientation || null,
 
       turning_angle: form.turning_angle ? Number(form.turning_angle) : null,
+      qty_set_egg: form.qty_set_egg ? Number(form.qty_set_egg) : null,
     };
 
     setSaving(true);
@@ -434,9 +444,18 @@ export default function Eggsetterform() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Total Number of Egg Set</Label>
+                    <Label>Total Number of Hatching Egg</Label>
                     <Input
                       value={form.total_eggs}
+                      readOnly
+                      placeholder=""
+                      disabled
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Total Egg Set</Label>
+                    <Input
+                      value={form.sum_set_egg}
                       readOnly
                       placeholder=""
                       disabled
@@ -452,7 +471,22 @@ export default function Eggsetterform() {
                     Loading...
                   </div>
                 ) : null}
-
+                <div className="space-y-2">
+                  <RequiredLabel>Qty Set</RequiredLabel>
+                  <Input
+                    type="number"
+                    min={0}
+                    inputMode="numeric"
+                    value={form.qty_set_egg}
+                    onChange={(e) =>
+                      setForm((p) => ({
+                        ...p,
+                        qty_set_egg: clampNonNegative(e.target.value) as any,
+                      }))
+                    }
+                    disabled={disabledAll}
+                  />
+                </div>
                 <div className="space-y-2">
                   <RequiredLabel>Setting Date</RequiredLabel>
                   <Input
