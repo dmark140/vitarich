@@ -1,5 +1,5 @@
 'use client'
-
+// build 2
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -307,7 +307,7 @@ export default function Layout() {
                                     ? (
                                         <SearchableDropdown
                                             list={i.list || []}
-                                            disabled={true}
+                                            disabled={false}
                                             codeLabel="code"
                                             nameLabel="name"
                                             value={farmData[i.code] || ''}
