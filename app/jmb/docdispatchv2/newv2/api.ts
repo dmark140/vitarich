@@ -247,6 +247,11 @@ export type ChickGradingQtyRow = {
   dead_pip: number | null;
   unhatched: number | null;
   rotten: number | null;
+  exploder: number | null;
+  unhatched_good: number | null;
+  unhatched_bad: number | null;
+  infertile_good: number | null;
+  infertile_bad: number | null;
 };
 
 export async function getChickGradingQtyByBatchCode(batch_code: string) {
@@ -257,7 +262,8 @@ export async function getChickGradingQtyByBatchCode(batch_code: string) {
       batch_code,
       class_a, class_b, class_a_junior, class_c,
       cull_chicks, dead_chicks, infertile, dead_germ,
-      live_pip, dead_pip, unhatched, rotten
+      live_pip, dead_pip, unhatched, rotten , exploder, unhatched_good ,unhatched_bad, infertile_good, infertile_bad
+
     `,
     )
     .eq("batch_code", batch_code)

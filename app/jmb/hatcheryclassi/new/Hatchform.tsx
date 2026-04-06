@@ -107,7 +107,7 @@ type FormState = {
   ttl_count: number;
   discrepancy: number;
   percentage_egg_recovery: number;
-  farm_id?: string;
+  farm_id?: number;
   hairline?: number;
   farm_name: string;
 };
@@ -140,7 +140,7 @@ const emptyForm: FormState = {
   ttl_count: 0,
   discrepancy: 0,
   percentage_egg_recovery: 0,
-  farm_id: "",
+  farm_id: 0,
   hairline: 0,
   farm_name: "",
 };
@@ -207,7 +207,7 @@ export default function Hatchform() {
       const { data, error } = await db
         .from("viewforhatcheryclassi")
         .select(
-          "itemcodedesc,dr_num,doc_date,temperature,humidity,brdr_ref_no,sku,UoM,actual_count,classfi_ref_no",
+          "itemcodedesc,dr_num,doc_date,temperature,humidity,brdr_ref_no,sku,UoM,actual_count,classfi_ref_no,farm_id,farm_name",
         )
         .order("doc_date", { ascending: false });
 
@@ -264,7 +264,7 @@ export default function Hatchform() {
           base.uom = selected.UoM ?? "";
           base.total_count_view = Number(selected.actual_count ?? 0);
           base.classfi_ref_no = selected.classfi_ref_no ?? "";
-          base.farm_id = selected.farm_id ?? "";
+          base.farm_id = Number(selected.farm_id ?? 0);
           base.farm_name = selected.farm_name ?? "";
         }
 
@@ -343,7 +343,7 @@ export default function Hatchform() {
         dr_date: selected.doc_date ?? "",
         temperature: selected.temperature ?? "",
         sku: selected.sku ?? "",
-        farm_id: selected.farm_id ?? "",
+        farm_id: Number(selected.farm_id ?? 0),
         farm_name: selected.farm_name ?? "",
         // sku: selected.sku ?? "",
         itemcodedesc: selected.itemcodedesc ?? "",
