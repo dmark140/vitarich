@@ -293,10 +293,10 @@ export default function CheckPulloutForm() {
 
               {/* AUTO fields */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1">
+                {/* <div className="space-y-1">
                   <Label>Chick Hatch Ref. No.</Label>
                   <Input value={form.chick_hatch_ref_no ?? ""} disabled />
-                </div>
+                </div> */}
 
                 <div className="space-y-1">
                   <Label>Hatch Window</Label>

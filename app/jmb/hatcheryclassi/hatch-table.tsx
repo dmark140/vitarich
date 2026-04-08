@@ -135,7 +135,7 @@ export default function HatchTable() {
       },
       {
         accessorKey: "actual_count",
-        header: "Total Egg",
+        header: "Ttl Egg Received",
         cell: ({ getValue }) => formatNumber(getValue<number>()),
       },
       { accessorKey: "farm_name", header: "Shipped To" },

@@ -83,10 +83,10 @@ export default function ChickPulloutTable() {
         accessorKey: "egg_ref_no",
         header: "Egg Reference No.",
       },
-      {
-        accessorKey: "chick_hatch_ref_no",
-        header: "Chick Hatch Ref. No.",
-      },
+      // {
+      //   accessorKey: "chick_hatch_ref_no",
+      //   header: "Chick Hatch Ref. No.",
+      // },
       // {
       //   accessorKey: "farm_source",
       //   header: "Farm Source",
