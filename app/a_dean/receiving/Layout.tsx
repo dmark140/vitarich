@@ -1,23 +1,16 @@
 'use client'
 import { Button } from '@/components/ui/button'
-import { DataTable } from '@/components/ui/DataTable'
 import { ColumnConfig, RowDataKey } from '@/lib/Defaults/DefaultTypes'
-import React, { useEffect, useLayoutEffect, useMemo, useState } from 'react'
-import { getReceivingDraftPending, getReceivingList, getReceivingListByUser } from './api'
-import TableSkeleton from '@/components/ui/TableSkeleton'
-import { sleep } from '@/lib/utils'
+import { useEffect, useMemo, useState } from 'react'
+import { getReceivingList, getReceivingListByUser } from './api'
 import { useRouter } from 'next/navigation'
 import { useGlobalContext } from '@/lib/context/GlobalContext'
 import { toast } from 'sonner'
 import ScannerModal from '@/components/ScannerModal'
 import Breadcrumb from '@/lib/Breadcrumb'
-import DataTableV2 from '@/components/ui/DataTableV2'
 import DynamicTable from '@/components/ui/DataTableV2'
-import { EditIcon, HandCoins, Map, Plus, QrCode, RefreshCcw, Smartphone } from 'lucide-react'
-import { db } from '@/lib/Supabase/supabaseClient'
+import { HandCoins, Map, Plus, RefreshCcw } from 'lucide-react'
 import { refreshSessionx } from '@/app/admin/user/RefreshSession'
-import { getAuthId } from '@/lib/getAuthId'
-import { checkUserActive } from '@/lib/CheckUserIfActive'
 import { getDefaultFarm } from './manual/api'
 import { Farms } from '@/lib/types'
 
@@ -255,7 +248,7 @@ export default function Layout() {
                         }
                         }
                     ><Plus /> Receive Manually</Button>'
-                
+
                 </div>
             </div>
             <div className='my-4'></div>
@@ -294,14 +287,11 @@ export default function Layout() {
                                                 className='bg-background border hover:bg-foreground/10 border-green-400 text-green-400 p-1 rounded-xs   '
 
                                                 onClick={() => {
-                                                    if (row.status === "Approved") {
-                                                        toast.warning(
-                                                            "Only pending documents are allowed to be edited on this module"
-                                                        )
-                                                        return
-                                                    }
+
                                                     console.log({ row })
                                                     setValue("forApproval", { row })
+                                                    setValue("scanning", "on")
+                                                    console.log({ row })
                                                     // route.push("/a_dean/receiving/manual")
                                                 }}
                                             >

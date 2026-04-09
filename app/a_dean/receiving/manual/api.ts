@@ -1,3 +1,4 @@
+
 import { db } from '@/lib/Supabase/supabaseClient'
 import { DefaultFarm, DocumentApproval, Farms, Users } from '@/lib/types'
 
