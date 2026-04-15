@@ -17,8 +17,8 @@ import { addDays, format } from "date-fns"
 import { DateRange } from 'react-day-picker'
 export default function StockDashboard() {
     const [date, setDate] = useState<DateRange | undefined>({
-        from: new Date(),
-        to: addDays(new Date(), 7),
+        from: addDays(new Date(), -7),
+        to: new Date(),
     })
     const check = async () => {
         const authId = await getAuthId();
