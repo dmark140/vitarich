@@ -29,6 +29,7 @@ export function LoginForm({
   const [loading, setloading] = useState(false);
   const router = useRouter();
   const { setValue } = useGlobalContext()
+  const [showpass, setshowpass] = useState(false)
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -152,12 +153,20 @@ export function LoginForm({
           </div>
 
           <div className="space-y-2">
-            <Label>New Password</Label>
+            <div className="flex justify-between">
+              <Label>New Password</Label>
+              <button
+                onClick={() => setshowpass(!showpass)}
+                className="text-sm cursor-pointer text-blue-600/80 font-semibold underline" >
+                {showpass ? "Hide" : "Show"}
+              </button>
+            </div>
             <Input
-              type="password"
+              type={showpass ? "text" : "password"}
               value={resetPassword}
               onChange={(e) => setResetPassword(e.target.value)}
             />
+
           </div>
 
           <div className="space-y-2">
