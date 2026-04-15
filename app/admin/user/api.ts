@@ -158,26 +158,25 @@ export async function updateUserProfile(
 
   console.log({ userProfileData, defaultFarms })
   const payload = {
-    p_auth_id: userProfileData.auth_id ,
-    p_updated_by: userProfileData.created_by || "",
-    p_firstname: userProfileData.firstname || "",
-    p_middlename: userProfileData.middlename || "",
-    p_lastname: userProfileData.lastname || "",
-    p_gender: userProfileData.gender || "",
-    p_phone: userProfileData.phone || "",
-    p_mobile: userProfileData.mobile || "",
-    p_birthdate: userProfileData.birthdate || "",
-    p_location: userProfileData.location || "",
-    p_remarks: userProfileData.remarks || "",
-    p_default_farm: userProfileData.default_farm || "",
-    p_supervisor: userProfileData.supervisor || "",
-    p_default_farms: [],
+    p_auth_id: userProfileData.auth_id,
+    p_updated_by: userProfileData.created_by,
+    p_firstname: userProfileData.firstname,
+    p_middlename: userProfileData.middlename,
+    p_lastname: userProfileData.lastname,
+    p_gender: userProfileData.gender,
+    p_phone: userProfileData.phone,
+    p_mobile: userProfileData.mobile,
+    p_birthdate: userProfileData.birthdate,
+    p_location: userProfileData.location,
+    p_remarks: userProfileData.remarks,
+    p_default_farm: userProfileData.default_farm,
+    p_supervisor: userProfileData.supervisor,
+    p_default_farms: defaultFarms,
   };
-  // app/admin/user/api.ts
-  console.log({ payload })
+// app/admin/user/api.ts
   const { error } = await db.rpc(
     'fn_update_user_profile_with_farms',
-    { payload }
+    payload
   );
 
   if (error) {
@@ -222,12 +221,12 @@ export async function getUserInfoById(authId: string) {
   const { data, error } = await db
     .from('vw_users_with_farms')
     .select(`*`)
-    .eq('id', authId);
+   .eq('id', authId);
   if (error) {
     console.error('Supabase Select Error:', error);
     throw new Error(error.message);
   }
-  console.log({ authId })
+  console.log({ authId  })
 
   return data;
 }

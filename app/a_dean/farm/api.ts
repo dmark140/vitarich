@@ -6,7 +6,7 @@ export async function getFarms() {
     const { data, error } = await db
       .from('farms')
       .select('*')
-      .eq('void', 0)
+      // .eq('void', 1)
       .order('created_at', { ascending: false });
 
     if (error) {
