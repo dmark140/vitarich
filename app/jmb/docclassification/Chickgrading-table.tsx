@@ -113,7 +113,7 @@ export default function ChickgradingTable() {
       },
       {
         accessorKey: "total_chicks",
-        header: "Total chicks",
+        header: "Total Egg Set",
         cell: ({ row }) => {
           const value = row.original.total_chicks ?? 0;
           return Number(value).toLocaleString();
