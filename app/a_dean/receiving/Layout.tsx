@@ -154,7 +154,7 @@ export default function Layout() {
             setinitialRows(filtered)
 
         } catch (err) {
-            toast("Unable to load Receiving Items. Please check your internet connection and try again.")
+            // toast("Unable to load Receiving Items. Please check your internet connection and try again.")
             setinitialRows([])
         }
 
