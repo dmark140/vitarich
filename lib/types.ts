@@ -512,3 +512,11 @@ export type ReceivingListRow2 = {
   id: number
   recieving_items: ReceivingItemRow[]
 }
+
+
+
+
+export type farm_dr_unres = {
+  dr_num: string | null
+}
+

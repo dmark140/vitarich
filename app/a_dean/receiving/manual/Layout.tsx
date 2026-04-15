@@ -293,11 +293,11 @@ export default function ApprovalDecisionForm() {
       brdr_ref_no: brdr_ref_no ?? "",
       items: transformedItems,
     }
-    setloading(false)
-
-    console.log({ payload })
-    return
+    // console.log({ payload })
+    // return
     const res = await createReceiving(payload)
+
+    setloading(false)
 
     if (res.success) {
       alert(`Saved! DocEntry: ${res.docentry}`)
@@ -382,29 +382,28 @@ export default function ApprovalDecisionForm() {
       ...(prev ?? emptyApprovalRecord),
       soldTo: farmMatch.code,
       delivered_to: destinationMatch.id,
-      dr_num: payload.dr,
-      po_no: payload.ts,
+      dr_num: payload.dr === "0" ? "" : payload.dr,
+      // po_no: payload.ts,
     }))
 
 
 
-    const mappedItems = (payload.modified_dispatchbody || []).map(
-      (row: any, index: number) => {
-        const prodDate = extractProdDate(row.skuText)
-        return {
-          id: Date.now() + index,
-          brdr_ref_no: row.skuText || "",
-          brdr_ref_noVx: row.skuText || "",
-          sku: classificationMap[row.classification] || "",
-          UoM: "PCS",
-          total: row.qty,
-          actual_total: 0,
-          age: "26 Weeks, 0 Day(s)",
-          prod_date: prodDate,
-          prod_date_to: prodDate,
-          isNew: false,
-        }
+    const mappedItems = (payload.modified_dispatchbody || []).map((row: any, index: number) => {
+      const prodDate = extractProdDate(row.skuText)
+      return {
+        id: Date.now() + index,
+        brdr_ref_no: row.skuText || "",
+        brdr_ref_noVx: row.skuText || "",
+        sku: classificationMap[row.classification] || "",
+        UoM: "PCS",
+        total: row.qty,
+        actual_total: 0,
+        age: "26 Weeks, 0 Day(s)",
+        prod_date: prodDate,
+        prod_date_to: prodDate,
+        isNew: false,
       }
+    }
     )
 
     setloading(false)
@@ -453,13 +452,13 @@ export default function ApprovalDecisionForm() {
               <Button type="submit" disabled={loading}>
                 <Save className="mr-2 h-4 w-4" /> Save Record
               </Button>
-              <Button type="button" onClick={() => {
+              {/* <Button type="button" onClick={() => {
                 const getdata = getValue("forApproval")
                 console.log({ getdata })
 
               }}>
                 get header
-              </Button>
+              </Button> */}
             </div>
           </div>
         </CardHeader>

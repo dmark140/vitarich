@@ -11,9 +11,15 @@ import { Filter, MoreHorizontal } from 'lucide-react'
 import Breadcrumb from '@/lib/Breadcrumb'
 import { getAuthId } from '@/lib/getAuthId'
 import { checkUserActive } from '@/lib/CheckUserIfActive'
-import { useLayoutEffect } from 'react'
-
+import { useLayoutEffect, useState } from 'react'
+import { DatePickerWithRange } from '@/lib/DatePickerWithRange'
+import { addDays, format } from "date-fns"
+import { DateRange } from 'react-day-picker'
 export default function StockDashboard() {
+    const [date, setDate] = useState<DateRange | undefined>({
+        from: new Date(),
+        to: addDays(new Date(), 7),
+    })
     const check = async () => {
         const authId = await getAuthId();
 
@@ -32,6 +38,14 @@ export default function StockDashboard() {
                 FirstPreviewsPageName='Home'
                 CurrentPageName='Dashboard'
             />
+
+            <div className='bg-card rounded-md shadow items-start p-4'>
+                <DatePickerWithRange
+                    label="Production Date Range"
+                    date={date}
+                    setDate={setDate}
+                />
+            </div>
 
             <div className='bg-white p-4  rounded-2xl gap-4  space-y-4'>
                 <div className="grid gap-4 md:grid-cols-3 ">

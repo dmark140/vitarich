@@ -1,5 +1,5 @@
 import { db } from '@/lib/Supabase/supabaseClient'
-import { DocumentApproval, ReceivingItemRow, ReceivingListRow, ReceivingListRow2 } from '@/lib/types'
+import { DocumentApproval, farm_dr_unres, ReceivingItemRow, ReceivingListRow, ReceivingListRow2 } from '@/lib/types'
 
 export async function getReceivingDraftPending() {
   const { data, error } = await db
@@ -56,4 +56,19 @@ export async function getReceivingListByUser(): Promise<string> {
   console.log(sessionData.session?.user.id)
 
   return data?.[0]?.id || '';
+}
+
+
+
+
+
+
+export async function vwdmf_get_farmdr_unres(): Promise<farm_dr_unres[]> {
+  const { data, error } = await db
+    .from('vwdmf_get_farmdr_unres')
+    .select(`*`) 
+
+  if (error) throw error
+
+  return data as farm_dr_unres[]
 }
