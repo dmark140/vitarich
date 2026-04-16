@@ -4,16 +4,21 @@ import { useEffect, useLayoutEffect, useMemo, useState } from "react";
 import { addDays, format } from "date-fns";
 import type { DateRange } from "react-day-picker";
 import { Bird, Egg, Percent } from "lucide-react";
+
 import Breadcrumb from "@/lib/Breadcrumb";
 import { DatePickerWithRange } from "@/lib/DatePickerWithRange";
 import { getAuthId } from "@/lib/getAuthId";
 import { checkUserActive } from "@/lib/CheckUserIfActive";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getDashboardSummary, type DashboardSummary } from "./api";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
+
+import { getDashboardSummary, type DashboardSummary } from "./api";
 import EggIntakeTrend from "./EggIntakeTrend";
 import Hatchabilitytrend from "./Hatchabilitytrend";
+
 function formatNumber(value: number) {
     return new Intl.NumberFormat("en-US").format(value);
 }
@@ -25,6 +30,22 @@ function formatPercent(value: number) {
 function toDateKey(value: Date) {
     return format(value, "yyyy-MM-dd");
 }
+
+/* ---------------- Skeleton Cards ---------------- */
+
+function SkeletonStatCard() {
+    return (
+        <Card className="overflow-hidden border-0 bg-white shadow">
+            <CardContent className="p-5 space-y-3">
+                <Skeleton className="h-3 w-28" />
+                <Skeleton className="h-10 w-32" />
+                <Skeleton className="h-3 w-40" />
+            </CardContent>
+        </Card>
+    );
+}
+
+/* ---------------- Real Stat Card ---------------- */
 
 function StatCard({
     title,
@@ -56,7 +77,9 @@ function StatCard({
                             <div className="text-4xl font-bold text-slate-900">{value}</div>
                             <p className="text-sm text-slate-500">{helper}</p>
                         </div>
-                        <div className={`rounded-2xl p-3 ${badgeClassName}`}>{icon}</div>
+                        <div className={`rounded-2xl p-3 ${badgeClassName}`}>
+                            {icon}
+                        </div>
                     </div>
                 </div>
             </CardContent>
@@ -65,26 +88,26 @@ function StatCard({
 }
 
 export default function StockDashboard() {
+    const [groupBy, setgroupBy] =
+        useState<"daily" | "weekly" | "monthly">("daily");
 
-    const [groupBy, setgroupBy] = useState<'daily' | 'weekly' | 'monthly'>('daily')
+    const [eggGroupBy, setEggGroupBy] =
+        useState<"daily" | "weekly" | "monthly">("daily");
 
-    const [eggGroupBy, setEggGroupBy] = useState<'daily' | 'weekly' | 'monthly'>('daily')
-    const [date, setDate] = useState<DateRange | undefined>(
-        {
-            from: addDays(new Date(), -60),
-            to: new Date(),
-        })
+    const [date, setDate] = useState<DateRange | undefined>({
+        from: addDays(new Date(), -60),
+        to: new Date(),
+    });
 
-    // const [date, setDate] = useState<DateRange | undefined>(() => {
-    //     const today = new Date();
-    //     return { from: today, to: today };
-    // });
-    const [summary, setSummary] = useState<DashboardSummary | null>(null);
+    const [summary, setSummary] =
+        useState<DashboardSummary | null>(null);
+
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const filter = useMemo(() => {
         if (!date?.from || !date?.to) return null;
+
         return {
             from: toDateKey(date.from),
             to: toDateKey(date.to),
@@ -112,11 +135,15 @@ export default function StockDashboard() {
             try {
                 const data = await getDashboardSummary(filter);
                 if (!active) return;
+
                 setSummary(data);
             } catch (err) {
                 if (!active) return;
+
                 setError(
-                    err instanceof Error ? err.message : "Failed to load dashboard.",
+                    err instanceof Error
+                        ? err.message
+                        : "Failed to load dashboard."
                 );
             } finally {
                 if (active) setLoading(false);
@@ -131,101 +158,93 @@ export default function StockDashboard() {
     return (
         <main className="min-h-screen p-6">
             <div className="mx-auto max-w-7xl space-y-6">
-                <div className="flex flex-col gap-4">
-                    <div className="space-y-3">
-                        <Breadcrumb
-                            FirstPreviewsPageName="Home"
-                            CurrentPageName="Dashboard"
-                        />
-                        <Separator />
-                        {/* <div>
-              <h1 className="text-4xl font-bold tracking-tight text-slate-900">
-                Hatchery Dashboard
-              </h1>
-            </div> */}
+                <Breadcrumb
+                    FirstPreviewsPageName="Home"
+                    CurrentPageName="Dashboard"
+                />
 
-                        <Card className="p-4">
-                            <DatePickerWithRange
-                                label="Production Date Range"
-                                date={date}
-                                setDate={setDate}
-                            />
-                        </Card>
-                    </div>
-                </div>
-                {/* <Separator /> */}
-                {error ? (
+                <Separator />
+
+                <Card className="p-4">
+                    <DatePickerWithRange
+                        label="Production Date Range"
+                        date={date}
+                        setDate={setDate}
+                    />
+                </Card>
+
+                {error && (
                     <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
                         {error}
                     </div>
-                ) : null}
+                )}
+
+                {/* ---------------- STAT CARDS ---------------- */}
 
                 <div className="grid gap-5 lg:grid-cols-3">
-                    <StatCard
-                        title="Total Eggs Set"
-                        value={
-                            summary
-                                ? formatNumber(summary.eggsSet.filtered)
-                                : loading
-                                    ? "..."
-                                    : "0"
-                        }
-                        helper={
-                            summary
-                                ? `Today ${formatNumber(summary.eggsSet.today)} / Month ${formatNumber(summary.eggsSet.month)}`
-                                : "Today 0 / Month 0"
-                        }
-                        icon={<Egg className="size-6 text-sky-600" />}
-                        accentClassName="text-sky-500"
-                        badgeClassName="bg-sky-100"
-                    />
+                    {loading || !summary ? (
+                        <>
+                            <SkeletonStatCard />
+                            <SkeletonStatCard />
+                            <SkeletonStatCard />
+                        </>
+                    ) : (
+                        <>
+                            <StatCard
+                                title="Total Eggs Set"
+                                value={formatNumber(summary.eggsSet.filtered)}
+                                helper={`Today ${formatNumber(
+                                    summary.eggsSet.today
+                                )} / Month ${formatNumber(summary.eggsSet.month)}`}
+                                icon={<Egg className="size-6 text-sky-600" />}
+                                accentClassName="text-sky-500"
+                                badgeClassName="bg-sky-100"
+                            />
 
-                    <StatCard
-                        title="Total Chicks Hatched"
-                        value={
-                            summary
-                                ? formatNumber(summary.chicksHatched.filtered)
-                                : loading
-                                    ? "..."
-                                    : "0"
-                        }
-                        helper={
-                            summary
-                                ? `Today ${formatNumber(summary.chicksHatched.today)} / Month ${formatNumber(summary.chicksHatched.month)}`
-                                : "Today 0 / Month 0"
-                        }
-                        icon={<Bird className="size-6 text-emerald-600" />}
-                        accentClassName="text-emerald-500"
-                        badgeClassName="bg-emerald-100"
-                    />
+                            <StatCard
+                                title="Total Chicks Hatched"
+                                value={formatNumber(
+                                    summary.chicksHatched.filtered
+                                )}
+                                helper={`Today ${formatNumber(
+                                    summary.chicksHatched.today
+                                )} / Month ${formatNumber(
+                                    summary.chicksHatched.month
+                                )}`}
+                                icon={<Bird className="size-6 text-emerald-600" />}
+                                accentClassName="text-emerald-500"
+                                badgeClassName="bg-emerald-100"
+                            />
 
-                    <StatCard
-                        title="Hatchability Rate"
-                        value={
-                            summary
-                                ? formatPercent(summary.hatchabilityRate.filtered)
-                                : loading
-                                    ? "..."
-                                    : "0.00%"
-                        }
-                        helper={
-                            summary
-                                ? `Today ${formatPercent(summary.hatchabilityRate.today)} / Month ${formatPercent(summary.hatchabilityRate.month)}`
-                                : "Today 0.00% / Month 0.00%"
-                        }
-                        icon={<Percent className="size-6 text-amber-600" />}
-                        accentClassName="text-amber-500"
-                        badgeClassName="bg-amber-100"
-                    />
+                            <StatCard
+                                title="Hatchability Rate"
+                                value={formatPercent(
+                                    summary.hatchabilityRate.filtered
+                                )}
+                                helper={`Today ${formatPercent(
+                                    summary.hatchabilityRate.today
+                                )} / Month ${formatPercent(
+                                    summary.hatchabilityRate.month
+                                )}`}
+                                icon={<Percent className="size-6 text-amber-600" />}
+                                accentClassName="text-amber-500"
+                                badgeClassName="bg-amber-100"
+                            />
+                        </>
+                    )}
                 </div>
             </div>
 
-            <Card className=" h-full bg-white mt-4 mx-auto max-w-7xl space-y-6">
+            {/* ---------------- HATCHABILITY CHART ---------------- */}
+
+
+
+            <Card className="mt-4 mx-auto max-w-7xl">
                 <CardHeader className="flex flex-row items-center justify-between">
                     <div>
                         <CardTitle>Hatchery Production Overview</CardTitle>
                         <p className="text-sm text-muted-foreground">
-                           Hatchability % trend
+                            Hatchability % trend
                         </p>
                     </div>
 
@@ -260,13 +279,20 @@ export default function StockDashboard() {
                 </CardHeader>
 
                 <CardContent className="h-[240px]">
-                    <Hatchabilitytrend
-                        date={date}
-                        groupBy={groupBy}
-                    />
+                    {loading ? (
+                        <Skeleton className="h-full w-full rounded-xl" />
+                    ) : (
+                        <Hatchabilitytrend
+                            date={date}
+                            groupBy={groupBy}
+                        />
+                    )}
                 </CardContent>
             </Card>
-            <Card className=" h-full bg-white mt-4 mx-auto max-w-7xl space-y-6">
+
+            {/* ---------------- EGG INTAKE CHART ---------------- */}
+
+            <Card className="mt-4 mx-auto max-w-7xl">
                 <CardHeader className="flex flex-row items-center justify-between">
                     <div>
                         <CardTitle>Egg Intake Trends</CardTitle>
@@ -306,10 +332,14 @@ export default function StockDashboard() {
                 </CardHeader>
 
                 <CardContent className="h-[240px]">
-                    <EggIntakeTrend
-                        date={date}
-                        groupBy={eggGroupBy}
-                    />
+                    {loading ? (
+                        <Skeleton className="h-full w-full rounded-xl" />
+                    ) : (
+                        <EggIntakeTrend
+                            date={date}
+                            groupBy={eggGroupBy}
+                        />
+                    )}
                 </CardContent>
             </Card>
         </main>
