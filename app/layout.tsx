@@ -10,6 +10,8 @@ import GlobalLoading from "@/loading";
 import { SidebarProvider } from "@/lib/sidebar/SidebarProvider";
 import AppSideBarControler from "@/lib/sidebar/AppSideBarControler";
 import { Toaster } from "sonner";
+import RouteGuard from '@/lib/SignupUpdateGuard';
+import GlobalLoaderController from '@/lib/context/GlobalLoaderController';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -38,6 +40,9 @@ export default function RootLayout({
       >
         <NextTopLoader color="#2563eb" showSpinner={false} />
         <GlobalProvider>
+          <RouteGuard />
+          <GlobalLoaderController />
+
           <ThemeProvider
             attribute="class"
             defaultTheme="light"
@@ -51,13 +56,15 @@ export default function RootLayout({
                 <SidebarProvider>
                   <div className="flex h-screen">
                     <AppSideBarControler />
-                    <main className="flex-1 overflow-y-auto w-full ">{children}</main>
+                    <main className="flex-1 overflow-y-auto w-full ">
+                      {children}
+                      </main>
                   </div>
                 </SidebarProvider>
               </FloatingDialogProvider>
 
             </ConfirmProvider>
-            <Toaster />
+            <Toaster position='top-center' />
           </ThemeProvider>
         </GlobalProvider>
       </body>

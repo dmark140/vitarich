@@ -1,8 +1,15 @@
-// lib/supabaseAdmin.ts
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from "@supabase/supabase-js"
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
-// IMPORTANT: Use service_role key, not anon/public key
-export const admin_db = createClient(supabaseUrl, supabaseServiceRoleKey);
+if (!serviceRoleKey) {
+  throw new Error("SUPABASE_SERVICE_ROLE_KEY is missing")
+}
+
+export const admin_db = createClient(supabaseUrl, serviceRoleKey, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false
+  }
+})

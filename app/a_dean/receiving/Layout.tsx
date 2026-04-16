@@ -1,19 +1,18 @@
 'use client'
 import { Button } from '@/components/ui/button'
-import { DataTable } from '@/components/ui/DataTable'
 import { ColumnConfig, RowDataKey } from '@/lib/Defaults/DefaultTypes'
-import React, { useEffect, useMemo, useState } from 'react'
-import { getReceivingDraftPending, getReceivingList } from './api'
-import TableSkeleton from '@/components/ui/TableSkeleton'
-import { sleep } from '@/lib/utils'
+import { useEffect, useMemo, useState } from 'react'
+import { getReceivingList, getReceivingListByUser, vwdmf_get_farmdr_unres } from './api'
 import { useRouter } from 'next/navigation'
 import { useGlobalContext } from '@/lib/context/GlobalContext'
 import { toast } from 'sonner'
 import ScannerModal from '@/components/ScannerModal'
 import Breadcrumb from '@/lib/Breadcrumb'
-import DataTableV2 from '@/components/ui/DataTableV2'
 import DynamicTable from '@/components/ui/DataTableV2'
-import { EditIcon, HandCoins, Map, Plus, QrCode, RefreshCcw } from 'lucide-react'
+import { HandCoins, Map, Plus, RefreshCcw } from 'lucide-react'
+import { refreshSessionx } from '@/app/admin/user/RefreshSession'
+import { getDefaultFarm } from './manual/api'
+import { Farms } from '@/lib/types'
 
 
 
@@ -23,8 +22,10 @@ export default function Layout() {
 
     }
 
+
     const [receivedRows, setReceivedRows] = useState<RowDataKey[]>([])
     const [loadingReceived, setLoadingReceived] = useState(true)
+    const [farms, setfarms] = useState<Farms[]>([])
 
 
     const { setValue, getValue } = useGlobalContext()
@@ -46,11 +47,10 @@ export default function Layout() {
             return;
         }
 
-        console.log("Found match via scan:", matchedRow);
+        // // console.loglog("Found match via scan:", matchedRow);
 
         setValue("forApproval", { row: matchedRow });
         route.push("/a_dean/receiving/approval");
-
 
     };
     const route = useRouter()
@@ -60,11 +60,9 @@ export default function Layout() {
     const tableColumnsx: ColumnConfig[] = useMemo(
         () => [
             { key: 'action', label: 'Action', type: 'button', disabled: false },
-            { key: 'id', label: 'Approval ID', type: 'text', disabled: true },
-            { key: 'dr_num', label: 'Dr #', type: 'text', disabled: true },
-            { key: 'status', label: 'Status', type: 'text', disabled: true },
-            { key: 'decided_by_email', label: 'Decided By', type: 'text', disabled: true },
-            { key: 'decided_at', label: 'Decision Date', type: 'text', disabled: true },
+            // { key: 'id', label: 'Approval ID', type: 'text', disabled: true },
+            { key: 'dr', label: 'Dr #', type: 'text', disabled: true },
+            { key: 'ts', label: 'ts #', type: 'text', disabled: true },
             { key: 'remarks', label: 'Remarks', type: 'text', disabled: true },
             { key: 'created_at', label: 'Created At', type: 'text', disabled: true },
         ],
@@ -75,50 +73,323 @@ export default function Layout() {
         { key: 'action', label: 'Trace', type: 'button', disabled: true },
         { key: 'id', label: 'ID', type: 'text', disabled: true },
         { key: 'brdr_ref_no', label: 'Breeder Ref No.', type: 'text', disabled: true },
-        { key: 'jr', label: 'JR', type: 'text', disabled: true },
-        { key: 'he', label: 'HE', type: 'text', disabled: true },
+        { key: 'sku', label: 'Item', type: 'text', disabled: true },
         { key: 'actual_count', label: 'Total', type: 'text', disabled: true },
-
-        { key: 'doc_date', label: 'Doc Date', type: 'text', disabled: true },
         { key: 'dr_num', label: 'DR #', type: 'text', disabled: true },
-        // { key: 'status', label: 'Status', type: 'text', disabled: true },
-        { key: 'soldTo', label: 'Sold To', type: 'text', disabled: true },
-        // { key: 'po_no', label: 'PO No.', type: 'text', disabled: true },
-        { key: 'voyage_no', label: 'Voyage No.', type: 'text', disabled: true },
-        { key: 'shipped_via', label: 'Shipped Via', type: 'text', disabled: true },
         { key: 'plate_no', label: 'Plate No.', type: 'text', disabled: true },
         { key: 'driver', label: 'Driver', type: 'text', disabled: true },
-        // { key: 'temperature', label: 'Temp', type: 'text', disabled: true },
-        // { key: 'humidity', label: 'Humidity', type: 'text', disabled: true },
 
     ]
 
 
+    // For Receiving Items api 
+    // const getData = async () => {
+    //     setLoading(true)
 
+    //     try {
+    //         const res = await fetch('/api/dispatch')
+
+    //         if (!res.ok) {
+    //             throw new Error('Failed to fetch dispatch data')
+    //         }
+
+    //         const json = await res.json()
+
+    //         const rows = Array.isArray(json)
+    //             ? json
+    //             : Array.isArray(json.data)
+    //                 ? json.data
+    //                 : []
+
+    //         // collect valid destination refs from farms
+    //         const validRefs = farms
+    //             .map(f => f.ref)
+    //             .filter(ref => ref !== null && ref !== undefined)
+    //             .map(ref => String(ref))
+
+    //         const filtered = rows.map((item: any) => {
+    //             let parsedDispatchBody: any[] = []
+    //             let parsedModifiedDispatchBody: any[] = []
+
+    //             try {
+    //                 if (typeof item.dispatchbody === "string") {
+    //                     parsedDispatchBody = JSON.parse(item.dispatchbody)
+    //                 } else if (Array.isArray(item.dispatchbody)) {
+    //                     parsedDispatchBody = item.dispatchbody
+    //                 }
+    //             } catch {
+    //                 parsedDispatchBody = []
+    //             }
+
+    //             try {
+    //                 if (typeof item.modified_dispatchbody === "string") {
+    //                     parsedModifiedDispatchBody = JSON.parse(item.modified_dispatchbody)
+    //                 } else if (Array.isArray(item.modified_dispatchbody)) {
+    //                     parsedModifiedDispatchBody = item.modified_dispatchbody
+    //                 }
+    //             } catch {
+    //                 parsedModifiedDispatchBody = []
+    //             }
+
+    //             return {
+    //                 ...item,
+    //                 dispatchbody: parsedDispatchBody,
+    //                 modified_dispatchbody: parsedModifiedDispatchBody
+    //             }
+    //         })
+    //             .filter((item: any) => {
+    //                 if (item.dispatchbody.length === 0) return false
+
+    //                 // if farms has refs, filter by destinationid
+    //                 if (validRefs.length > 0) {
+    //                     return validRefs.includes(String(item.destinationid))
+    //                 }
+
+    //                 return true
+    //             })
+    //         // console.loglog({ filtered })
+    //         setinitialRows(filtered)
+    //     } catch (err) {
+    //         // toast("Unable to load Receiving Items. Please check your internet connection and try again.")
+    //         setinitialRows([])
+    //     }
+    //     setLoading(false)
+    // }
+
+    // const getData = async () => {
+    //     setLoading(true)
+    //     try {
+    //         const res = await fetch('/api/dispatch')
+
+    //         if (!res.ok) {
+    //             throw new Error('Failed to fetch dispatch data')
+    //         }
+    //         const unresolvedJson = await vwdmf_get_farmdr_unres()
+    //         console.log({ unresolvedJson })
+    //         // if (!unresolvedRes.ok) {
+    //         //     throw new Error('Failed to fetch unresolved DR list')
+    //         // }
+
+    //         const dispatchJson = await res.json()
+    //         console.log({ dispatchJson })
+    //         // const unresolvedDRSet = new Set(
+    //         //     (unresolvedJson?.unresolvedJson || []).map((x: any) =>
+    //         //         String(x.dr_num).trim()
+    //         //     )
+    //         // )
+    //         const unresolvedDRSet = new Set(
+    //             (unresolvedJson || []).map((x) =>
+    //                 String(x.dr_num).trim()
+    //             )
+    //         )
+
+    //         const rows = Array.isArray(dispatchJson)
+    //             ? dispatchJson
+    //             : Array.isArray(dispatchJson.data)
+    //                 ? dispatchJson.data
+    //                 : []
+
+    //         // collect valid destination refs from farms
+    //         const validRefs = farms
+    //             .map(f => f.ref)
+    //             .filter(ref => ref !== null && ref !== undefined)
+    //             .map(ref => String(ref))
+
+    //         const filtered = rows
+    //             .map((item: any) => {
+    //                 let parsedDispatchBody: any[] = []
+    //                 let parsedModifiedDispatchBody: any[] = []
+
+    //                 try {
+    //                     if (typeof item.dispatchbody === "string") {
+    //                         parsedDispatchBody = JSON.parse(item.dispatchbody)
+    //                     } else if (Array.isArray(item.dispatchbody)) {
+    //                         parsedDispatchBody = item.dispatchbody
+    //                     }
+    //                 } catch {
+    //                     parsedDispatchBody = []
+    //                 }
+
+    //                 try {
+    //                     if (typeof item.modified_dispatchbody === "string") {
+    //                         parsedModifiedDispatchBody = JSON.parse(item.modified_dispatchbody)
+    //                     } else if (Array.isArray(item.modified_dispatchbody)) {
+    //                         parsedModifiedDispatchBody = item.modified_dispatchbody
+    //                     }
+    //                 } catch {
+    //                     parsedModifiedDispatchBody = []
+    //                 }
+
+    //                 return {
+    //                     ...item,
+    //                     dispatchbody: parsedDispatchBody,
+    //                     modified_dispatchbody: parsedModifiedDispatchBody
+    //                 }
+    //             })
+    //             .filter((item: any) => {
+    //                 if (item.dispatchbody.length === 0) return false
+
+    //                 // exclude DRs already in unresolved list
+    //                 if (unresolvedDRSet.has(String(item.dr_num).trim())) {
+    //                     return false
+    //                 }
+
+    //                 // // filter by farm destination refs
+    //                 if (validRefs.length > 0) {
+    //                     return validRefs.includes(String(item.destinationid))
+    //                 }
+
+    //                 return true
+    //             })
+
+    //         setinitialRows(filtered)
+    //     } catch (err) {
+    //         setinitialRows([])
+    //     }
+
+    //     setLoading(false)
+    // }
     const getData = async () => {
         setLoading(true)
-        const date = await getReceivingDraftPending()
-        console.log({ date })
-        setinitialRows(date)
-        setLoading(!true)
 
+        try {
+            const res = await fetch('/api/dispatch')
+
+            if (!res.ok) {
+                throw new Error('Failed to fetch dispatch data')
+            }
+
+            const unresolvedJson = await vwdmf_get_farmdr_unres()
+            const dispatchJson = await res.json()
+
+            // normalize helper (removes spacing differences + case issues)
+            const normalize = (v: any) =>
+                String(v ?? '')
+                    .replace(/\s+/g, '')
+                    .toUpperCase()
+
+            // build lookup set of unresolved DR numbers
+            const unresolvedDRSet = new Set(
+                (unresolvedJson || []).map(x => normalize(x.dr_num))
+            )
+
+            const rows = Array.isArray(dispatchJson)
+                ? dispatchJson
+                : Array.isArray(dispatchJson.data)
+                    ? dispatchJson.data
+                    : []
+
+            // collect valid destination refs from farms
+            const validRefs = farms
+                .map(f => f.ref)
+                .filter(ref => ref !== null && ref !== undefined)
+                .map(ref => String(ref))
+
+            const filtered = rows
+                .map((item: any) => {
+                    let parsedDispatchBody: any[] = []
+                    let parsedModifiedDispatchBody: any[] = []
+
+                    try {
+                        if (typeof item.dispatchbody === "string") {
+                            parsedDispatchBody = JSON.parse(item.dispatchbody)
+                        } else if (Array.isArray(item.dispatchbody)) {
+                            parsedDispatchBody = item.dispatchbody
+                        }
+                    } catch {
+                        parsedDispatchBody = []
+                    }
+
+                    try {
+                        if (typeof item.modified_dispatchbody === "string") {
+                            parsedModifiedDispatchBody = JSON.parse(item.modified_dispatchbody)
+                        } else if (Array.isArray(item.modified_dispatchbody)) {
+                            parsedModifiedDispatchBody = item.modified_dispatchbody
+                        }
+                    } catch {
+                        parsedModifiedDispatchBody = []
+                    }
+
+                    return {
+                        ...item,
+                        dispatchbody: parsedDispatchBody,
+                        modified_dispatchbody: parsedModifiedDispatchBody
+                    }
+                })
+                .filter((item: any) => {
+                    // remove rows without dispatch body
+                    if (item.dispatchbody.length === 0) return false
+
+                    // support both dr and dr_num fields
+                    const drValue = item.dr ?? item.dr_num
+
+                    // exclude unresolved DRs
+                    if (unresolvedDRSet.has(normalize(drValue))) {
+                        return false
+                    }
+
+                    // filter by farm destination refs
+                    if (validRefs.length > 0) {
+                        return validRefs.includes(String(item.destinationid))
+                    }
+
+                    return true
+                })
+
+            setinitialRows(filtered)
+
+        } catch (err) {
+            console.error(err)
+            setinitialRows([])
+        }
+
+        setLoading(false)
     }
+
+
     const getReceivedData = async () => {
         setLoadingReceived(true)
 
         const data = await getReceivingList()
-        console.log({ data })
+        // // // console.loglog({ data })
         setReceivedRows(data)
         setLoadingReceived(false)
     }
 
+    const getFarms = async () => {
+        const user = getValue('UserInfoAuthSession')
+        // console.loglog({ user })
+        if (!user) {
+            toast.error("User information is not available. Please log in again.")
+            return
+        }
+        if (user[0].id === undefined) return
+
+        const farms = await getDefaultFarm(user[0].id)
+        // console.loglog({ farms })
+        setfarms(farms)
+    }
+
     useEffect(() => {
-        get()
-        getData()
-        route.prefetch("/a_dean/receiving/approval")
-        route.prefetch("/a_dean/receiving/manual")
+        getFarms()
+    }, [getValue])
+
+    useEffect(() => {
+        refreshSessionx(route);
     }, [])
 
+
+    useEffect(() => {
+        if (farms.length === 0) return
+
+        get()
+        getData()
+        getReceivedData()
+
+        route.prefetch("/a_dean/receiving/approval")
+        route.prefetch("/a_dean/receiving/manual")
+
+    }, [farms.length])
 
     useEffect(() => {
         get()
@@ -129,6 +400,9 @@ export default function Layout() {
         route.prefetch("/a_dean/receiving/manual")
     }, [])
 
+    useEffect(() => {
+        setValue("loading_g", loading)
+    }, [loading])
 
 
     return (
@@ -139,86 +413,92 @@ export default function Layout() {
                     onClose={() => setIsScanning(false)}
                 />
             )}
-            <div className='mx-4 flex justify-between items-center mb-4 mt-4'>
+            <div className='mx-4 flex justify-between items-center mb-4 mt-8'>
 
                 <Breadcrumb
                     FirstPreviewsPageName='Hatchery'
                     CurrentPageName='Receiving List'
                 />
                 <div className='flex gap-4'>
-                    {/* <Button
-                        onClick={() => setIsScanning(true)}
-                    ><QrCode />Scan Search</Button> */}
 
                     <Button
                         // onClick={() => setIsScanning(true)}
-                        onClick={() => route.push("/a_dean/receiving/manual")}
-                    ><Plus /> Recieve Manually</Button>
+                        // size={"sm"}
+                        onClick={async () => {
+                            const isHasSuperVisor = await getReceivingListByUser()
+                            if (isHasSuperVisor == '') {
+                                toast.error("Your account is not yet assigned to a supervisor. Please contact your administrator.")
+                                return
+                            }
+                            route.push("/a_dean/receiving/manual")
+
+                        }
+                        }
+                    ><Plus /> Receive Manually</Button>'
+
                 </div>
             </div>
             <div className='my-4'></div>
 
-            {loading && (
-                <RefreshCcw className='animate-spin clasm  mx-auto' />
-            )}
+            {
+                loading && (
+                    <RefreshCcw className='animate-spin clasm  mx-auto' />
+                )
+            }
             <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold mx-4">For Receiving Items</h2>
             </div>
-            {!loading && (
-                <DynamicTable
-                    initialFilters={[
-                        {
-                            id: "",
-                            columnKey: 'status',
-                            operator: 'equals',
-                            value: 'Pending',
-                            joiner: 'and',
-                        },
-                    ]}
-                    columns={tableColumnsx.map((col) => ({
-                        key: col.key,
-                        label: col.label,
-                        align: col.key === 'action' ? 'right' : 'left',
+            {
+                !loading && (
+                    <DynamicTable
+                        loading={loading}
+                        // initialFilters={[
+                        //     {
+                        //         id: "",
+                        //         columnKey: 'status',
+                        //         operator: 'equals',
+                        //         value: 'Pending',
+                        //         joiner: 'and',
+                        //     },
+                        // ]}
+                        columns={tableColumnsx.map((col) => ({
+                            key: col.key,
+                            label: col.label,
+                            align: col.key === 'action' ? 'right' : 'left',
 
-                        render: (row: RowDataKey) => {
-                            if (col.key === 'action') {
-                                return (
-                                    <div className="flex justify-end gap-2">
-                                        <Button
-                                            className='bg-background border hover:bg-foreground/10 border-green-400 text-green-400 p-1 rounded-xs   '
+                            render: (row: RowDataKey) => {
+                                if (col.key === 'action') {
+                                    return (
+                                        <div className="flex  gap-2">
+                                            <Button
+                                                size={"sm"}
+                                                className='my-1 bg-background border hover:bg-foreground/10 border-green-400 text-green-400 p-1 rounded-xs   '
+                                                onClick={() => {
+                                                    setValue("forApproval", row)
+                                                    setValue("scanning", "on")
+                                                    route.push("/a_dean/receiving/manual")
+                                                }}
+                                            >
+                                                <HandCoins />
+                                                Receive
+                                            </Button>
+                                        </div>
+                                    )
+                                }
 
-                                            onClick={() => {
-                                                if (row.status === "Approved") {
-                                                    toast.warning(
-                                                        "Only pending documents are allowed to be edited on this module"
-                                                    )
-                                                    return
-                                                }
-                                                // console.log({})
-                                                setValue("forApproval", { row })
-                                                route.push("/a_dean/receiving/approval")
-                                            }}
-                                        >
-                                            <HandCoins />
-                                            Receive
-                                        </Button>
-                                    </div>
-                                )
-                            }
+                                const value = row[col.key]
 
-                            // 📝 Default rendering
-                            const value = row[col.key]
+                                if (!value) return "-"
 
-                            if (!value) return "-"
+                                return String(value)
+                            },
+                        }))}
 
-                            return String(value)
-                        },
-                    }))}
+                        data={initialRows}
 
-                    data={initialRows}
-
-                />
-            )}
+                    />
+                )
+            }
 
 
             <div className="mt-10">
@@ -233,6 +513,7 @@ export default function Layout() {
 
                 {!loadingReceived && (
                     <DynamicTable
+                        loading={loadingReceived}
                         initialFilters={[]} // show all records
                         columns={receivedColumns.map((col) => ({
                             key: col.key,
@@ -245,7 +526,8 @@ export default function Layout() {
                                     return (
                                         <div className="flex justify-end gap-2">
                                             <Button
-                                                className=' border hover:bg-foreground/10 bg-white border-green-400 text-green-400 p-1 rounded-xs   '
+                                                size={'sm'}
+                                                className='my-1 border hover:bg-foreground/10 bg-white border-green-400 text-green-400 p-1 rounded-xs   '
 
                                                 onClick={() => {
                                                     if (row.status === "Approved") {
@@ -254,9 +536,10 @@ export default function Layout() {
                                                         )
                                                         return
                                                     }
-                                                    // console.log({})
+                                                    // // // console.loglog({})
                                                     // setValue("forApproval", { row })
-                                                    route.push("/a_dean/trace/" + row.brdr_ref_no)
+                                                    setValue("traceBreederRef", row.brdr_ref_no)
+                                                    route.push("/a_dean/trace/")
                                                 }}
                                             >
                                                 <Map />
@@ -280,7 +563,6 @@ export default function Layout() {
                 )}
             </div>
 
-            {/* <Button onClick={() => console.log({ initialRows })}>check initialRows</Button> */}
-        </div>
+        </div >
     )
 }

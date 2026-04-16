@@ -1,94 +1,126 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 "use client";
+
 import React, { useState } from "react";
 import { useGlobalContext } from "../context/GlobalContext";
-import { getUserPermissions } from "@/app/admin/user/new/api";
 import { db } from "../Supabase/supabaseClient";
+
+import { getUserPermissions } from "@/app/admin/user/new/api";
+import { getItems } from "@/app/a_dean/items/api";
+import {
+  getFarmDB,
+  getFarmDB_breeder,
+} from "@/app/a_dean/receiving/manual/api";
+import { getUserInfoAuthSession } from "@/app/admin/user/api";
+
 import { Button } from "@/components/ui/button";
 import { CloudDownload, RefreshCcw } from "lucide-react";
-import { getItemById, getItems } from "@/app/a_dean/items/api";
-import { getFarmDB, getFarmDB_breeder } from "@/app/a_dean/receiving/manual/api";
+
+/* =======================================================
+   HOOK
+======================================================= */
+
 export function useGlobalDefaults() {
   const { setValue } = useGlobalContext();
   const [loading, setLoading] = useState(false);
-  // ------------------------------------------------------ //
 
-  const setItems = async (): Promise<any> => {
+  /* -------------------------------------------------------
+     helper: get session user once
+  ------------------------------------------------------- */
+
+  const getSessionUser = async () => {
+    const {
+      data: { session },
+    } = await db.auth.getSession();
+
+    return session?.user ?? null;
+  };
+
+  /* -------------------------------------------------------
+     loaders
+  ------------------------------------------------------- */
+
+  const setItems = async () => {
     try {
-      const {
-        data: { session },
-      } = await db.auth.getSession();
-      if (!session) return;
       const data = await getItems();
       setValue("itemmaster", data);
-      console.log({ data }, "itemmaster");
       return data;
     } catch (error) {
-      console.log(error, "itemmaster");
+      console.error("itemmaster error:", error);
     }
   };
 
-  const setFarms = async (): Promise<any> => {
+  const setFarms = async () => {
     try {
-      const {
-        data: { session },
-      } = await db.auth.getSession();
-      if (!session) return;
       const data = await getFarmDB();
       setValue("getFarmDB", data);
-      console.log({ data }, "getFarmDB");
       return data;
     } catch (error) {
-      console.log(error, "getFarmDB");
+      console.error("getFarmDB error:", error);
     }
   };
 
-
-  const setFarms_breeder = async (): Promise<any> => {
+  const setFarms_breeder = async () => {
     try {
-      const {
-        data: { session },
-      } = await db.auth.getSession();
-      if (!session) return;
       const data = await getFarmDB_breeder();
       setValue("getFarmDB_breeder", data);
       return data;
     } catch (error) {
-      console.log(error, "getFarmDB_breeder");
+      console.error("getFarmDB_breeder error:", error);
     }
   };
 
-  const setUserPermissions = async (): Promise<any> => {
+  const getUserInfoWithFarm = async () => {
     try {
-      const {
-        data: { session },
-      } = await db.auth.getSession();
-      if (!session) return;
-      const data = await getUserPermissions(session.user.id);
-      setValue("UserPermission", data);
-      console.log({ data }, "UserPermission");
+      const data = await getUserInfoAuthSession();
+      setValue("UserInfoAuthSession", data);
       return data;
     } catch (error) {
-      console.log(error, "UserPermission");
+      console.error("UserInfoAuthSession error:", error);
     }
   };
 
+  const setUserPermissions = async () => {
+    try {
+      const user = await getSessionUser();
+      if (!user) return;
 
-  const setGlobals = async (): Promise<void> => {
+      const data = await getUserPermissions(user.id);
+      setValue("UserPermission", data);
+
+      return data;
+    } catch (error) {
+      console.error("UserPermission error:", error);
+    }
+  };
+
+  /* -------------------------------------------------------
+     batch loader
+  ------------------------------------------------------- */
+
+  const setGlobals = async () => {
     setLoading(true);
     setValue("loading_g", true);
 
     try {
+      const user = await getSessionUser();
+      if (!user) {
+        console.warn("No active session found.");
+        return;
+      }
+
       await Promise.all([
         setUserPermissions(),
         setItems(),
         setFarms(),
         setFarms_breeder(),
+        getUserInfoWithFarm(),
       ]);
     } catch (error) {
-      console.log(error, "setGlobals");
+      console.error("setGlobals error:", error);
     }
+
     setValue("loading_g", false);
     setLoading(false);
   };
@@ -99,42 +131,39 @@ export function useGlobalDefaults() {
     setUserPermissions,
     setItems,
     setFarms,
-    setFarms_breeder
+    setFarms_breeder,
+    getUserInfoWithFarm,
   };
 }
 
+/* =======================================================
+   COMPONENT
+======================================================= */
 
-
-interface collapsed {
-  collapsed: boolean
+interface CollapsedProps {
+  collapsed: boolean;
 }
 
-export default function GlobalDefaults({ collapsed }: collapsed) {
+export default function GlobalDefaults({ collapsed }: CollapsedProps) {
   const { loading, setGlobals } = useGlobalDefaults();
 
   return (
     <div>
-      {/* <Button onClick={setGlobals} disabled={loading}>
-        {loading ? (
-          <RefreshCcw className="size-4 animate-spin" />
-        ) : (
-          <CloudDownload className="size-4" />
-        )}
-      </Button> */}
-
-
       <Button
         variant="ghost"
         type="button"
-        onClick={setGlobals} disabled={loading}
-        // onClick={() => setOpenModal(!openModal)}
-        className={`w-full gap-2 px-3 py-2 justify-start ${collapsed ? "justify-center" : ""}`}
+        onClick={setGlobals}
+        disabled={loading}
+        className={`w-full gap-2 px-3 py-2 justify-start ${
+          collapsed ? "justify-center" : ""
+        }`}
       >
         {loading ? (
           <RefreshCcw className="size-4 animate-spin" />
         ) : (
           <CloudDownload className="size-4" />
         )}
+
         {!collapsed && <span>Refresh Data</span>}
       </Button>
     </div>

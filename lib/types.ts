@@ -94,9 +94,15 @@ export interface UserInsert {
   birthdate?: string | null;
   location?: string | null;
   remarks?: string | null;
+  supervisor?: string | null;
+  default_farm?: string | null;
 }
 
 
+export interface SuperUsers {
+  code: string | null;
+  name: string | null;
+}
 export interface UserRow {
   id: number;
   created_at: string; // ISO timestamp string
@@ -116,6 +122,9 @@ export interface UserRow {
   remarks: string | null;
   auth_id: UUID | null;
   issuper: string | null;
+  supervisor?: string | null;
+  isactive?: string | null;
+
 }
 export type DraftStatus = 'pending' | 'approved' | 'rejected';
 
@@ -139,7 +148,7 @@ export interface DataRecordApproval {
   status: DraftStatus
   checked: boolean;
   docentry: number;
-  delivered_to: string | null;
+  delivered_to: number | null;
 
 }
 
@@ -273,6 +282,8 @@ export type Farms = {
   barangay: string
   city: string
   province: string
+  ref: string | null
+  ref_type: string | null
 }
 
 // DMF - 27022026
@@ -347,6 +358,8 @@ export type ReceivingListRow = {
   house_no: string | null
   jr: string | null
   he: string | null
+  farm_id: number | null
+  farm_name: string | null
 }
 
 
@@ -369,6 +382,7 @@ export type DisposalPrintRow = {
 export type DraftItem = {
   id: number
   brdr_ref_no: string
+  brdr_ref_noVx: string
   sku: string
   UoM: string
   lot_no?: string
@@ -376,7 +390,7 @@ export type DraftItem = {
   prod_date?: string
   age?: string
   house_no?: string
-
+  prod_date_to?: string
   total?: number        // from API
   actual_total?: number // user input
 
@@ -415,7 +429,94 @@ export type Users = {
 }
 
 export type DefaultFarm = {
+  id: number;
   code: string;
   name: string;
 
 }
+export interface ApprovalRequestCreate {
+  created_by: string
+  user_email: string
+  request_type: string
+  value_encrypted: string
+  remarks?: string
+}
+
+export interface ApprovalRequest {
+  id: number
+  created_at: string
+  created_by: string
+  user_email: string
+  request_type: string
+  value_encrypted: string
+  remarks: string
+  status: string
+  approved_by?: string
+  approved_at?: string
+}
+
+
+export interface UserProfileSafe {
+  id: number | null
+  created_at: string | null
+  created_by: string | null
+  updated_at: string | null
+  updated_by: string | null
+
+  docStatus: string | null
+
+  email: string | null
+  firstname: string | null
+  middlename: string | null
+  lastname: string | null
+  gender: string | null
+
+  phone: string | null
+  mobile: string | null
+  birthdate: string | null
+
+  location: string | null
+  remarks: string | null
+
+  auth_id: string | null
+  issuper: boolean
+  default_farm: string | null
+
+  supervisor: number
+
+  isactive: boolean
+
+  users_farms: string[]
+}
+
+export type ReceivingItemRow = {
+  id: number
+  created_at: string
+  docentry: number
+  brdr_ref_no: string
+  sku: string
+  UoM: string
+  expected_count: string
+  actual_count: string
+  lot_no: string
+  prod_date: string
+  age: string
+  house_no: string
+  jr: string | null
+  he: string | null
+  total_api: string | null
+  prod_date_to: string | null
+}
+
+export type ReceivingListRow2 = {
+  id: number
+  recieving_items: ReceivingItemRow[]
+}
+
+
+
+
+export type farm_dr_unres = {
+  dr_num: string | null
+}
+

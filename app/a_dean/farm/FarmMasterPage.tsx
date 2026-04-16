@@ -16,6 +16,7 @@ import { Edit, Plus, RefreshCcw } from 'lucide-react'
 import DynamicTable from '@/components/ui/DataTableV2'
 import { useRouter } from 'next/navigation'
 import { getFarms } from './api'
+import { useGlobalContext } from '@/lib/context/GlobalContext'
 
 type Field = {
   label: string
@@ -31,6 +32,8 @@ type Section = {
 }
 
 export default function FarmMasterPage() {
+  const { setValue, getValue } = useGlobalContext()
+
   const router = useRouter()
   const [initialRows, setinitialRows] = useState<RowDataKey[]>([])
   const [loading, setLoading] = useState(false)
@@ -50,8 +53,7 @@ export default function FarmMasterPage() {
   const getData = async () => {
     setLoading(true)
     const data = await getFarms()
-    console.log({ data })
-    setinitialRows(data)
+    setinitialRows(data ?? [])
     setLoading(false)
 
   }
@@ -61,6 +63,9 @@ export default function FarmMasterPage() {
     getData()
   }, [])
 
+  useEffect(() => {
+    setValue("loading_g", loading)
+  }, [loading])
   return (
     <div>
       <div className='mt-5 mx-4 flex justify-between items-center'>
@@ -71,11 +76,17 @@ export default function FarmMasterPage() {
         <div className='flex gap-2'>
           <Button onClick={getData}><RefreshCcw /></Button>
           <Button onClick={() => router.push("/a_dean/farm/new")}><Plus /> New Farm</Button>
+          {/* <Button onClick={() => {
+            console.log(getValue("getFarmDB"))
+          }
+
+          }><Plus /> check forApproval</Button> */}
         </div>
       </div>
 
       {!loading ? (
         <DynamicTable
+          loading={loading}
           columns={tableColumnsx.map((col) => ({
             key: col.key,
             label: col.label,
@@ -86,7 +97,8 @@ export default function FarmMasterPage() {
                 return (
                   <div className="flex  gap-2">
                     <Button
-                      className='bg-background border hover:bg-foreground/10 border-green-400 text-green-400 p-1 rounded-xs   '
+                    size='sm'
+                      className=' my-1 bg-background border hover:bg-foreground/10 border-green-400 text-green-400 p-1 rounded-xs   '
 
                       onClick={() => {
                         router.push(`/a_dean/farm/${row.id}/edit`)
@@ -112,9 +124,9 @@ export default function FarmMasterPage() {
 
         />
       ) :
-      <>
-      <div className='w-fit mx-auto flex gap-2 mt-2'><span><RefreshCcw className='animate-spin'/></span>Loading...</div>
-      </>
+        <>
+          <div className='w-fit mx-auto flex gap-2 mt-2'><span><RefreshCcw className='animate-spin' /></span>Loading...</div>
+        </>
       }
     </div>
   )

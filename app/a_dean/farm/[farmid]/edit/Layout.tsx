@@ -1,5 +1,5 @@
 'use client'
-
+// build 2
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -42,6 +42,18 @@ export default function Layout() {
         { code: "tel", name: "Telephone No.", type: "text" },
         { code: "contact_person", name: "Contact Person", type: "text" },
         { code: "contact_number", name: "Contact Number", type: "text" },
+        { code: "ref", name: "Breeder ID Reference", type: "text" },
+        // {
+        //     code: "ref_type",
+        //     name: "Reference Type",
+        //     type: "search",
+        //     list: [
+        //         { code: "BE", name: "Breeder Farm" },
+        //         { code: "HA", name: "Hatcher" },
+        //         { code: "BR", name: "Broiler" },
+        //     ]
+        // },
+
     ]
 
     const addressObj = [
@@ -77,9 +89,36 @@ export default function Layout() {
         { code: "remarks", name: "Remarks", type: "text", isLong: true },
     ]
 
+    // const updateFarm = (code: string, value: any) => {
+
+    //     setFarmData((prev: any) => {
+
+    //         if (code === "ref" && !value) {
+    //             return { ...prev, ref: value, ref_type: "" }
+    //         }
+
+    //         return { ...prev, [code]: value }
+    //     })
+    // }
+
     const updateFarm = (code: string, value: any) => {
-        setFarmData((prev: any) => ({ ...prev, [code]: value }))
+
+        setFarmData((prev: any) => {
+
+            // clear both if ref removed
+            if (code === "ref" && !value) {
+                return { ...prev, ref: value, ref_type: "" }
+            }
+
+            // auto-sync ref_type with farm_type
+            if (code === "farm_type") {
+                return { ...prev, farm_type: value, ref_type: value }
+            }
+
+            return { ...prev, [code]: value }
+        })
     }
+
 
     const updateAddress = (code: string, value: any) => {
         setAddressData((prev: any) => ({ ...prev, [code]: value }))
@@ -205,7 +244,12 @@ export default function Layout() {
     // ================= SUBMIT =================
 
     const handleUpdateFarm = async () => {
-
+        // if (farmData.ref && !farmData.ref_type) {
+        //     toast("Reference Type is required when Reference is filled", {
+        //         position: "top-center"
+        //     })
+        //     return
+        // }
         const payload = {
             farm: farmData,
             address: addressData,
@@ -216,7 +260,7 @@ export default function Layout() {
         // return
         await updateFarmFull(farmId, payload)
 
-        toast("Farm updated successfully")
+        toast("Farm updated successfully", { position: 'top-center' })
 
         router.push("/a_dean/farm")
 
@@ -287,7 +331,7 @@ export default function Layout() {
 
                 <div className='pt-4 px-4 font-semibold text-xl'>Details</div>
 
-                <div className='grid grid-cols-2 gap-4 m-4'>
+                <div className='grid  lg:grid-cols-2 gap-4 m-4'>
 
                     {farmObj.map((i, x) => (
 
@@ -307,7 +351,7 @@ export default function Layout() {
                                     ? (
                                         <SearchableDropdown
                                             list={i.list || []}
-                                            disabled={true}
+                                            disabled={i.code === "ref_type" && !farmData.ref}
                                             codeLabel="code"
                                             nameLabel="name"
                                             value={farmData[i.code] || ''}

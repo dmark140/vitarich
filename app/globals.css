@@ -53,7 +53,8 @@
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
   /* --primary: oklch(0.205 0 0); */
-  --primary: #288b0f;
+  /* --primary: oklch(0.36 -0.0); */
+  --primary: #2ea44f;
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
@@ -62,9 +63,9 @@
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
+  --border: oklch(93.403% 0.00011 271.152);
   /* --input: oklch(0.922 0 0); */
-  --input: #fff;
+  --input: #f5f5f5;
   --ring: oklch(0.708 0 0);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
@@ -151,7 +152,7 @@
 
 .loader-bar {
   height: 100%;
-  background: red;
+  background: rgb(44, 226, 68);
   /* Red for testing */
   animation: loading-animation 2s linear infinite;
   transform-origin: left;
@@ -193,3 +194,21 @@
   padding: 8mm;
   box-sizing: border-box;
 }
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+/* 
+:root{
+  font-size: 21px; 
+}*/
+/* 
+:root {
+  font-size: 18px;
+} */

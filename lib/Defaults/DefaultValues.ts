@@ -5,6 +5,7 @@ import {
   DockIcon,
   DollarSign,
   EggFried,
+  EggIcon,
   FileSliders,
   Home,
   PenBoxIcon,
@@ -12,6 +13,7 @@ import {
   Wrench,
 } from "lucide-react";
 import { CodeNameBase } from "./DefaultTypes";
+import EggHatchTable from "@/app/jmb/egghatcherv2/egghatch-table";
 
 export const NavFolders = [
   {
@@ -30,7 +32,7 @@ export const NavFolders = [
     id: 1,
     title: "Hatchery",
     url: "/a_dean/hatchery",
-    icon: EggFried,
+    icon: EggIcon,
     items: [
       {
         group: "Hatchery Masters",
@@ -40,36 +42,36 @@ export const NavFolders = [
           {
             type: "Module",
             title: "Egg Classification",
-            url: "/a_baja/hatcheryclassi",
+            url: "/jmb/hatcheryclassi",
           },
-          { type: "Module", title: "Egg Storage", url: "/a_baja/eggstorage" },
+          { type: "Module", title: "Egg Storage", url: "/jmb/eggstorage" },
           {
             type: "Module",
             title: "Egg Pre-Warming Process",
-            url: "/a_baja/prewarming",
+            url: "/jmb/prewarmingv2",
           },
-          { type: "Module", title: "Egg Setter", url: "/a_baja/eggsetter" },
+          { type: "Module", title: "Egg Setter", url: "/jmb/eggsetter" },
           {
             type: "Module",
             title: "Egg Transfer Process",
-            url: "/a_baja/eggtransfer",
+            url: "/jmb/eggtransferv2",
           },
           {
             type: "Module",
             title: "Egg Hatcher Process",
-            url: "/a_baja/egghatcheryprocessform",
+            url: "/jmb/egghatcherv2",
           },
           {
             type: "Module",
             title: "Chick Pullout Process",
-            url: "/a_baja/chickpullout",
+            url: "/jmb/chickpulloutv2",
           },
           {
             type: "Module",
             title: "Doc Classification",
-            url: "/a_baja/chickgrading",
+            url: "/jmb/docclassification",
           },
-          { type: "Module", title: "Doc Dispatch", url: "/a_baja/docdispatch" },
+          { type: "Module", title: "Doc Dispatch", url: "/jmb/docdispatchv2" },
           { type: "Module", title: "Disposal", url: "/a_dean/disposal" },
         ],
       },
@@ -82,8 +84,70 @@ export const NavFolders = [
       },
     ],
   },
+  // {
+  //   id: 2,
+  //   title: "Breeder Management",
+  //   url: "/jmb/breeder",
+  //   icon: EggFried,
+  //   items: [
+  //     {
+  //       group: "Breeder Masters",
+  //       children: [
+  //         { type: "Module", title: "Placement", url: "/a_dean/hatchery" },
+
+  //         {
+  //           type: "Module",
+  //           title: "Growing Period",
+  //           // url: "/jmb/hatcheryclassi", /home
+  //           url: "/home",
+  //         },
+  //         {
+  //           type: "Module",
+  //           title: "Egg Storage",
+  //           // url: "/jmb/eggstorage" },
+  //           url: "/home",
+  //         },
+  //         {
+  //           type: "Module",
+  //           // title: "Egg Pre-Warming Process",
+  //           url: "/jmb/prewarmingv2",
+  //         },
+  //         { type: "Module", title: "Egg Setter", url: "/jmb/eggsetter" },
+  //         {
+  //           type: "Module",
+  //           title: "Egg Transfer Process",
+  //           url: "/jmb/eggtransferv2",
+  //         },
+  //         {
+  //           type: "Module",
+  //           title: "Egg Hatcher Process",
+  //           url: "/jmb/egghatcherv2",
+  //         },
+  //         {
+  //           type: "Module",
+  //           title: "Chick Pullout Process",
+  //           url: "/jmb/chickpulloutv2",
+  //         },
+  //         {
+  //           type: "Module",
+  //           title: "Doc Classification",
+  //           url: "/jmb/docclassification",
+  //         },
+  //         { type: "Module", title: "Doc Dispatch", url: "/jmb/docdispatchv2" },
+  //         { type: "Module", title: "Disposal", url: "/a_dean/disposal" },
+  //       ],
+  //     },
+  //     {
+  //       group: "Reports",
+  //       children: [
+  //         { type: "Report", title: "Room Monitoring", url: "#" },
+  //         { type: "Report", title: "Machine Monitoring", url: "#" },
+  //       ],
+  //     },
+  //   ],
+  // },
   {
-    id: 2,
+    id: 3,
     title: "Inventory Management",
     url: "/a_dean/inventory",
     icon: Boxes, // Example icon name
@@ -133,6 +197,22 @@ export const NavFolders = [
       },
     ],
   },
+  // {
+  //   id: 4,
+  //   title: "Workspace",
+  //   url: "#",
+  //   icon: Boxes, // Example icon name
+  //   items: [
+  //     {
+  //       group: "Overview",
+  //       children: [
+  //         { type: "Module", title: "Projects", url: "" },
+  //         { type: "Module", title: "Task", url: "" },
+  //         { type: "Module", title: "Sprints", url: "" },
+  //       ],
+  //     },
+  //   ],
+  // },
   {
     id: 99,
     title: "Settings",
@@ -143,11 +223,12 @@ export const NavFolders = [
         group: "Modules",
         children: [
           { type: "Module", title: "User Management", url: "/admin/user" },
+          { type: "Module", title: "Approval", url: "/admin/approval" },
           { type: "Module", title: "Farm Settings", url: "/a_dean/farm" },
           {
             type: "Module",
-            title: "Boiler Settings",
-            url: "/a_baja/boilermasterdata",
+            title: "Broiler Settings",
+            url: "/jmb/boilermasterdata",
           },
           { type: "Module", title: "General Settings", url: "#" },
           { type: "Module", title: "Document Settings", url: "#" },
@@ -168,7 +249,10 @@ export const ListOfYear: CodeNameBase[] = Array.from(
   },
 );
 
-export const DefaultGenders = [{ code: "Male" }, { code: "Female" }];
+export const DefaultGenders = [
+  { code: "Male", name: "Male" },
+  { code: "Female", name: "Female" },
+];
 
 export const today = new Date().toISOString().slice(0, 10);
 

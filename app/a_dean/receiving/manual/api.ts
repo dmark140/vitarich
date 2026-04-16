@@ -1,9 +1,13 @@
+
 import { db } from '@/lib/Supabase/supabaseClient'
 import { DefaultFarm, DocumentApproval, Farms, Users } from '@/lib/types'
 
 
-
-
+//Add proper JSDoc documentation
+/**
+ * Retrieves the list of farms for a specific breeder.
+ * @returns {Promise<Farms[]>} A promise resolving to an array of farm objects.
+ */
 export async function getFarmDB_breeder() {
   const { data, error } = await db
     .from('vwdmf_get_farmlist_breeder_code_name')
@@ -35,7 +39,26 @@ export async function getFarmDB() {
 
 
 
+export async function getDefaultFarm(id: string) {
+  const { data, error } = await db
+    .from('vwdmf_getuserdefaultfarm')
+    .select('*')
+    .eq('users_id', id)
+  // .order('posting_date', { ascending: false })
 
+  if (error) {
+    throw error
+  }
+
+  return data as Farms[]
+}
+
+
+
+/**
+ * Retrieves the user information for the currently authenticated user.
+ * @returns {Promise<DefaultFarm[]>} A promise resolving to an array of default farm objects associated with the user.
+ */
 export async function getUserInfo() {
   const { data: { session } } = await db.auth.getSession()
   console.log(session?.user.id)
@@ -54,6 +77,11 @@ export async function getUserInfo() {
 
 
 
+/**
+ * Creates a new receiving document in the database using the provided payload.
+ * @param {Object} payload - The data for the receiving document, including details such as document date, temperature, humidity, supplier information, and item details.
+ * @returns {Promise<Object>} An object containing the success status and either the document entry ID or an error message.
+ */
 
 export async function createReceiving(payload: any) {
   try {
@@ -75,15 +103,15 @@ export async function createReceiving(payload: any) {
       driver,
       serial_no,
       delivered_to,
+      brdr_ref_no,
 
       items,
     } = payload
-
-    const { data, error } = await db.rpc('fndmf_create_manual_recieving', {
+    console.log({ payload, items })
+    const { data, error } = await db.rpc('insert_receiving', {
       p_doc_date: doc_date,
       p_temperature: temperature,
       p_humidity: humidity,
-
       p_soldto: soldTo,
       p_attention: Attention,
       p_po_no: po_no,
@@ -98,6 +126,7 @@ export async function createReceiving(payload: any) {
       p_serial_no: serial_no,
 
       p_delivered_to: delivered_to,
+      p_brdr_ref_no: brdr_ref_no,
 
       p_items: items,
     })

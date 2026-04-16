@@ -1,6 +1,9 @@
+
+
+
 // lib/db/users.ts
 import { db } from '@/lib/Supabase/supabaseClient'
-import { Customer, UserInsert, UserRow } from '@/lib/types'
+import { Customer, SuperUsers, UserInsert, UserRow } from '@/lib/types'
 import { createClient } from '@supabase/supabase-js'
 
 export async function insertUser(user: Omit<Customer, 'id' | 'created_at'>) {
@@ -126,25 +129,60 @@ export async function insertUserProfile(userProfileData: UserInsert): Promise<Us
   return data as UserRow;
 }
 
-export async function updateUserProfile(userProfileData: UserInsert) {
+// export async function updateUserProfile(userProfileData: UserInsert) {
+//   const payload = {
+//     ...userProfileData,
+//     updated_at: new Date().toISOString(),
+//   };
+//   console.log(payload)
+//   const { data, error } = await db
+//     .from('users')
+//     .update(payload)
+//     .eq('auth_id', userProfileData.auth_id)
+//     .select()
+//     .single();
+//   console.log({ data, error })
+//   if (error) {
+//     console.error('Supabase Update Error:', error);
+//     throw new Error(error.message);
+//   }
+
+//   // return data as UserRow;
+// }
+
+export async function updateUserProfile(
+  userProfileData: UserInsert,
+  defaultFarms?: string[] | []
+) {
+
+
+  console.log({ userProfileData, defaultFarms })
   const payload = {
-    ...userProfileData,
-    updated_at: new Date().toISOString(),
+    p_auth_id: userProfileData.auth_id,
+    p_updated_by: userProfileData.created_by,
+    p_firstname: userProfileData.firstname,
+    p_middlename: userProfileData.middlename,
+    p_lastname: userProfileData.lastname,
+    p_gender: userProfileData.gender,
+    p_phone: userProfileData.phone,
+    p_mobile: userProfileData.mobile,
+    p_birthdate: userProfileData.birthdate,
+    p_location: userProfileData.location,
+    p_remarks: userProfileData.remarks,
+    p_default_farm: userProfileData.default_farm,
+    p_supervisor: userProfileData.supervisor,
+    p_default_farms: defaultFarms,
   };
-  console.log(payload)
-  const { data, error } = await db
-    .from('users')
-    .update(payload)
-    .eq('auth_id', userProfileData.auth_id)
-    .select()
-    .single();
-  console.log({ data, error })
+// app/admin/user/api.ts
+  const { error } = await db.rpc(
+    'fn_update_user_profile_with_farms',
+    payload
+  );
+
   if (error) {
-    console.error('Supabase Update Error:', error);
+    console.error('Supabase RPC Error:', error);
     throw new Error(error.message);
   }
-
-  // return data as UserRow;
 }
 
 export async function getProfileByAuthId(authId: string): Promise<UserRow | null> {
@@ -161,6 +199,51 @@ export async function getProfileByAuthId(authId: string): Promise<UserRow | null
 
   // Returns the profile data or null if not found
   return data as UserRow | null;
+}
+
+
+
+// export async function getProfileNotByAuthIdIsSuper(authId: string) {
+//   const { data, error } = await db
+//     .from('vwdmf_super_users')
+//     .select(`*`)
+//     .neq('auth_id', authId);
+//   if (error) {
+//     console.error('Supabase Select Error:', error);
+//     throw new Error(error.message);
+//   }
+
+//   return data ;
+// }
+
+
+export async function getUserInfoById(authId: string) {
+  const { data, error } = await db
+    .from('vw_users_with_farms')
+    .select(`*`)
+   .eq('id', authId);
+  if (error) {
+    console.error('Supabase Select Error:', error);
+    throw new Error(error.message);
+  }
+  console.log({ authId  })
+
+  return data;
+}
+
+export async function getUserInfoAuthSession() {
+  const { data: { session },
+  } = await db.auth.getSession();
+  const { data, error } = await db
+    .from('vw_users_with_farms')
+    .select(`*`)
+    .eq('auth_id', session?.user.id);
+  if (error) {
+    console.error('Supabase Select Error:', error);
+    throw new Error(error.message);
+  }
+
+  return data;
 }
 
 

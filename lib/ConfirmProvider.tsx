@@ -90,10 +90,10 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
                         ) : null}
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel onClick={() => resolveAndClose(false)}>
+                        <AlertDialogCancel variant={"secondary"} className="border-2 shadow" onClick={() => resolveAndClose(false)}>
                             {cancelText}
                         </AlertDialogCancel>
-                        <AlertDialogAction className="bg-secondary text-secondary-foreground" onClick={() => resolveAndClose(true)}>
+                        <AlertDialogAction className="border-2 shadow-2xl" onClick={() => resolveAndClose(true)}>
                             {confirmText}
                         </AlertDialogAction>
                     </AlertDialogFooter>

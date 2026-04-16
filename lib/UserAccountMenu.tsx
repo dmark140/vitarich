@@ -7,6 +7,7 @@ import { UserProfileCard } from "./DefaultFunctions";
 import GlobalDefaults from "./Defaults/GlobalDefaults";
 import { useOnClickOutside } from "./hooks/useOnClickOutside";
 import { useRouter } from "next/navigation";
+import GlobalFarmUserSettings from "@/components/ui/GlobalFarmUserSettings";
 
 export default function UserAccountMenu({ session, collapsed }: any) {
   const route = useRouter()
@@ -57,6 +58,7 @@ export default function UserAccountMenu({ session, collapsed }: any) {
           >
             Logout
           </Button>
+          {/* <GlobalFarmUserSettings /> */}
 
           <Separator className="my-2 " />
 
