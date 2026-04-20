@@ -1,12 +1,14 @@
 import {
   Boxes,
   Calendar,
+  CalendarClock,
   Contact2,
   DockIcon,
   DollarSign,
   EggFried,
   EggIcon,
   FileSliders,
+  FolderTree,
   Home,
   PenBoxIcon,
   ShoppingCartIcon,
@@ -197,22 +199,39 @@ export const NavFolders = [
       },
     ],
   },
-  // {
-  //   id: 4,
-  //   title: "Workspace",
-  //   url: "#",
-  //   icon: Boxes, // Example icon name
-  //   items: [
-  //     {
-  //       group: "Overview",
-  //       children: [
-  //         { type: "Module", title: "Projects", url: "" },
-  //         { type: "Module", title: "Task", url: "" },
-  //         { type: "Module", title: "Sprints", url: "" },
-  //       ],
-  //     },
-  //   ],
-  // },
+  {
+    id: 4,
+    title: "Workspace",
+    url: "#",
+    icon: FolderTree, // Example icon name
+    items: [
+      {
+        group: "Projects",
+        children: [
+          { type: "Module", title: "Dashboard", url: "/wks/dashboard" },
+          { type: "Module", title: "Projects", url: "/wks/projects" },
+          { type: "Module", title: "Task", url: "/wks/tasks" },
+          { type: "Module", title: "Project Type", url: "" },
+        ],
+      },
+    ],
+  },
+  {
+    id: 5,
+    title: "Timesheet",
+    url: "#",
+    icon: CalendarClock, // Example icon name
+    items: [
+      {
+        group: "Timesheet",
+        children: [
+          { type: "Module", title: "Timesheet", url: "/wks/Timesheet" },
+          { type: "Module", title: "Activity Type", url: "" },
+          { type: "Module", title: "Reports", url: "" },
+        ],
+      },
+    ],
+  },
   {
     id: 99,
     title: "Settings",
@@ -269,13 +288,13 @@ export const ISSUE_STATUSES: {
   name: string;
   color: string;
 }[] = [
-  { code: "todo", name: "To Do", color: "gray" },
-  { code: "in_progress", name: "In Progress", color: "blue" },
-  { code: "in_review", name: "In Review", color: "purple" },
-  { code: "blocked", name: "Blocked", color: "red" },
-  { code: "done", name: "Done", color: "green" },
-  { code: "reopened", name: "Reopened", color: "orange" },
-];
+    { code: "todo", name: "To Do", color: "gray" },
+    { code: "in_progress", name: "In Progress", color: "blue" },
+    { code: "in_review", name: "In Review", color: "purple" },
+    { code: "blocked", name: "Blocked", color: "red" },
+    { code: "done", name: "Done", color: "green" },
+    { code: "reopened", name: "Reopened", color: "orange" },
+  ];
 
 export type IssuePriority = "high" | "medium" | "low";
 
@@ -284,12 +303,12 @@ export const ISSUE_PRIORITIES: {
   name: string;
   color: string;
 }[] = [
-  // { code: "highest", name: "Highest", color: "red" },
-  { code: "high", name: "High", color: "orange" },
-  { code: "medium", name: "Medium", color: "yellow" },
-  { code: "low", name: "Low", color: "blue" },
-  // { code: "lowest", name: "Lowest", color: "gray" },
-];
+    // { code: "highest", name: "Highest", color: "red" },
+    { code: "high", name: "High", color: "orange" },
+    { code: "medium", name: "Medium", color: "yellow" },
+    { code: "low", name: "Low", color: "blue" },
+    // { code: "lowest", name: "Lowest", color: "gray" },
+  ];
 // export const ISSUE_PRIORITIES = [
 //   { code: "highest", name: "Highest", color: "red" },
 //   { code: "high", name: "High", color: "orange" },

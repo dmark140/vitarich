@@ -181,7 +181,7 @@ export default function DynamicTable<T extends Record<string, any>>({
           <button
             type='button'
             onClick={() => setShowFilter(v => !v)}
-            className="relative border px-3 py-1 rounded text-sm bg-muted"
+            className=" relative border px-3 py-1 rounded text-sm bg-muted"
           >
             Filter
 

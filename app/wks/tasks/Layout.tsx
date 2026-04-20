@@ -1,0 +1,114 @@
+// app/wks/tasks/Layout.tsx
+'use client'
+import { Button } from '@/components/ui/button'
+import { ColumnConfig } from '@/components/ui/DataTable'
+import DynamicTable from '@/components/ui/DataTableV2'
+import Breadcrumb from '@/lib/Breadcrumb'
+import { RowDataKey } from '@/lib/Defaults/DefaultTypes'
+import { Plus } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import React, { useEffect, useMemo, useState } from 'react'
+import { getTask } from './api'
+
+export default function Layout() {
+  const route = useRouter()
+  const [loading, setLoading] = useState(false)
+  const [initialRows, setinitialRows] = useState<RowDataKey[]>([])
+
+  const tableColumnsx: ColumnConfig[] = useMemo(
+    () => [
+      { key: 'action', label: 'Action', type: 'button' },
+      { key: 'task_name', label: 'Task Name', type: 'text' },
+      { key: 'task_type', label: 'Type', type: 'text' },
+      { key: 'start_date', label: 'Start Date', type: 'text' },
+      { key: 'end_date', label: 'End Date', type: 'text' },
+      { key: 'created_at', label: 'Created At', type: 'text' },
+    ],
+    []
+  )
+  useEffect(() => {
+    route.prefetch("/wks/tasks/new")
+  }, [])
+
+
+
+  useEffect(() => {
+    const loadtasks = async () => {
+      setLoading(true)
+
+      try {
+        const data = await getTask()
+        setinitialRows(data)
+      } catch (err) {
+        console.error(err)
+      }
+
+      setLoading(false)
+    }
+
+    loadtasks()
+  }, [])
+  
+  useEffect(() => {
+    initialRows.forEach((row) => {
+      route.prefetch(`/wks/tasks/${row.id}`)
+    })
+  }, [initialRows])
+
+  return (
+    <div>
+      <div className='flex items-center justify-between mt-8 mx-4'>
+        <Breadcrumb
+          CurrentPageName='Tasks'
+          FirstPreviewsPageName='Workspace'
+        />
+        <div>
+          <Button size="sm"
+
+            onClick={() => route.push("/wks/tasks/new")}>
+            <Plus /> New Task
+          </Button>
+        </div>
+      </div>
+      <p className='text-gray-600 mx-4'>Manage your tasks and related tasks here.</p>
+      <DynamicTable
+        loading={loading}
+
+        columns={tableColumnsx.map((col) => ({
+          key: col.key,
+          label: col.label,
+          align: col.key === 'action' ? 'right' : 'left',
+
+          render: (row: RowDataKey) => {
+            if (col.key === 'action') {
+              return (
+                <div className="flex  gap-2">
+                  <Button
+                    size={"sm"}
+                    className='my-1 bg-background border hover:bg-foreground/10 border-green-400 text-green-400 p-1 rounded-xs   '
+                    onClick={() => {
+                      route.push(`/wks/tasks/${row.id}`)
+                    }}
+                  >
+
+                    View
+                  </Button>
+                </div>
+              )
+            }
+
+            const value = row[col.key]
+
+            if (!value) return "-"
+
+            return String(value)
+          },
+        }))}
+
+        data={initialRows}
+
+      />
+
+    </div>
+  )
+} 

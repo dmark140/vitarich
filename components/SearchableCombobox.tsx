@@ -25,7 +25,7 @@ import { Input } from "./ui/input"
 import { Label } from "./ui/label"
 
 
-type ComboboxItemType = {
+export type ComboboxItemType = {
   code: string
   name: string
 }
