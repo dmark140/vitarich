@@ -55,7 +55,9 @@ function parseRefNumbers(value: string | null | undefined) {
     .filter(Boolean);
 }
 
-export async function listSetterInventoryRefs(): Promise<TransferClassiRefOption[]> {
+export async function listSetterInventoryRefs(): Promise<
+  TransferClassiRefOption[]
+> {
   const { data, error } = await db
     .from(SETTER_TABLE)
     .select("ref_no, farm_source, qty_set_egg")

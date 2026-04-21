@@ -508,7 +508,7 @@ export default function EggTransferForm() {
               <Separator />
 
               <div className="overflow-x-auto rounded-md border">
-                <table className="w-full min-w-[760px] text-sm">
+                <table className="w-full min-w-190 text-sm">
                   <thead className="bg-green-50">
                     <tr className="border-b">
                       <th className="px-3 py-2 text-left font-medium">
