@@ -45,6 +45,34 @@ function formatNumber(value?: number | null) {
   return Number(value).toLocaleString();
 }
 
+const femaleColumnIds = new Set([
+  "f_beg",
+  "f_doa",
+  "f_reject",
+  "f_shortcount",
+  "f_endingbalance",
+]);
+
+const maleColumnIds = new Set([
+  "m_beg",
+  "m_doa",
+  "m_reject",
+  "m_shortcount",
+  "m_endingbalance",
+]);
+
+function getPlacementColumnTone(columnId: string) {
+  if (femaleColumnIds.has(columnId)) {
+    return "bg-pink-50";
+  }
+
+  if (maleColumnIds.has(columnId)) {
+    return "bg-sky-50";
+  }
+
+  return "";
+}
+
 function PlacementTableInner() {
   const router = useRouter();
   const confirm = useConfirm();
@@ -152,52 +180,52 @@ function PlacementTableInner() {
     },
     {
       accessorKey: "f_beg",
-      header: "F Placement",
+      header: "Female Placement",
       cell: ({ row }) => formatNumber(row.original.f_beg),
     },
     {
       accessorKey: "f_doa",
-      header: "F DOA",
+      header: "Female DOA",
       cell: ({ row }) => formatNumber(row.original.f_doa),
     },
     {
       accessorKey: "f_reject",
-      header: "F Reject",
+      header: "Female Reject",
       cell: ({ row }) => formatNumber(row.original.f_reject),
     },
     {
       accessorKey: "f_shortcount",
-      header: "F Short Count",
+      header: "Female Short Count",
       cell: ({ row }) => formatNumber(row.original.f_shortcount),
     },
     {
       accessorKey: "f_endingbalance",
-      header: "F Ending Balance",
+      header: "Female Ending Balance",
       cell: ({ row }) => formatNumber(row.original.f_endingbalance),
     },
     {
       accessorKey: "m_beg",
-      header: "M Placement",
+      header: "Male Placement",
       cell: ({ row }) => formatNumber(row.original.m_beg),
     },
     {
       accessorKey: "m_doa",
-      header: "M DOA",
+      header: "Male DOA",
       cell: ({ row }) => formatNumber(row.original.m_doa),
     },
     {
       accessorKey: "m_reject",
-      header: "M Reject",
+      header: "Male Reject",
       cell: ({ row }) => formatNumber(row.original.m_reject),
     },
     {
       accessorKey: "m_shortcount",
-      header: "M Short Count",
+      header: "Male Short Count",
       cell: ({ row }) => formatNumber(row.original.m_shortcount),
     },
     {
       accessorKey: "m_endingbalance",
-      header: "M Ending Balance",
+      header: "Male Ending Balance",
       cell: ({ row }) => formatNumber(row.original.m_endingbalance),
     },
     {
@@ -268,7 +296,7 @@ function PlacementTableInner() {
           className="flex h-full w-full items-center gap-2 md:h-auto md:w-auto"
         >
           <Plus className="size-4" />
-          New Record
+          New Pleasement
         </Button>
       </div>
 
@@ -281,7 +309,7 @@ function PlacementTableInner() {
                   {headerGroup.headers.map((header) => (
                     <TableHead
                       key={header.id}
-                      className="whitespace-normal text-left align-middle"
+                      className={`whitespace-normal text-left align-middle ${getPlacementColumnTone(header.column.id)}`}
                     >
                       {header.isPlaceholder
                         ? null
@@ -300,7 +328,10 @@ function PlacementTableInner() {
                 table.getRowModel().rows.map((row) => (
                   <TableRow key={row.id}>
                     {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
+                      <TableCell
+                        key={cell.id}
+                        className={getPlacementColumnTone(cell.column.id)}
+                      >
                         {flexRender(
                           cell.column.columnDef.cell,
                           cell.getContext(),

@@ -95,6 +95,15 @@ function getErrorMessage(error: unknown, fallback: string) {
   return fallback;
 }
 
+const TableWidths = {
+  tableMin: "min-w-[344px]",
+  pen: "w-8",
+  source: "w-24",
+  count: "w-[1.52rem]",
+  shortCount: "w-[2.8rem]",
+  ending: "w-[3.2rem]",
+} as const;
+
 export default function PlacementForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -454,12 +463,12 @@ export default function PlacementForm() {
               </div>
 
               <div className="overflow-x-auto rounded-md border">
-                <table className="w-full min-w-430 text-sm">
+                <table className={`w-full ${TableWidths.tableMin} text-sm`}>
                   <thead className="bg-green-50">
                     <tr className="border-b">
                       <th
                         rowSpan={2}
-                        className="px-2 py-2 text-left font-medium w-10"
+                        className={`px-2 py-2 text-left font-medium ${TableWidths.pen}`}
                       >
                         Pen #
                       </th>
@@ -477,40 +486,64 @@ export default function PlacementForm() {
                       </th>
                     </tr>
                     <tr className="border-b">
-                      <th className="px-3 py-2 text-left font-medium bg-pink-50 w-35">
+                      <th
+                        className={`${TableWidths.source} px-1 py-1 text-left font-medium bg-pink-50`}
+                      >
                         Source
                       </th>
-                      <th className="px-3 py-2 text-left font-medium bg-pink-50 w-20">
+                      <th
+                        className={`${TableWidths.count} px-1 text-left font-medium bg-pink-50`}
+                      >
                         Total Placement
                       </th>
-                      <th className="w-16 px-0 text-left font-medium bg-pink-50">
+                      <th
+                        className={`${TableWidths.count} px-1 text-left font-medium bg-pink-50`}
+                      >
                         DOA
                       </th>
-                      <th className=" w-16 px-0 text-left font-medium bg-pink-50">
+                      <th
+                        className={`${TableWidths.count} px-1 text-left font-medium bg-pink-50`}
+                      >
                         Rejects
                       </th>
-                      <th className="px-1 py-1 text-left font-medium bg-pink-50 w-20">
+                      <th
+                        className={`${TableWidths.shortCount} px-1 text-left font-medium bg-pink-50`}
+                      >
                         Short Count
                       </th>
-                      <th className="px-1 py-1 text-left font-medium bg-pink-50 w-20">
+                      <th
+                        className={`${TableWidths.ending} px-1 text-left font-medium bg-pink-50`}
+                      >
                         Ending
                       </th>
-                      <th className="px-1 py-1 text-left font-medium bg-sky-50 w-35">
+                      <th
+                        className={`${TableWidths.source} px-1 text-left font-medium bg-sky-50`}
+                      >
                         Source
                       </th>
-                      <th className="px-1 py-1 text-left font-medium bg-sky-50 w-20">
+                      <th
+                        className={`${TableWidths.count} px-1 text-left font-medium bg-sky-50`}
+                      >
                         Total Placement
                       </th>
-                      <th className="px-1 py-1 text-left font-medium bg-sky-50 w-16">
+                      <th
+                        className={`${TableWidths.count} px-1 text-left font-medium bg-sky-50`}
+                      >
                         DOA
                       </th>
-                      <th className="px-1 py-1 text-left font-medium bg-sky-50 w-20">
+                      <th
+                        className={`${TableWidths.count} px-1 text-left font-medium bg-sky-50`}
+                      >
                         Rejects
                       </th>
-                      <th className="px-1 py-1 text-left font-medium bg-sky-50 w-20">
+                      <th
+                        className={`${TableWidths.shortCount} px-1 text-left font-medium bg-sky-50`}
+                      >
                         Short Count
                       </th>
-                      <th className="px-1 py-1 text-left font-medium bg-sky-50 w-20">
+                      <th
+                        className={`${TableWidths.ending} px-1 text-left font-medium bg-sky-50`}
+                      >
                         Ending
                       </th>
                     </tr>
@@ -536,7 +569,7 @@ export default function PlacementForm() {
                             key={`${row.pen_no}-${index}`}
                             className="border-b last:border-0"
                           >
-                            <td className="px-1 py-1">
+                            <td className={`${TableWidths.pen} px-1 py-1`}>
                               <Input
                                 value={row.pen_no}
                                 onChange={(e) =>
@@ -547,10 +580,10 @@ export default function PlacementForm() {
                                   )
                                 }
                                 disabled
-                                className="w-10"
+                                className="w-full"
                               />
                             </td>
-                            <td className="px-1 py-1">
+                            <td className={`${TableWidths.source} px-1`}>
                               <Input
                                 value={row.f_source}
                                 onChange={(e) =>
@@ -561,9 +594,10 @@ export default function PlacementForm() {
                                   )
                                 }
                                 disabled={disabledAll}
+                                className="w-full"
                               />
                             </td>
-                            <td className="px-1 py-1">
+                            <td className={`${TableWidths.count} px-1`}>
                               <Input
                                 type="text"
                                 inputMode="numeric"
@@ -578,9 +612,10 @@ export default function PlacementForm() {
                                   )
                                 }
                                 disabled={disabledAll}
+                                className="w-full"
                               />
                             </td>
-                            <td className="w-12 px-0 py-1 ">
+                            <td className={`${TableWidths.count} px-1`}>
                               <Input
                                 type="text"
                                 inputMode="numeric"
@@ -595,9 +630,10 @@ export default function PlacementForm() {
                                   )
                                 }
                                 disabled={disabledAll}
+                                className="w-full"
                               />
                             </td>
-                            <td className="w-16 px-1 py-1 ">
+                            <td className={`${TableWidths.count} px-1`}>
                               <Input
                                 type="text"
                                 inputMode="numeric"
@@ -612,9 +648,10 @@ export default function PlacementForm() {
                                   )
                                 }
                                 disabled={disabledAll}
+                                className="w-full"
                               />
                             </td>
-                            <td className="px-1 py-1">
+                            <td className={`${TableWidths.shortCount} px-1`}>
                               <Input
                                 type="text"
                                 inputMode="numeric"
@@ -629,17 +666,18 @@ export default function PlacementForm() {
                                   )
                                 }
                                 disabled={disabledAll}
+                                className="w-full"
                               />
                             </td>
-                            <td className="px-1 py-1">
+                            <td className={`${TableWidths.ending} px-1`}>
                               <Input
                                 value={femaleEnding.toLocaleString("en-US")}
                                 readOnly
                                 disabled
-                                className="bg-slate-100"
+                                className="bg-slate-100 w-full"
                               />
                             </td>
-                            <td className="px-1 py-1">
+                            <td className={`${TableWidths.source} px-1`}>
                               <Input
                                 value={row.m_source}
                                 onChange={(e) =>
@@ -650,9 +688,10 @@ export default function PlacementForm() {
                                   )
                                 }
                                 disabled={disabledAll}
+                                className="w-full"
                               />
                             </td>
-                            <td className="px-1 py-1">
+                            <td className={`${TableWidths.count} px-1`}>
                               <Input
                                 type="text"
                                 inputMode="numeric"
@@ -667,9 +706,10 @@ export default function PlacementForm() {
                                   )
                                 }
                                 disabled={disabledAll}
+                                className="w-full"
                               />
                             </td>
-                            <td className="px-1 py-1">
+                            <td className={`${TableWidths.count} px-1`}>
                               <Input
                                 type="text"
                                 inputMode="numeric"
@@ -684,9 +724,10 @@ export default function PlacementForm() {
                                   )
                                 }
                                 disabled={disabledAll}
+                                className="w-full"
                               />
                             </td>
-                            <td className="px-1 py-1">
+                            <td className={`${TableWidths.count} px-1`}>
                               <Input
                                 type="text"
                                 inputMode="numeric"
@@ -701,9 +742,10 @@ export default function PlacementForm() {
                                   )
                                 }
                                 disabled={disabledAll}
+                                className="w-full"
                               />
                             </td>
-                            <td className="px-1 py-1">
+                            <td className={`${TableWidths.shortCount} px-1`}>
                               <Input
                                 type="text"
                                 inputMode="numeric"
@@ -718,14 +760,15 @@ export default function PlacementForm() {
                                   )
                                 }
                                 disabled={disabledAll}
+                                className="w-full"
                               />
                             </td>
-                            <td className="px-1 py-1 w-20">
+                            <td className={`${TableWidths.ending} px-1`}>
                               <Input
                                 value={maleEnding.toLocaleString("en-US")}
                                 readOnly
                                 disabled
-                                className="bg-slate-100"
+                                className="bg-slate-100 w-full"
                               />
                             </td>
                           </tr>
