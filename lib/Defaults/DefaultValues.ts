@@ -2,12 +2,14 @@ import {
   Boxes,
   Calendar,
   CalendarClock,
+  CalendarClock,
   Contact2,
   DockIcon,
   DollarSign,
-  EggFried,
+  BirdIcon,
   EggIcon,
   FileSliders,
+  FolderTree,
   FolderTree,
   Home,
   PenBoxIcon,
@@ -27,6 +29,68 @@ export const NavFolders = [
       {
         group: "Reports",
         children: [{ type: "Report", title: "Dashboard", url: "/home" }],
+      },
+    ],
+  },
+  {
+    id: 2,
+    title: "Breeder",
+    url: "/jmb/breeder",
+    icon: BirdIcon,
+    items: [
+      {
+        group: "Breeder Masters",
+        children: [
+          { type: "Module", title: "Placement", url: "/jmb/placement" },
+
+          {
+            type: "Module",
+            title: "Growing Period",
+            // url: "/jmb/hatcheryclassi", /home
+            url: "/home",
+          },
+          {
+            type: "Module",
+            title: "Egg Storage",
+            // url: "/jmb/eggstorage" },
+            url: "/home",
+          },
+          {
+            type: "Module",
+            // title: "Egg Pre-Warming Process",
+            url: "/jmb/prewarmingv2",
+          },
+          { type: "Module", title: "Egg Setter", url: "/jmb/eggsetter" },
+          {
+            type: "Module",
+            title: "Egg Transfer Process",
+            url: "/jmb/eggtransferv2",
+          },
+          {
+            type: "Module",
+            title: "Egg Hatcher Process",
+            url: "/jmb/egghatcherv2",
+          },
+          {
+            type: "Module",
+            title: "Chick Pullout Process",
+            url: "/jmb/chickpulloutv2",
+          },
+          {
+            type: "Module",
+            title: "Doc Classification",
+            url: "/jmb/docclassification",
+          },
+          { type: "Module", title: "Doc Dispatch", url: "/jmb/docdispatchv2" },
+          { type: "Module", title: "Disposal", url: "/a_dean/disposal" },
+        ],
+      },
+      {
+        group: "Reports",
+        children: [
+          { type: "Report", title: "Room Monitoring", url: "#" },
+          { type: "Report", title: "Machine Monitoring", url: "#" },
+        ],
       },
     ],
   },
@@ -86,68 +150,7 @@ export const NavFolders = [
       },
     ],
   },
-  // {
-  //   id: 2,
-  //   title: "Breeder Management",
-  //   url: "/jmb/breeder",
-  //   icon: EggFried,
-  //   items: [
-  //     {
-  //       group: "Breeder Masters",
-  //       children: [
-  //         { type: "Module", title: "Placement", url: "/a_dean/hatchery" },
 
-  //         {
-  //           type: "Module",
-  //           title: "Growing Period",
-  //           // url: "/jmb/hatcheryclassi", /home
-  //           url: "/home",
-  //         },
-  //         {
-  //           type: "Module",
-  //           title: "Egg Storage",
-  //           // url: "/jmb/eggstorage" },
-  //           url: "/home",
-  //         },
-  //         {
-  //           type: "Module",
-  //           // title: "Egg Pre-Warming Process",
-  //           url: "/jmb/prewarmingv2",
-  //         },
-  //         { type: "Module", title: "Egg Setter", url: "/jmb/eggsetter" },
-  //         {
-  //           type: "Module",
-  //           title: "Egg Transfer Process",
-  //           url: "/jmb/eggtransferv2",
-  //         },
-  //         {
-  //           type: "Module",
-  //           title: "Egg Hatcher Process",
-  //           url: "/jmb/egghatcherv2",
-  //         },
-  //         {
-  //           type: "Module",
-  //           title: "Chick Pullout Process",
-  //           url: "/jmb/chickpulloutv2",
-  //         },
-  //         {
-  //           type: "Module",
-  //           title: "Doc Classification",
-  //           url: "/jmb/docclassification",
-  //         },
-  //         { type: "Module", title: "Doc Dispatch", url: "/jmb/docdispatchv2" },
-  //         { type: "Module", title: "Disposal", url: "/a_dean/disposal" },
-  //       ],
-  //     },
-  //     {
-  //       group: "Reports",
-  //       children: [
-  //         { type: "Report", title: "Room Monitoring", url: "#" },
-  //         { type: "Report", title: "Machine Monitoring", url: "#" },
-  //       ],
-  //     },
-  //   ],
-  // },
   {
     id: 3,
     title: "Inventory Management",
@@ -288,13 +291,13 @@ export const ISSUE_STATUSES: {
   name: string;
   color: string;
 }[] = [
-    { code: "todo", name: "To Do", color: "gray" },
-    { code: "in_progress", name: "In Progress", color: "blue" },
-    { code: "in_review", name: "In Review", color: "purple" },
-    { code: "blocked", name: "Blocked", color: "red" },
-    { code: "done", name: "Done", color: "green" },
-    { code: "reopened", name: "Reopened", color: "orange" },
-  ];
+  { code: "todo", name: "To Do", color: "gray" },
+  { code: "in_progress", name: "In Progress", color: "blue" },
+  { code: "in_review", name: "In Review", color: "purple" },
+  { code: "blocked", name: "Blocked", color: "red" },
+  { code: "done", name: "Done", color: "green" },
+  { code: "reopened", name: "Reopened", color: "orange" },
+];
 
 export type IssuePriority = "high" | "medium" | "low";
 
@@ -303,12 +306,12 @@ export const ISSUE_PRIORITIES: {
   name: string;
   color: string;
 }[] = [
-    // { code: "highest", name: "Highest", color: "red" },
-    { code: "high", name: "High", color: "orange" },
-    { code: "medium", name: "Medium", color: "yellow" },
-    { code: "low", name: "Low", color: "blue" },
-    // { code: "lowest", name: "Lowest", color: "gray" },
-  ];
+  // { code: "highest", name: "Highest", color: "red" },
+  { code: "high", name: "High", color: "orange" },
+  { code: "medium", name: "Medium", color: "yellow" },
+  { code: "low", name: "Low", color: "blue" },
+  // { code: "lowest", name: "Lowest", color: "gray" },
+];
 // export const ISSUE_PRIORITIES = [
 //   { code: "highest", name: "Highest", color: "red" },
 //   { code: "high", name: "High", color: "orange" },
