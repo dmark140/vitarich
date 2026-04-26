@@ -5,6 +5,13 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Paperclip } from "lucide-react";
@@ -17,7 +24,10 @@ import {
   createPlacementBatch,
   getPlacementById,
   getUserInfo,
+  listBreederSources,
+  listFarmLocationLookup,
   updatePlacement,
+  type FarmLocationLookup,
   type PlacementInsert,
 } from "./api";
 
@@ -98,7 +108,7 @@ function getErrorMessage(error: unknown, fallback: string) {
 const TableWidths = {
   tableMin: "min-w-[344px]",
   pen: "w-8",
-  source: "w-24",
+  source: "w-24 min-w-24 max-w-24",
   count: "w-[1.52rem]",
   shortCount: "w-[2.8rem]",
   ending: "w-[3.2rem]",
@@ -112,6 +122,10 @@ export default function PlacementForm() {
 
   const [saving, setSaving] = useState(false);
   const [loadingRecord, setLoadingRecord] = useState(false);
+  const [sourceOptions, setSourceOptions] = useState<string[]>([]);
+  const [loadingSources, setLoadingSources] = useState(false);
+  const [locations, setLocations] = useState<FarmLocationLookup[]>([]);
+  const [loadingLocations, setLoadingLocations] = useState(false);
   const [form, setForm] = useState<FormState>({
     placement_date: getToday(),
     dr_no: "",
@@ -126,6 +140,50 @@ export default function PlacementForm() {
   useEffect(() => {
     refreshSessionx(router);
   }, [router]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    (async () => {
+      setLoadingSources(true);
+      try {
+        const sources = await listBreederSources();
+        if (!mounted) return;
+        setSourceOptions(sources);
+      } catch {
+        if (!mounted) return;
+        setSourceOptions([]);
+      } finally {
+        if (mounted) setLoadingSources(false);
+      }
+    })();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+
+    (async () => {
+      setLoadingLocations(true);
+      try {
+        const lookup = await listFarmLocationLookup();
+        if (!mounted) return;
+        setLocations(lookup);
+      } catch {
+        if (!mounted) return;
+        setLocations([]);
+      } finally {
+        if (mounted) setLoadingLocations(false);
+      }
+    })();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -209,28 +267,66 @@ export default function PlacementForm() {
 
   const totalPens = useMemo(() => rows.length, [rows]);
   const disabledAll = saving || loadingRecord;
+  const farmOptions = useMemo(() => {
+    const values = new Set<string>(
+      locations.map((location) => location.farm_name).filter(Boolean),
+    );
+    if (form.farm_name.trim()) values.add(form.farm_name.trim());
+    return Array.from(values);
+  }, [form.farm_name, locations]);
+  const buildingOptions = useMemo(() => {
+    const values = new Set<string>();
+    if (form.farm_name) {
+      locations
+        .filter((location) => location.farm_name === form.farm_name)
+        .map((location) => location.building_no)
+        .filter(Boolean)
+        .forEach((buildingNo) => values.add(buildingNo));
+    }
+    if (form.building_no.trim()) values.add(form.building_no.trim());
+    return Array.from(values);
+  }, [form.building_no, form.farm_name, locations]);
+  const breederSourceOptions = useMemo(() => {
+    const values = new Set(sourceOptions);
+    rows.forEach((row) => {
+      if (row.f_source.trim()) values.add(row.f_source.trim());
+      if (row.m_source.trim()) values.add(row.m_source.trim());
+    });
+    return Array.from(values).sort((a, b) => a.localeCompare(b));
+  }, [rows, sourceOptions]);
 
-  function updatePenRows(value: string) {
-    const nextPenCount = clampInteger(value);
+  function buildRowsFromPens(pens: FarmLocationLookup[]) {
+    return pens.map((pen, index) => ({
+      ...createEmptyRow(index),
+      pen_no: pen.pen_no,
+    }));
+  }
+
+  function handleFarmChange(farmName: string) {
+    setForm((prev) => ({
+      ...prev,
+      farm_name: farmName,
+      building_no: "",
+      pen_count: "",
+    }));
+    setRows([]);
+  }
+
+  function handleBuildingChange(buildingNo: string) {
+    const nextRows = buildRowsFromPens(
+      locations.filter(
+        (location) =>
+          location.farm_name === form.farm_name &&
+          location.building_no === buildingNo,
+      ),
+    );
 
     setForm((prev) => ({
       ...prev,
-      pen_count: nextPenCount,
+      building_no: buildingNo,
+      pen_count: String(nextRows.length),
     }));
-
-    if (nextPenCount === "") {
-      setRows([]);
-      return;
-    }
-
-    const count = Number(nextPenCount);
-
-    setRows((prev) =>
-      Array.from({ length: count }, (_, index) => ({
-        ...(prev[index] ?? createEmptyRow(index)),
-        pen_no: prev[index]?.pen_no || String(index + 1),
-      })),
-    );
+    setRows(nextRows);
   }
 
   function handleRowChange(
@@ -253,6 +349,39 @@ export default function PlacementForm() {
             }
           : row,
       ),
+    );
+  }
+
+  function renderSourceSelect(
+    index: number,
+    field: "f_source" | "m_source",
+    value: string,
+  ) {
+    return (
+      <Select
+        value={value}
+        onValueChange={(nextValue) => handleRowChange(index, field, nextValue)}
+      >
+        <SelectTrigger className="w-full min-w-0 max-w-full overflow-hidden">
+          <SelectValue
+            className="truncate"
+            placeholder={loadingSources ? "Loading..." : "Select source"}
+          />
+        </SelectTrigger>
+        <SelectContent>
+          {breederSourceOptions.length ? (
+            breederSourceOptions.map((source) => (
+              <SelectItem key={source} value={source}>
+                {source}
+              </SelectItem>
+            ))
+          ) : (
+            <SelectItem value="__no_source_options__" disabled>
+              No active sources
+            </SelectItem>
+          )}
+        </SelectContent>
+      </Select>
     );
   }
 
@@ -334,7 +463,7 @@ export default function PlacementForm() {
       <Card>
         <CardContent className="pt-4 space-y-5">
           <div className="rounded-md border p-4 space-y-4">
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
               <div className="space-y-2">
                 <RequiredLabel>Date</RequiredLabel>
                 <Input
@@ -389,52 +518,84 @@ export default function PlacementForm() {
 
               <div className="space-y-2">
                 <RequiredLabel>Farm Name</RequiredLabel>
-                <Input
+                <Select
                   value={form.farm_name}
-                  onChange={(e) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      farm_name: e.target.value,
-                    }))
-                  }
-                  disabled={disabledAll}
-                  className={form.farm_name ? "bg-slate-100" : ""}
-                />
+                  onValueChange={handleFarmChange}
+                  disabled={disabledAll || loadingLocations || isEdit}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue
+                      placeholder={
+                        loadingLocations ? "Loading..." : "Select farm"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {farmOptions.length ? (
+                      farmOptions.map((farmName) => (
+                        <SelectItem key={farmName} value={farmName}>
+                          {farmName}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="__no_farm_options__" disabled>
+                        No active farms
+                      </SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">
                 <RequiredLabel>Building #</RequiredLabel>
-                <Input
+                <Select
                   value={form.building_no}
-                  onChange={(e) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      building_no: e.target.value,
-                    }))
+                  onValueChange={handleBuildingChange}
+                  disabled={
+                    disabledAll || loadingLocations || !form.farm_name || isEdit
                   }
-                  placeholder="Enter building"
-                  disabled={disabledAll}
-                />
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue
+                      placeholder={
+                        form.farm_name ? "Select building" : "Select farm first"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {buildingOptions.length ? (
+                      buildingOptions.map((buildingNo) => (
+                        <SelectItem key={buildingNo} value={buildingNo}>
+                          {buildingNo}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="__no_building_options__" disabled>
+                        No active buildings
+                      </SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">
                 <RequiredLabel>Pen #</RequiredLabel>
                 <Input
                   type="text"
-                  inputMode="numeric"
-                  value={asNumber(form.pen_count).toLocaleString("en-US")}
-                  onChange={(e) =>
-                    updatePenRows(e.target.value.replace(/,/g, ""))
+                  value={
+                    form.pen_count
+                      ? asNumber(form.pen_count).toLocaleString("en-US")
+                      : ""
                   }
-                  placeholder="Enter number of pens"
-                  disabled={disabledAll || isEdit}
+                  placeholder="Generated from building"
+                  disabled
                 />
                 <p className="text-xs text-muted-foreground">
-                  Entering `4` creates 4 placement rows below.
+                  Selecting a building creates placement rows from active pens.
                 </p>
               </div>
 
-              <div className="space-y-2 md:col-span-2">
+              <div className="space-y-2 md:col-span-2 xl:col-span-3">
                 <Label>Remarks</Label>
                 <Textarea
                   value={form.remarks}
@@ -584,18 +745,11 @@ export default function PlacementForm() {
                               />
                             </td>
                             <td className={`${TableWidths.source} px-1`}>
-                              <Input
-                                value={row.f_source}
-                                onChange={(e) =>
-                                  handleRowChange(
-                                    index,
-                                    "f_source",
-                                    e.target.value,
-                                  )
-                                }
-                                disabled={disabledAll}
-                                className="w-full"
-                              />
+                              {renderSourceSelect(
+                                index,
+                                "f_source",
+                                row.f_source,
+                              )}
                             </td>
                             <td className={`${TableWidths.count} px-1`}>
                               <Input
@@ -678,18 +832,11 @@ export default function PlacementForm() {
                               />
                             </td>
                             <td className={`${TableWidths.source} px-1`}>
-                              <Input
-                                value={row.m_source}
-                                onChange={(e) =>
-                                  handleRowChange(
-                                    index,
-                                    "m_source",
-                                    e.target.value,
-                                  )
-                                }
-                                disabled={disabledAll}
-                                className="w-full"
-                              />
+                              {renderSourceSelect(
+                                index,
+                                "m_source",
+                                row.m_source,
+                              )}
                             </td>
                             <td className={`${TableWidths.count} px-1`}>
                               <Input
@@ -780,8 +927,8 @@ export default function PlacementForm() {
                           colSpan={13}
                           className="px-3 py-6 text-center text-muted-foreground"
                         >
-                          Enter the Pen # count above to generate placement
-                          rows.
+                          Select a farm and building above to generate
+                          placement rows.
                         </td>
                       </tr>
                     )}

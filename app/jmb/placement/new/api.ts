@@ -2,6 +2,24 @@ import { db } from "@/lib/Supabase/supabaseClient";
 import { DefaultFarm } from "@/lib/types";
 
 const TABLE = "tbl_placement";
+const BREEDER_SOURCE_TABLE = "tbl_breeder_source";
+const FARM_LOCATION_LOOKUP_VIEW = "view_farm_location_lookup";
+
+export type FarmLocationLookup = {
+  pen_id: number;
+  pen_code: string | null;
+  pen_no: string;
+  building_id: number;
+  building_code: string | null;
+  building_no: string;
+  farm_id: number;
+  farm_code: string | null;
+  farm_name: string;
+  farm_address: string | null;
+  region: string | null;
+  assigned_ta: string | null;
+  full_location: string;
+};
 
 export type Placement = {
   id: number;
@@ -102,6 +120,34 @@ export async function deletePlacement(id: number) {
 
   if (error) throw error;
   return true;
+}
+
+export async function listBreederSources() {
+  const { data, error } = await db
+    .from(BREEDER_SOURCE_TABLE)
+    .select("breeder_source")
+    .eq("is_active", true)
+    .order("breeder_source", { ascending: true });
+
+  if (error) throw error;
+
+  return (data ?? [])
+    .map((row: { breeder_source: string | null }) => row.breeder_source?.trim())
+    .filter((source): source is string => Boolean(source));
+}
+
+export async function listFarmLocationLookup() {
+  const { data, error } = await db
+    .from(FARM_LOCATION_LOOKUP_VIEW)
+    .select(
+      "pen_id, pen_code, pen_no, building_id, building_code, building_no, farm_id, farm_code, farm_name, farm_address, region, assigned_ta, full_location",
+    )
+    .order("farm_name", { ascending: true })
+    .order("building_no", { ascending: true })
+    .order("pen_no", { ascending: true });
+
+  if (error) throw error;
+  return (data ?? []) as FarmLocationLookup[];
 }
 
 export async function getUserInfo() {
