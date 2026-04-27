@@ -4,16 +4,21 @@ import { useEffect, useLayoutEffect, useMemo, useState } from "react";
 import { addDays, format } from "date-fns";
 import type { DateRange } from "react-day-picker";
 import { Bird, Egg, Percent } from "lucide-react";
+
 import Breadcrumb from "@/lib/Breadcrumb";
 import { DatePickerWithRange } from "@/lib/DatePickerWithRange";
 import { getAuthId } from "@/lib/getAuthId";
 import { checkUserActive } from "@/lib/CheckUserIfActive";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getDashboardSummary, type DashboardSummary } from "./api";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
+
+import { getDashboardSummary, type DashboardSummary } from "./api";
 import EggIntakeTrend from "./EggIntakeTrend";
 import Hatchabilitytrend from "./Hatchabilitytrend";
+
 function formatNumber(value: number) {
   return new Intl.NumberFormat("en-US").format(value);
 }
@@ -25,6 +30,22 @@ function formatPercent(value: number) {
 function toDateKey(value: Date) {
   return format(value, "yyyy-MM-dd");
 }
+
+/* ---------------- Skeleton Cards ---------------- */
+
+function SkeletonStatCard() {
+  return (
+    <Card className="overflow-hidden border-0 bg-white shadow">
+      <CardContent className="p-5 space-y-3">
+        <Skeleton className="h-3 w-28" />
+        <Skeleton className="h-10 w-32" />
+        <Skeleton className="h-3 w-40" />
+      </CardContent>
+    </Card>
+  );
+}
+
+/* ---------------- Real Stat Card ---------------- */
 
 function StatCard({
   title,

@@ -38,12 +38,12 @@ export default function ChildFolder({ id }: ChildFolderProps) {
 
   return (
     <div className="grid gap-8 grid-cols-1 mx-4">
-      <div className='mt-4'>
-        <div className="font-bold text-lg mb-2">Masters and Reports</div>
+      <div className=''>
+        {/* <div className="font-bold text-lg mb-2">Masters and Reports</div> */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {filteredData.items.map((group: any, i: number) => (
             <div key={i} className="w-full">
-              <div className="mt-4 font-bold border-b pb-1 mb-2">
+              <div className=" font-bold border-b pb-1 mb-2">
                 {group.group}
               </div>
               <div className="grid gap-2">

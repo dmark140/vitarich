@@ -167,9 +167,9 @@ export default function Layout() {
               if (col.key === 'update') {
                 return (
                   <Button
-                    size="sm"
+                    size="xs"
                     variant="outline"
-                    className='border-2  '
+                    className='border-2  my-2'
                     onClick={() => {
                       setValue("selectedUser", row)
                       route.push(`/admin/user/new`)

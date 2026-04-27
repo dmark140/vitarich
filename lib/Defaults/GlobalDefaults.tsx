@@ -41,6 +41,16 @@ export function useGlobalDefaults() {
      loaders
   ------------------------------------------------------- */
 
+  const setActiveUsers = async () => {
+    try {
+      const data = await getActiveUsers();
+      setValue("activeUsers", data);
+      return data;
+    } catch (error) {
+      console.error("activeUsers error:", error);
+    }
+  };
+
   const setItems = async () => {
     try {
       const data = await getItems();
@@ -113,6 +123,7 @@ export function useGlobalDefaults() {
       await Promise.all([
         setUserPermissions(),
         setItems(),
+        setActiveUsers(),
         setFarms(),
         setFarms_breeder(),
         getUserInfoWithFarm(),
@@ -130,6 +141,7 @@ export function useGlobalDefaults() {
     setGlobals,
     setUserPermissions,
     setItems,
+    setActiveUsers,
     setFarms,
     setFarms_breeder,
     getUserInfoWithFarm,
@@ -154,9 +166,8 @@ export default function GlobalDefaults({ collapsed }: CollapsedProps) {
         type="button"
         onClick={setGlobals}
         disabled={loading}
-        className={`w-full gap-2 px-3 py-2 justify-start ${
-          collapsed ? "justify-center" : ""
-        }`}
+        className={`w-full gap-2 px-3 py-2 justify-start ${collapsed ? "justify-center" : ""
+          }`}
       >
         {loading ? (
           <RefreshCcw className="size-4 animate-spin" />
@@ -168,4 +179,19 @@ export default function GlobalDefaults({ collapsed }: CollapsedProps) {
       </Button>
     </div>
   );
+}
+
+export async function getActiveUsers() {
+  const { data: { session },
+  } = await db.auth.getSession();
+  const { data, error } = await db
+    .from('vwdmf_get_activeusers')
+    .select(`*`)
+  // .eq('auth_id', session?.user.id);
+  if (error) {
+    console.error('Supabase Select Error:', error);
+    throw new Error(error.message);
+  }
+
+  return data;
 }

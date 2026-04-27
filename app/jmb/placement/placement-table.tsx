@@ -73,6 +73,19 @@ function getPlacementColumnTone(columnId: string) {
   return "";
 }
 
+function getPlacementColumnClass(columnId: string) {
+  if (columnId === "placement_date" || columnId === "dr_no") {
+    return "px-4";
+  }
+  return "";
+}
+
+function getPlacementCellTone(columnId: string) {
+  const tone =
+    columnId === "dr_no" ? "bg-emerald-50" : getPlacementColumnTone(columnId);
+  return tone ? `${tone} rounded-md` : "";
+}
+
 function PlacementTableInner() {
   const router = useRouter();
   const confirm = useConfirm();
@@ -137,7 +150,7 @@ function PlacementTableInner() {
     {
       id: "row_no",
       header: "#",
-      cell: ({ row }) => row.index + 1,
+      cell: ({ row }) => formatNumber(row.index + 1),
     },
     {
       id: "action",
@@ -201,7 +214,13 @@ function PlacementTableInner() {
     {
       accessorKey: "f_endingbalance",
       header: "Female Ending Balance",
-      cell: ({ row }) => formatNumber(row.original.f_endingbalance),
+      cell: ({ row }) => {
+        const beg = row.original.f_beg ?? 0;
+        const doa = row.original.f_doa ?? 0;
+        const reject = row.original.f_reject ?? 0;
+        const shortcount = row.original.f_shortcount ?? 0;
+        return formatNumber(beg - (doa + reject + shortcount));
+      },
     },
     {
       accessorKey: "m_beg",
@@ -226,7 +245,13 @@ function PlacementTableInner() {
     {
       accessorKey: "m_endingbalance",
       header: "Male Ending Balance",
-      cell: ({ row }) => formatNumber(row.original.m_endingbalance),
+      cell: ({ row }) => {
+        const beg = row.original.m_beg ?? 0;
+        const doa = row.original.m_doa ?? 0;
+        const reject = row.original.m_reject ?? 0;
+        const shortcount = row.original.m_shortcount ?? 0;
+        return formatNumber(beg - (doa + reject + shortcount));
+      },
     },
     {
       accessorKey: "remarks",
@@ -309,7 +334,7 @@ function PlacementTableInner() {
                   {headerGroup.headers.map((header) => (
                     <TableHead
                       key={header.id}
-                      className={`whitespace-normal text-left align-middle ${getPlacementColumnTone(header.column.id)}`}
+                      className={`whitespace-normal text-left align-middle ${getPlacementColumnTone(header.column.id)} ${getPlacementColumnClass(header.column.id)}`}
                     >
                       {header.isPlaceholder
                         ? null
@@ -330,7 +355,7 @@ function PlacementTableInner() {
                     {row.getVisibleCells().map((cell) => (
                       <TableCell
                         key={cell.id}
-                        className={getPlacementColumnTone(cell.column.id)}
+                        className={`${getPlacementCellTone(cell.column.id)} ${getPlacementColumnClass(cell.column.id)}`}
                       >
                         {flexRender(
                           cell.column.columnDef.cell,
