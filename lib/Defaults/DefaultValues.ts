@@ -50,7 +50,7 @@ export const NavFolders = [
           {
             type: "Module",
             title: "Laying Production",
-            url: "/home",
+            url: "/jmb/egglaying",
           },
           {
             type: "Module",
@@ -208,27 +208,28 @@ export const NavFolders = [
           { type: "Module", title: "Dashboard", url: "/wks/dashboard" },
           { type: "Module", title: "Projects", url: "/wks/projects" },
           { type: "Module", title: "Task", url: "/wks/tasks" },
-          { type: "Module", title: "Project Type", url: "" },
-        ],
-      },
-    ],
-  },
-  {
-    id: 5,
-    title: "Timesheet",
-    url: "#",
-    icon: CalendarClock, // Example icon name
-    items: [
-      {
-        group: "Timesheet",
-        children: [
+          // { type: "Module", title: "Project Type", url: "" },
           { type: "Module", title: "Timesheet", url: "/wks/timelines" },
-          { type: "Module", title: "Activity Type", url: "" },
-          { type: "Module", title: "Reports", url: "" },
+
         ],
       },
     ],
   },
+  // {
+  //   id: 5,
+  //   title: "Timesheet",
+  //   url: "#",
+  //   icon: CalendarClock, // Example icon name
+  //   items: [
+  //     {
+  //       group: "Timesheet",
+  //       children: [
+  //         // { type: "Module", title: "Activity Type", url: "/wks/t/report" },
+  //         // { type: "Module", title: "Reports", url: "/wks/t/r" },
+  //       ],
+  //     },
+  //   ],
+  // },
   {
     id: 99,
     title: "Settings",

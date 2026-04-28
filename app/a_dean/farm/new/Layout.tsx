@@ -196,31 +196,35 @@ export default function Layout() {
 
   const handleAddFarm = async () => {
 
-    const output = {
-      farm: farmData,
-      address: addressData,
-      buildings,
-      machines
+    try {
+      const output = {
+        farm: farmData,
+        address: addressData,
+        buildings,
+        machines
+      }
+      const id = await addFarmFull(output)
+
+      toast("Farm added with ID of " + id)
+
+      router.push("/a_dean/farm")
+    } catch (error) {
+      // toast.error("Farm Code already exists")
     }
-    const id = await addFarmFull(output)
-
-    toast("Farm added with ID of " + id)
-
-    router.push("/a_dean/farm")
   }
 
   // ================= LOAD FARM CODE =================
 
+  async function loadFarmCode() {
+
+    const code = await generateNextCode("v_last_farm_code", "FRM", 6)
+
+    setFarmData((prev: any) => ({ ...prev, code }))
+  }
+
   useEffect(() => {
 
     router.prefetch("/a_dean/farm")
-
-    async function loadFarmCode() {
-
-      const code = await generateNextCode("v_last_farm_code", "FRM", 6)
-
-      setFarmData((prev: any) => ({ ...prev, code }))
-    }
 
     loadFarmCode()
 
@@ -261,6 +265,8 @@ export default function Layout() {
 
         <Button onClick={handleAddFarm}>
           <Plus /> Add Farm
+          {/* <EggHenLoaderIcon color='#fff' size={32} /> */}
+{/* add add loading state and add that EggHenLoaderIcon as a lodaing state for ui  */}
         </Button>
 
       </div>
@@ -572,7 +578,8 @@ export default function Layout() {
         </div>
 
       </div>
-
+      {/* asd */}
+      {/* <EggHenLoaderIcon2 /> */}
     </div>
   )
 }
