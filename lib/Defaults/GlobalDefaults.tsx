@@ -15,11 +15,21 @@ import {
 import { getUserInfoAuthSession } from "@/app/admin/user/api";
 
 import { Button } from "@/components/ui/button";
-import { CloudDownload, RefreshCcw } from "lucide-react";
+import { CloudDownload, RefreshCcw, Tractor } from "lucide-react";
+import { getWarehouses } from "@/app/a_dean/warehouse/api";
+import { Modal } from "../Moda";
+import GlobalFarmUserSettings from "@/components/ui/GlobalFarmUserSettings";
 
 /* =======================================================
    HOOK
 ======================================================= */
+export const getSessionUser = async () => {
+  const {
+    data: { session },
+  } = await db.auth.getSession();
+
+  return session?.user ?? null;
+};
 
 export function useGlobalDefaults() {
   const { setValue } = useGlobalContext();
@@ -29,13 +39,6 @@ export function useGlobalDefaults() {
      helper: get session user once
   ------------------------------------------------------- */
 
-  const getSessionUser = async () => {
-    const {
-      data: { session },
-    } = await db.auth.getSession();
-
-    return session?.user ?? null;
-  };
 
   /* -------------------------------------------------------
      loaders
@@ -65,6 +68,16 @@ export function useGlobalDefaults() {
     try {
       const data = await getFarmDB();
       setValue("getFarmDB", data);
+      return data;
+    } catch (error) {
+      console.error("getFarmDB error:", error);
+    }
+  };
+
+  const setWhse = async () => {
+    try {
+      const data = await getWarehouses();
+      setValue("warehouses", data);
       return data;
     } catch (error) {
       console.error("getFarmDB error:", error);
@@ -122,6 +135,7 @@ export function useGlobalDefaults() {
 
       await Promise.all([
         setUserPermissions(),
+        setWhse(),
         setItems(),
         setActiveUsers(),
         setFarms(),
@@ -140,6 +154,7 @@ export function useGlobalDefaults() {
     loading,
     setGlobals,
     setUserPermissions,
+    setWhse,
     setItems,
     setActiveUsers,
     setFarms,
@@ -158,21 +173,43 @@ interface CollapsedProps {
 
 export default function GlobalDefaults({ collapsed }: CollapsedProps) {
   const { loading, setGlobals } = useGlobalDefaults();
-
+  const { setValue } = useGlobalContext();
   return (
+
+
+
+
+
     <div>
+     
+
+
+      <Button
+        variant="ghost"
+        type="button"
+        onClick={()=>  setValue("openDefaultfarmModal", true)}
+        disabled={loading}
+        className={`w-full   gap-2 py-2 justify-start ${collapsed ? "justify-center" : ""
+          }`}
+      >
+        <Tractor className="size-4 ml-2 mr-3" />
+
+        Default Farm
+      </Button>
+
+
       <Button
         variant="ghost"
         type="button"
         onClick={setGlobals}
         disabled={loading}
-        className={`w-full gap-2 px-3 py-2 justify-start ${collapsed ? "justify-center" : ""
+        className={`w-full  gap-2 py-2 justify-start ${collapsed ? "justify-center" : ""
           }`}
       >
         {loading ? (
-          <RefreshCcw className="size-4 animate-spin" />
+          <RefreshCcw className="size-4 animate-spin ml-2 mr-3" />
         ) : (
-          <CloudDownload className="size-4" />
+          <RefreshCcw className="size-4 ml-2 mr-3" />
         )}
 
         {!collapsed && <span>Refresh Data</span>}

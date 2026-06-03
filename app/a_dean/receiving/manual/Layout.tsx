@@ -30,6 +30,7 @@ import { refreshSessionx } from '@/app/admin/user/RefreshSession'
 import SearchableCombobox from '@/components/SearchableCombobox'
 import DefaultFarmComboBox from '@/app/components/DefaultFarmComboBox'
 import { VerticalRuler2 } from '@/components/VerticalRuler2'
+import { usePermission } from '@/hooks/usePermission'
 
 type ItemMasterType = {
   id: number
@@ -63,12 +64,18 @@ export default function ApprovalDecisionForm() {
   const confirm = useConfirm();
   const router = useRouter()
 
-  const { getValue, setValue } = useGlobalContext()
+  const canInsert = usePermission('/a_dean/receiving/insert')
+  useEffect(() => {
+    if (canInsert)
+      router.push("/a_dean/receiving/")
+  }, [])
 
+  const { getValue, setValue } = useGlobalContext()
+  const [tempAges, setTempAges] = useState<{ w: number; d: number }[]>([])
   const [isAutoReceiving, setisAutoReceiving] = useState(false)
   const [loading, setloading] = useState(false)
   const [farms, setfarms] = useState<Farms[]>([])
-  const [header, setHeader] = useState<DataRecordApproval | null>(null)
+  const [header, setHeader] = useState<DataRecordApproval>(emptyApprovalRecord)
   const [items, setItems] = useState<DraftItem[]>([])
   const [ItemMaster, setItemMaster] = useState<ItemMasterType[]>([])
   const [selectedRows, setSelectedRows] = useState<number[]>([])
@@ -81,6 +88,41 @@ export default function ApprovalDecisionForm() {
 
   const [activeWeeks, setActiveWeeks] = useState(26)
   const [activeDays, setActiveDays] = useState(0)
+
+
+
+
+
+  const parseAgeString = (ageString: string) => {
+    if (!ageString) return [{ w: 26, d: 0 }]
+
+    return ageString
+      .split(", ")
+      .reduce((acc: { w: number; d: number }[], _, index, arr) => {
+        if (index % 2 === 0) {
+          const weekText = arr[index]
+          const dayText = arr[index + 1]
+
+          const weekMatch = weekText?.match(/(\d+)\s+Weeks/)
+          const dayMatch = dayText?.match(/(\d+)\s+Day\(s\)/)
+
+          if (weekMatch && dayMatch) {
+            acc.push({
+              w: parseInt(weekMatch[1]),
+              d: parseInt(dayMatch[1]),
+            })
+          }
+        }
+
+        return acc
+      }, [])
+  }
+
+  const formatAgeArray = (ages: { w: number; d: number }[]) => {
+    return ages
+      .map((a) => `${a.w} Weeks, ${a.d} Day(s)`)
+      .join(", ")
+  }
 
   const parseAge = (ageString: string) => {
     if (!ageString) return { w: 26, d: 0 }
@@ -108,12 +150,41 @@ export default function ApprovalDecisionForm() {
     return format(parsedDate, "dd/MM/yyyy")
   }
 
+  // const getDefaultFarm = async () => {
+  //   const defaultFarmId = getValue("DefaultFarmId")
+
+  //   if (defaultFarmId) {
+  //     setHeader(h =>
+  //       h && !h.delivered_to
+  //         ? { ...h, delivered_to: defaultFarmId }
+  //         : h
+  //     )
+  //     return
+  //   }
+
+  //   const data = await getUserInfo()
+
+  //   if (data?.length) {
+  //     setdefaultFarm(data[0])
+
+  //     setHeader(h =>
+  //       h && !h.delivered_to
+  //         ? { ...h, delivered_to: data[0].id }
+  //         : h
+  //     )
+  //   }
+  // }
+
+  // useEffect(() => {
+  //   if (!header) return
+  //   getDefaultFarm()
+  // }, [header, getValue])
   const getDefaultFarm = async () => {
     const defaultFarmId = getValue("DefaultFarmId")
 
     if (defaultFarmId) {
       setHeader(h =>
-        h && !h.delivered_to
+        h && h.delivered_to == null
           ? { ...h, delivered_to: defaultFarmId }
           : h
       )
@@ -126,18 +197,15 @@ export default function ApprovalDecisionForm() {
       setdefaultFarm(data[0])
 
       setHeader(h =>
-        h && !h.delivered_to
+        h && h.delivered_to == null
           ? { ...h, delivered_to: data[0].id }
           : h
       )
     }
   }
-
   useEffect(() => {
-    if (!header) return
     getDefaultFarm()
-  }, [header, getValue])
-
+  }, [])
   useEffect(() => {
     refreshSessionx(router)
   }, [])
@@ -466,9 +534,12 @@ export default function ApprovalDecisionForm() {
         <CardContent className='bg-white rounded-2xl p-4 space-y-6'>
           <div className="sm:grid md:grid-cols-2 lg:grid-cols-3 sm:grid-cols-1 gap-6">
             <div className='mt-2'>
-              <Label className='pb-2'>Delivered From</Label>
+              <Label className='pb-2' required>
+                Delivered From
+              </Label>
               <SearchableCombobox
                 multiple={false}
+                required
                 showCode
                 autoHighlight
                 items={farms}
@@ -477,16 +548,13 @@ export default function ApprovalDecisionForm() {
                 onValueChange={(val) => {
                   const selectedFarm = farms.find((f: any) => f.code === val)
 
-                  setHeader(h =>
-                    h ? {
-                      ...h,
-                      soldTo: val,
-                      tin: selectedFarm?.tin || '',
-                      address: selectedFarm?.address || '',
-                    } : h
-                  )
-                }
-                }
+                  setHeader(h => ({
+                    ...(h ?? emptyApprovalRecord),
+                    soldTo: val,
+                    tin: selectedFarm?.tin || '',
+                    address: selectedFarm?.address || '',
+                  }))
+                }}
 
               />
             </div>
@@ -510,11 +578,12 @@ export default function ApprovalDecisionForm() {
             <div className='mt-1'>
               <DefaultFarmComboBox
                 label="Shipped To"
-                value={header?.delivered_to || ''}
+                value={header?.delivered_to ?? undefined}
                 setValue={(val) => {
-                  setHeader(h =>
-                    h ? { ...h, delivered_to: val } : h
-                  )
+                  setHeader(h => ({
+                    ...(h ?? emptyApprovalRecord),
+                    delivered_to: val
+                  }))
                 }
                 }
               />
@@ -559,7 +628,7 @@ export default function ApprovalDecisionForm() {
             </div>
 
             <div className="rounded-md border overflow-x-auto">
-              <Table>
+              {/* <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead></TableHead>
@@ -625,7 +694,7 @@ export default function ApprovalDecisionForm() {
                         />
                       </TableCell>
                       <TableCell>
-                        <Popover
+                        {/* <Popover
                           onOpenChange={(open) => {
                             if (open) {
                               const { w, d } = parseAge(item.age || "26 Weeks, 0 Day(s)");
@@ -666,7 +735,123 @@ export default function ApprovalDecisionForm() {
                               {activeWeeks} Weeks, {activeDays} Day(s)
                             </div>
                           </PopoverContent>
+                        </Popover>  
+
+                        <Popover
+                          onOpenChange={(open) => {
+                            if (open) {
+                              setTempAges(
+                                parseAgeString(item.age || "26 Weeks, 0 Day(s)")
+                              )
+                            } else {
+                              updateItem(item.id, {
+                                age: formatAgeArray(tempAges),
+                              })
+                            }
+                          }}
+                        >
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className="w-auto max-w-[240px] justify-start text-left font-normal overflow-hidden whitespace-nowrap"
+                            >
+                              <CalendarDays className="mr-2 h-4 w-4 shrink-0" />
+                              <span className="truncate">
+                                {item.age || "26 Weeks, 0 Day(s)"}
+                              </span>
+                            </Button>
+                          </PopoverTrigger>
+
+                          <PopoverContent className="w-80 p-4" align="start">
+                            <div className="space-y-4">
+
+                              <div className="flex items-center justify-between">
+                                <Label className="font-bold">Ages</Label>
+
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 text-xs text-primary"
+                                  onClick={() =>
+                                    setTempAges([
+                                      ...tempAges,
+                                      { w: 26, d: 0 }
+                                    ])
+                                  }
+                                >
+                                  <Plus className="mr-1 h-3 w-3" />
+                                  Add Age
+                                </Button>
+                              </div>
+
+                              <div className="max-h-[calc(100vh/2)] overflow-y-auto space-y-6 pr-2">
+
+                                {tempAges.map((age, idx) => (
+                                  <div
+                                    key={idx}
+                                    className="relative border-b pb-4 last:border-0"
+                                  >
+
+                                    <div className="flex gap-4 items-center justify-center">
+
+                                      <VerticalRuler2
+                                        label="Weeks"
+                                        min={1}
+                                        max={104}
+                                        value={age.w}
+                                        onChange={(val) => {
+                                          const newAges = [...tempAges]
+                                          newAges[idx].w = val
+                                          setTempAges(newAges)
+                                        }}
+                                      />
+
+                                      <VerticalRuler2
+                                        label="Days"
+                                        min={0}
+                                        max={6}
+                                        value={age.d}
+                                        onChange={(val) => {
+                                          const newAges = [...tempAges]
+                                          newAges[idx].d = val
+                                          setTempAges(newAges)
+                                        }}
+                                      />
+
+                                      {tempAges.length > 1 && (
+                                        <Button
+                                          type="button"
+                                          variant="secondary"
+                                          size="icon"
+                                          className="h-8 w-8 text-destructive border"
+                                          onClick={() =>
+                                            setTempAges(
+                                              tempAges.filter((_, i) => i !== idx)
+                                            )
+                                          }
+                                        >
+                                          <Plus className="h-4 w-4 rotate-45" />
+                                        </Button>
+                                      )}
+                                    </div>
+
+                                    <div className="mt-2 text-center text-xs font-medium text-muted-foreground">
+                                      {age.w} Weeks, {age.d} Day(s)
+                                    </div>
+
+                                  </div>
+                                ))}
+                              </div>
+
+                              <div className="pt-2 text-center font-bold text-sm text-primary border-t">
+                                {tempAges.length} Entry(s) Selected
+                              </div>
+
+                            </div>
+                          </PopoverContent>
                         </Popover>
+
                       </TableCell>
                       <TableCell>
                         <Input
@@ -708,7 +893,306 @@ export default function ApprovalDecisionForm() {
                     </TableRow>
                   ))}
                 </TableBody>
-              </Table>
+              </Table> */}
+
+
+              <div className="overflow-x-auto  bg-white shadow-sm">
+                <table className="w-full border-collapse text-sm">
+                  <thead className="bg-muted/40">
+                    <tr className="border-b">
+                      <th className="px-4 py-3 text-left font-semibold w-15">
+                        Option
+                      </th>
+
+                      <th className="px-4 py-3 text-left font-semibold whitespace-nowrap">
+                        Line No
+                      </th>
+
+                      <th className="px-4 py-3 text-left font-semibold min-w-65">
+                        EGG SKU
+                      </th>
+
+                      <th className="px-4 py-3 text-left font-semibold whitespace-nowrap">
+                        UoM
+                      </th>
+
+                      <th className="px-4 py-3 text-left font-semibold min-w-40">
+                        Lot No.
+                      </th>
+
+                      <th className="px-4 py-3 text-left font-semibold min-w-65">
+                        Production Date
+                      </th>
+
+                      <th className="px-4 py-3 text-left font-semibold min-w-65">
+                        Age
+                      </th>
+
+                      <th className="px-4 py-3 text-left font-semibold min-w-30">
+                        House No.
+                      </th>
+
+                      <th className="px-4 py-3 text-left font-semibold min-w-30">
+                        Total
+                      </th>
+
+                      <th className="px-4 py-3 text-left font-semibold min-w-35">
+                        Actual Total
+                      </th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {items.map((item, index) => (
+                      <tr
+                        key={item.id}
+                        className="border-b transition-colors hover:bg-muted/20"
+                      >
+                        {/* OPTION */}
+                        <td className="px-1 ">
+                          {item.isNew && (
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="checkbox"
+                                checked={selectedRows.includes(item.id)}
+                                onChange={() => toggleRow(item.id)}
+                                className="h-4 w-4 rounded border-gray-300"
+                              />
+                            </div>
+                          )}
+                        </td>
+
+                        {/* LINE NO */}
+                        <td className="px-1  text-muted-foreground">
+                          {index + 1}
+                        </td>
+
+                        {/* SKU */}
+                        <td className="px-1 ">
+                            <SearchableDropdown
+                              list={ItemMaster}
+                              codeLabel="item_code"
+                              nameLabel="item_name"
+                              value={item.sku}
+                              onChange={(val, selected) =>
+                                updateItem(item.id, {
+                                  sku: val,
+                                  UoM: selected.unit_measure || 'PCS'
+                                })
+                              }
+                            />
+                        </td>
+
+                        {/* UOM */}
+                        <td className="px-1  font-medium text-muted-foreground whitespace-nowrap">
+                          {item.UoM}
+                        </td>
+
+                        {/* LOT NO */}
+                        <td className="px-1 ">
+                          <Input
+                            required
+                            value={item.lot_no || ''}
+                            onChange={e =>
+                              updateItem(item.id, {
+                                lot_no: e.target.value
+                              })
+                            }
+                          />
+                        </td>
+
+                        {/* PROD DATE */}
+                        <td className="px-1 ">
+                          <div className="rounded-xl border bg-white px-2 py-1 shadow-sm">
+                            <DateRangePicker
+                              value={{
+                                from: item.prod_date,
+                                to: item.prod_date_to,
+                              }}
+                              onChange={(e) => {
+                                updateItem(item.id, {
+                                  prod_date: e.from,
+                                  prod_date_to: e.to,
+                                })
+                              }}
+                            />
+                          </div>
+                        </td>
+
+                        {/* AGE */}
+                        <td className="px-1 ">
+
+                          <Popover
+                            onOpenChange={(open) => {
+                              if (open) {
+                                setTempAges(
+                                  parseAgeString(item.age || "26 Weeks, 0 Day(s)")
+                                )
+                              } else {
+                                updateItem(item.id, {
+                                  age: formatAgeArray(tempAges),
+                                })
+                              }
+                            }}
+                          >
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                className="h-10 w-full max-w-60 justify-start rounded-xl border bg-white text-left font-normal shadow-sm overflow-hidden whitespace-nowrap"
+                              >
+                                <CalendarDays className="mr-2 h-4 w-4 shrink-0" />
+
+                                <span className="truncate">
+                                  {item.age || "26 Weeks, 0 Day(s)"}
+                                </span>
+                              </Button>
+                            </PopoverTrigger>
+
+                            <PopoverContent
+                              className="w-80 rounded-2xl p-4"
+                              align="start"
+                            >
+                              <div className="space-y-4">
+
+                                <div className="flex items-center justify-between">
+                                  <Label className="font-bold">
+                                    Ages
+                                  </Label>
+
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-8 text-xs text-primary"
+                                    onClick={() =>
+                                      setTempAges([
+                                        ...tempAges,
+                                        { w: 26, d: 0 }
+                                      ])
+                                    }
+                                  >
+                                    <Plus className="mr-1 h-3 w-3" />
+                                    Add Age
+                                  </Button>
+                                </div>
+
+                                <div className="max-h-[50vh] overflow-y-auto space-y-6 pr-2">
+
+                                  {tempAges.map((age, idx) => (
+                                    <div
+                                      key={idx}
+                                      className="relative border-b pb-4 last:border-0"
+                                    >
+
+                                      <div className="flex items-center justify-center gap-4">
+
+                                        <VerticalRuler2
+                                          label="Weeks"
+                                          min={1}
+                                          max={104}
+                                          value={age.w}
+                                          onChange={(val) => {
+                                            const newAges = [...tempAges]
+                                            newAges[idx].w = val
+                                            setTempAges(newAges)
+                                          }}
+                                        />
+
+                                        <VerticalRuler2
+                                          label="Days"
+                                          min={0}
+                                          max={6}
+                                          value={age.d}
+                                          onChange={(val) => {
+                                            const newAges = [...tempAges]
+                                            newAges[idx].d = val
+                                            setTempAges(newAges)
+                                          }}
+                                        />
+
+                                        {tempAges.length > 1 && (
+                                          <Button
+                                            type="button"
+                                            variant="secondary"
+                                            size="icon"
+                                            className="h-8 w-8 border text-destructive"
+                                            onClick={() =>
+                                              setTempAges(
+                                                tempAges.filter((_, i) => i !== idx)
+                                              )
+                                            }
+                                          >
+                                            <Plus className="h-4 w-4 rotate-45" />
+                                          </Button>
+                                        )}
+                                      </div>
+
+                                      <div className="mt-2 text-center text-xs font-medium text-muted-foreground">
+                                        {age.w} Weeks, {age.d} Day(s)
+                                      </div>
+
+                                    </div>
+                                  ))}
+                                </div>
+
+                                <div className="border-t pt-2 text-center text-sm font-bold text-primary">
+                                  {tempAges.length} Entry(s) Selected
+                                </div>
+
+                              </div>
+                            </PopoverContent>
+                          </Popover>
+
+                        </td>
+
+                        {/* HOUSE NO */}
+                        <td className="px-1 ">
+                          <Input
+                            required
+                            maxLength={3}
+                            value={item.house_no || ''}
+                            onChange={e => {
+                              const houseNo = e.target.value.slice(0, 3)
+
+                              updateItem(item.id, {
+                                house_no: houseNo,
+                              })
+
+                              updateItem(item.id, {
+                                brdr_ref_no: `${brdr_ref_no}-${houseNo}`
+                              })
+                            }}
+                          />
+                        </td>
+
+                        {/* TOTAL */}
+                        <td className="px-1 ">
+                          <Input
+                            type="number"
+                            value={item.total ?? 0}
+                            readOnly
+                            disabled
+                          />
+                        </td>
+
+                        {/* ACTUAL TOTAL */}
+                        <td className="px-1 ">
+                          <Input
+                            required
+                            type="number"
+                            value={item.actual_total ?? 0}
+                            onChange={e =>
+                              updateItem(item.id, {
+                                actual_total: Number(e.target.value)
+                              })
+                            }
+                          />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
 

@@ -1,68 +1,181 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+
 import { useRouter } from "next/navigation";
 import {
-  ColumnDef,
-  flexRender,
+  type ColumnDef,
+  type ColumnFiltersState,
+  type RowSelectionState,
+  type SortingState,
+  type VisibilityState,
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
+  getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
 
-import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableRow,
-  TableHead,
-  TableCell,
-} from "@/components/ui/table";
+import Breadcrumb from "@/lib/Breadcrumb";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, RefreshCw, Search } from "lucide-react";
+
+import {
+  ClipboardCopy,
+  Copy,
+  FileSearch,
+  MoreHorizontal,
+  Pencil,
+  Plus,
+  RefreshCw,
+} from "lucide-react";
 
 import {
   ChickGradingProcess,
-  deleteChickGradingProcess,
   listChickGradingProcess,
 } from "./newv2/api";
 
-import Breadcrumb from "@/lib/Breadcrumb";
-import EditActionButton from "@/components/EditActionButton";
 import { refreshSessionx } from "@/app/admin/user/RefreshSession";
 
-function fmtDateTime(v: string | null | undefined) {
-  if (!v) return "";
+import {
+  ClassificationRefBadge,
+  ClassificationTableSection,
+} from "@/components/classification/ClassificationTable";
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+import { RowDataKey } from "@/lib/Defaults/DefaultTypes";
+import { RowAction } from "@/lib/types";
+
+import { copyRow, copyTable } from "@/lib/tableActions";
+
+import { usePermission } from "@/hooks/usePermission";
+
+import { useGlobalContext } from "@/lib/context/GlobalContext";
+
+function fmtDateTime(
+  v: string | null | undefined,
+) {
+  if (!v) return "-";
+
   const d = new Date(v);
-  if (Number.isNaN(d.getTime())) return "";
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(
-    d.getDate(),
-  )} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+
+  if (Number.isNaN(d.getTime())) return "-";
+
+  const pad = (n: number) =>
+    String(n).padStart(2, "0");
+
+  return `${d.getFullYear()}-${pad(
+    d.getMonth() + 1,
+  )}-${pad(d.getDate())} ${pad(
+    d.getHours(),
+  )}:${pad(d.getMinutes())}`;
 }
+
+type DocClassificationRow = RowDataKey & {
+  id: number;
+  egg_ref_no: string;
+  batch_code: string;
+  grading_datetime: string;
+  total_chicks: number;
+  good_quality_chicks: number;
+  quality_grade_rate: string;
+  cull_rate: string;
+  grading_personnel: string;
+};
 
 export default function ChickgradingTable() {
   const router = useRouter();
 
-  const [items, setItems] = useState<ChickGradingProcess[]>([]);
-  const [columnFilters, setColumnFilters] = useState<any>([]);
-  const [sorting, setSorting] = useState<any>([]);
-  const [columnVisibility, setColumnVisibility] = useState<any>({});
-  const [rowSelection, setRowSelection] = useState<any>({});
-  const [isLoading, setIsLoading] = useState(false);
-  const [lastUpdated, setLastUpdated] = useState<string>("");
+  const [items, setItems] = useState<DocClassificationRow[]>([]);
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+
+  const [isLoading, setIsLoading] =
+    useState(false);
+
+  const { setValue } = useGlobalContext();
+
+  const canView = usePermission(
+    "/jmb/docclassification/view",
+  );
+
+  const canInsert = usePermission(
+    "/jmb/docclassification/insert",
+  );
+
+  const canEdit = usePermission(
+    "/jmb/docclassification/edit",
+  );
 
   const load = useCallback(async () => {
     setIsLoading(true);
+
     try {
-      const data = await listChickGradingProcess();
-      setItems(Array.isArray(data) ? data : []);
-      setLastUpdated(new Date().toLocaleString());
+      const data =
+        await listChickGradingProcess();
+
+      const mapped =
+        Array.isArray(data)
+          ? data.map(
+              (
+                item: ChickGradingProcess,
+              ) => ({
+                id: Number(item.id),
+
+                egg_ref_no:
+                  item.egg_ref_no || "-",
+
+                batch_code:
+                  item.batch_code || "-",
+
+                grading_datetime:
+                  fmtDateTime(
+                    item.grading_datetime,
+                  ),
+
+                total_chicks:
+                  Number(
+                    item.total_chicks || 0,
+                  ),
+
+                good_quality_chicks:
+                  Number(
+                    item.good_quality_chicks ||
+                      0,
+                  ),
+
+                quality_grade_rate:
+                  item.quality_grade_rate === null ||
+                  item.quality_grade_rate === undefined
+                    ? "-"
+                    : String(item.quality_grade_rate),
+
+                cull_rate:
+                  item.cull_rate === null ||
+                  item.cull_rate === undefined
+                    ? "-"
+                    : String(item.cull_rate),
+
+                grading_personnel:
+                  item.grading_personnel ||
+                  "-",
+              }),
+            )
+          : [];
+
+      setItems(mapped);
     } catch (e) {
       console.error(e);
+
       setItems([]);
     } finally {
       setIsLoading(false);
@@ -71,82 +184,170 @@ export default function ChickgradingTable() {
 
   useEffect(() => {
     refreshSessionx(router);
-  }, []);
+  }, [router]);
 
   useEffect(() => {
-    router.prefetch("/jmb/docclassification/newv2");
+    router.prefetch(
+      "/jmb/docclassification/newv2",
+    );
+
     load();
   }, [router, load]);
 
-  async function onDelete(id: number) {
-    if (!confirm("Delete this record?")) return;
-    await deleteChickGradingProcess(id);
-    await load();
-    router.refresh();
-  }
+  useEffect(() => {
+    setValue("loading_g", isLoading);
+  }, [isLoading, setValue]);
 
-  const columns = useMemo<ColumnDef<ChickGradingProcess>[]>(
+  const getRowActions = useCallback((
+    row: DocClassificationRow,
+  ): RowAction[] => {
+    return [
+      {
+        label: "View",
+
+        icon: <FileSearch className="w-4 h-4" />,
+
+        disabled: canView,
+
+        onClick: () => {
+          router.push(
+            `/jmb/docclassification/view/${row.id}`,
+          );
+        },
+      },
+
+      {
+        label: "Edit",
+
+        disabled: canEdit,
+
+        icon: <Pencil className="w-4 h-4" />,
+
+        onClick: () => {
+          router.push(
+            `/jmb/docclassification/newv2?id=${row.id}`,
+          );
+        },
+      },
+
+      {
+        label: "Copy Row",
+
+        icon: <Copy className="w-4 h-4" />,
+
+        onClick: () => {
+          copyRow(row);
+        },
+      },
+
+      {
+        label: "Copy Table",
+
+        icon: (
+          <ClipboardCopy className="w-4 h-4" />
+        ),
+
+        onClick: () => {
+          copyTable(items);
+        },
+      },
+    ];
+  }, [canEdit, canView, items, router]);
+
+  const columns = useMemo<ColumnDef<DocClassificationRow>[]>(
     () => [
       {
         id: "row_no",
         header: "#",
-        cell: ({ row }) => row.index + 1,
+        enableSorting: false,
+        cell: ({ row, table }) =>
+          table.getState().pagination.pageIndex *
+            table.getState().pagination.pageSize +
+          row.index +
+          1,
       },
       {
         id: "action",
         header: "Action",
+        enableSorting: false,
+        cell: ({ row }) => {
+          const actions = getRowActions(row.original);
+
+          return (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="h-8 rounded-md bg-white px-2"
+                >
+                  <MoreHorizontal className="size-4" />
+                </Button>
+              </DropdownMenuTrigger>
+
+              <DropdownMenuContent align="end">
+                {actions.map((action, index) => (
+                  <DropdownMenuItem
+                    key={index}
+                    disabled={action.disabled}
+                    onClick={() => action.onClick(row.original)}
+                    className="flex cursor-pointer items-center gap-2"
+                  >
+                    {action.icon}
+                    {action.label}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          );
+        },
+      },
+      {
+        accessorKey: "egg_ref_no",
+        header: "Egg Reference No.",
         cell: ({ row }) => (
-          <div className="flex items-center gap-2">
-            <EditActionButton
-              id={row.original?.id}
-              href={(id) => `/jmb/docclassification/newv2?id=${id}`}
-            />
-          </div>
+          <ClassificationRefBadge value={row.original.egg_ref_no} />
         ),
       },
-      { accessorKey: "egg_ref_no", header: "Egg Reference No." },
-      { accessorKey: "batch_code", header: "Batch code" },
-      {
-        accessorKey: "grading_datetime",
-        header: "Grading date & time",
-        cell: ({ row }) => fmtDateTime(row.original.grading_datetime),
-      },
+      { accessorKey: "batch_code", header: "Batch Code" },
+      { accessorKey: "grading_datetime", header: "Grading Date & Time" },
       {
         accessorKey: "total_chicks",
         header: "Total Egg Set",
-        cell: ({ row }) => {
-          const value = row.original.total_chicks ?? 0;
-          return Number(value).toLocaleString();
-        },
+        cell: ({ getValue }) =>
+          Number(getValue<number>() || 0).toLocaleString(),
       },
       {
         accessorKey: "good_quality_chicks",
-        header: "Good quality chicks",
-        cell: ({ row }) => {
-          const value = row.original.good_quality_chicks ?? 0;
-          return Number(value).toLocaleString();
-        },
+        header: "Good Quality Chicks",
+        cell: ({ getValue }) => (
+          <span className="font-semibold text-teal-700">
+            {Number(getValue<number>() || 0).toLocaleString()}
+          </span>
+        ),
       },
-      { accessorKey: "quality_grade_rate", header: "Quality grade rate %" },
-      { accessorKey: "cull_rate", header: "Cull rate %" },
-      { accessorKey: "grading_personnel", header: "Grading personnel" },
+      { accessorKey: "quality_grade_rate", header: "Quality Grade Rate %" },
+      { accessorKey: "cull_rate", header: "Cull Rate %" },
+      { accessorKey: "grading_personnel", header: "Grading Personnel" },
     ],
-    [],
+    [getRowActions],
   );
 
   const table = useReactTable({
     data: items,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    onColumnFiltersChange: setColumnFilters,
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
     onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
     state: {
-      columnFilters,
       sorting,
+      columnFilters,
       columnVisibility,
       rowSelection,
     },
@@ -161,112 +362,63 @@ export default function ChickgradingTable() {
 
       <div className="flex items-center justify-between mb-4 gap-3">
         <div className="flex items-center gap-3">
-          <div className="relative w-72">
-            <Input
-              placeholder="Filter Egg Reference No."
-              className="pl-10"
-              value={
-                (table.getColumn("egg_ref_no")?.getFilterValue() as string) ??
-                ""
-              }
-              onChange={(e) =>
-                table.getColumn("egg_ref_no")?.setFilterValue(e.target.value)
-              }
-            />
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-          </div>
-
           <Button
             type="button"
             variant="outline"
             onClick={load}
             disabled={isLoading}
-            className="flex items-center gap-2 w-full md:w-auto h-full md:h-auto"
+            className="flex items-center gap-2"
           >
             <RefreshCw
-              className={`size-4 ${isLoading ? "animate-spin" : ""}`}
+              className={`size-4 ${
+                isLoading
+                  ? "animate-spin"
+                  : ""
+              }`}
             />
-            {isLoading ? "Refreshing..." : "Refresh"}
+
+            {isLoading
+              ? "Refreshing..."
+              : "Refresh"}
           </Button>
         </div>
 
         <Button
           type="button"
-          onClick={() => router.push("/jmb/docclassification/newv2")}
-          className="flex items-center gap-2 w-full md:w-auto h-full md:h-auto"
+          onClick={() =>
+            router.push(
+              "/jmb/docclassification/newv2",
+            )
+          }
+          disabled={canInsert}
+          className="flex items-center gap-2"
         >
           <Plus className="size-4" />
+
           New DOC Classification
         </Button>
       </div>
 
-      <div className="rounded-md border bg-white">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((hg) => (
-              <TableRow key={hg.id}>
-                {hg.headers.map((h) => (
-                  <TableHead key={h.id} className="whitespace-nowrap">
-                    {h.isPlaceholder
-                      ? null
-                      : flexRender(h.column.columnDef.header, h.getContext())}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-
-          <TableBody>
-            {table.getRowModel().rows.length ? (
-              table.getRowModel().rows.map((r) => (
-                <TableRow key={r.id}>
-                  {r.getVisibleCells().map((c) => (
-                    <TableCell key={c.id}>
-                      {c.column.columnDef.cell
-                        ? flexRender(c.column.columnDef.cell, c.getContext())
-                        : String(c.getValue() ?? "")}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  {isLoading ? "Loading..." : "No results."}
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
-
-      <div className="flex items-center justify-between gap-2">
-        <div className="text-sm text-muted-foreground">
-          Page {table.getState().pagination.pageIndex + 1} of{" "}
-          {table.getPageCount()}
-        </div>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            Prev
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            Next
-          </Button>
-        </div>
-      </div>
+      <ClassificationTableSection
+        table={table}
+        title="Doc Classification"
+        tone="sky"
+        isLoading={isLoading}
+        colSpan={columns.length}
+        paginationMode="showing-rows"
+        headerActions={
+          <Input
+            placeholder="Filter Egg Reference No."
+            className="h-9 w-full rounded-md border-stone-300 bg-white sm:w-72"
+            value={
+              (table.getColumn("egg_ref_no")?.getFilterValue() as string) ?? ""
+            }
+            onChange={(e) =>
+              table.getColumn("egg_ref_no")?.setFilterValue(e.target.value)
+            }
+          />
+        }
+      />
     </div>
   );
 }

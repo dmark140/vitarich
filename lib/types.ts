@@ -96,6 +96,8 @@ export interface UserInsert {
   remarks?: string | null;
   supervisor?: string | null;
   default_farm?: string | null;
+  region?: string | null;
+  archipelago?: string | null;
 }
 
 
@@ -124,6 +126,8 @@ export interface UserRow {
   issuper: string | null;
   supervisor?: string | null;
   isactive?: string | null;
+  region?: string | null;
+  archipelago?: string | null;
 
 }
 export type DraftStatus = 'pending' | 'approved' | 'rejected';
@@ -304,7 +308,7 @@ export type DataTableColumn = {
 
 
   disabled?: boolean
-  list?: any[]
+  list?: any[] | ((row: any) => any[])
 
   // 🔥 Custom renderer
   render?: (
@@ -520,3 +524,69 @@ export type farm_dr_unres = {
   dr_num: string | null
 }
 
+export interface Items {
+  id: number | null
+  item_code: string | null
+  description: string | null
+  barcode: string | null
+  unit_measure: string | null
+  created_at: string | null
+  item_name: string | null
+  void: number | null
+  is_inventory_item: boolean | null
+  is_sales_item: boolean | null
+  is_purchase_item: boolean | null
+  on_hand: number | null
+  is_committed: number | null
+  on_order: number | null
+  inventory_uom: string | null
+  item_group: string | null
+  manage_batch_numbers: boolean | null
+  manage_serial_numbers: boolean | null
+  updated_at: string | null
+  group: string | null
+}
+
+
+import { LucideIcon } from "lucide-react";
+import { RowDataKey } from './Defaults/DefaultTypes';
+
+export type NavItemType = "Module" | "Report";
+
+export interface NavPermission {
+  view?: boolean;
+  insert?: boolean;
+  edit?: boolean;
+}
+
+export interface NavChild extends NavPermission {
+  id: number;
+  type: NavItemType;
+  title: string;
+  url: string;
+
+  inventoriable?: boolean;
+  section?: string;
+}
+
+export interface NavGroup {
+  group: string;
+  children: NavChild[];
+}
+
+export interface NavFolder extends NavPermission {
+  id: number;
+  title: string;
+  url: string;
+  icon: LucideIcon;
+  items?: NavGroup[];
+}
+
+
+
+export type RowAction = {
+  label: string
+  icon?: React.ReactNode
+  disabled?: boolean
+  onClick: (row: RowDataKey) => void
+}

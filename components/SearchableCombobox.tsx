@@ -10,6 +10,7 @@ import {
   ComboboxEmpty,
   ComboboxItem,
   ComboboxList,
+  ComboboxTrigger,
   ComboboxValue,
   useComboboxAnchor,
 } from "@/components/ui/combobox"
@@ -23,6 +24,7 @@ import {
 
 import { Input } from "./ui/input"
 import { Label } from "./ui/label"
+import { ChevronDown } from "lucide-react"
 
 
 export type ComboboxItemType = {
@@ -173,7 +175,7 @@ export default function SearchableCombobox(props: Props) {
 
   return (
     <div className="relative overflow-x-auto">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center ">
         {props.label && (
           <Label className="mb-2" required={props.required} >
             {props.label}
@@ -185,6 +187,7 @@ export default function SearchableCombobox(props: Props) {
       </div>
 
       <Combobox
+
         open={open}
         onOpenChange={(o) => {
           setOpen(o)
@@ -217,8 +220,9 @@ export default function SearchableCombobox(props: Props) {
           }
         }}
       >
-        <ComboboxChips ref={anchor} className={className}>
-          <ComboboxValue>
+
+        <ComboboxChips ref={anchor} className={`${className} border  border-black/10 `}>
+          <ComboboxValue >
             {(values) => {
               const normalized = Array.isArray(values)
                 ? values
@@ -230,15 +234,13 @@ export default function SearchableCombobox(props: Props) {
                 const selected = normalizedValue as string[]
                 const first = selected[0]
 
-                const firstItem = items.find(
-                  (f) => f.code === first
-                )
+                const firstItem = items.find((f) => f.code === first)
 
                 return (
-                  <div className="flex flex-col w-full min-w-0 gap-1">
+                  <div className="flex flex-col w-full min-w-0 gap-1 ">
                     <div className="flex items-center gap-1 overflow-hidden flex-nowrap">
                       {first && (
-                        <ComboboxChip className="bg-secondary  rounded-2xl text-secondary-foreground shrink-0">
+                        <ComboboxChip className="bg-secondary rounded-2xl text-secondary-foreground shrink-0 ">
                           <span className="truncate">
                             {formatLabel(firstItem)}
                           </span>
@@ -262,10 +264,11 @@ export default function SearchableCombobox(props: Props) {
               )
             }}
           </ComboboxValue>
-        </ComboboxChips>
 
-        <ComboboxContent anchor={anchor}>
-{/* 
+          <ComboboxTrigger />
+        </ComboboxChips>
+        <ComboboxContent anchor={anchor} onClick={() => anchor.current?.click()} >
+          {/* 
         <ComboboxContent
           anchor={anchor}
           onMouseDownCapture={(e) => e.stopPropagation()}
@@ -340,78 +343,78 @@ export default function SearchableCombobox(props: Props) {
           )}
 
           <ComboboxList>
-            {(item: ComboboxItemType) => (
+            {(item: ComboboxItemType, index: number) => (
               <ComboboxItem
-                key={item.code}
+                key={`${item.code}-${index}`}
                 value={item.code}
               >
                 {formatLabel(item)}
               </ComboboxItem>
             )}
           </ComboboxList>
-        </ComboboxContent>
+      </ComboboxContent>
 
-        <Dialog
-          open={showModal}
-          onOpenChange={setShowModal}
-        >
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>
-                Selected Items
-              </DialogTitle>
-            </DialogHeader>
+      <Dialog
+        open={showModal}
+        onOpenChange={setShowModal}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              Selected Items
+            </DialogTitle>
+          </DialogHeader>
 
-            <Input
-              placeholder="Search selected..."
-              value={modalSearch}
-              onChange={(e) =>
-                setModalSearch(e.target.value)
-              }
-              className="mb-2"
-            />
+          <Input
+            placeholder="Search selected..."
+            value={modalSearch}
+            onChange={(e) =>
+              setModalSearch(e.target.value)
+            }
+            className="mb-2"
+          />
 
-            <div className="max-h-75 overflow-auto space-y-2">
-              {modalFiltered.length === 0 && (
-                <div className="text-sm text-muted-foreground">
-                  No items found.
-                </div>
-              )}
+          <div className="max-h-75 overflow-auto space-y-2">
+            {modalFiltered.length === 0 && (
+              <div className="text-sm text-muted-foreground">
+                No items found.
+              </div>
+            )}
 
-              {modalFiltered.map((item) => (
-                <div
-                  key={item.code}
-                  className="flex items-center justify-between border rounded-md px-3 py-2"
-                >
-                  <span className="text-sm">
-                    {formatLabel(item)}
-                  </span>
+            {modalFiltered.map((item) => (
+              <div
+                key={item.code}
+                className="flex items-center justify-between border rounded-md px-3 py-2"
+              >
+                <span className="text-sm">
+                  {formatLabel(item)}
+                </span>
 
-                  <button
-                    className="text-xs text-red-500 hover:underline"
-                    onClick={() => {
-                      if (!props.multiple)
-                        return
+                <button
+                  className="text-xs text-red-500 hover:underline"
+                  onClick={() => {
+                    if (!props.multiple)
+                      return
 
-                      const current =
-                        normalizedValue as string[]
+                    const current =
+                      normalizedValue as string[]
 
-                      props.onValueChange(
-                        current.filter(
-                          (v) =>
-                            v !== item.code
-                        )
+                    props.onValueChange(
+                      current.filter(
+                        (v) =>
+                          v !== item.code
                       )
-                    }}
-                  >
-                    Remove
-                  </button>
-                </div>
-              ))}
-            </div>
-          </DialogContent>
-        </Dialog>
-      </Combobox>
-    </div>
+                    )
+                  }}
+                >
+                  Remove
+                </button>
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </Combobox>
+    </div >
   )
 }
